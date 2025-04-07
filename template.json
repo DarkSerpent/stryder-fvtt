@@ -1,0 +1,399 @@
+{
+  "Actor": {
+    "types": ["character", "npc", "monster"],
+    "templates": {
+      "base": {
+        "health": {
+          "value": 8,
+          "min": 0,
+          "max": 8
+        },
+        "mana": {
+          "value": 3,
+          "min": 0,
+          "max": 3
+        },
+        "stamina": {
+          "value": 2,
+          "min": 0,
+          "max": 2
+        },
+        "aegis": {
+          "value": 20,
+          "min": 0,
+          "max": 20
+        },
+        "resource1": {
+          "value": 0,
+          "min": 0,
+          "max": 0
+        },
+        "resource2": {
+          "value": 0,
+          "min": 0,
+          "max": 0
+        },
+        "biography": ""
+      }
+    },
+    "character": {
+      "templates": ["base"],
+      "grail": 0,
+      "guild_tokens": 0,
+      "attributes": {
+        "mastery": 0,
+        "weight_class": 4,
+        "level": {
+          "value": 1
+        },
+        "move": {
+          "running": {
+            "value": 7,
+            "expertise": false
+          },
+          "climbing": {
+            "value": 3,
+            "expertise": false
+          },
+          "crawling": {
+            "value": 2,
+            "expertise": false
+          },
+          "marching": {
+            "value": 4,
+            "expertise": false
+          },
+          "swimming": {
+            "value": 4,
+            "expertise": false
+          },
+          "max": 7
+        },
+        "sense": {
+          "sight": {
+            "value": 0
+          },
+          "hearing": {
+            "value": 0
+          },
+          "smell": {
+            "value": 0
+          },
+          "arcane": {
+            "value": 0
+          },
+          "touch": {
+            "value": 0
+          }
+        },
+        "talent": {
+          "endurance": {
+            "value": 0
+          },
+          "nimbleness": {
+            "value": 0
+          },
+          "reflex": {
+            "value": 0
+          },
+          "strength": {
+            "value": 0
+          },
+          "stealth": {
+            "value": 0
+          },
+          "survival": {
+            "value": 0
+          },
+          "charm": {
+            "value": 0
+          },
+          "wit": {
+            "value": 0
+          },
+          "wisdom": {
+            "value": 0
+          },
+          "deceit": {
+            "value": 0
+          },
+          "diplomacy": {
+            "value": 0
+          },
+          "glamor": {
+            "value": 0
+          },
+          "intimacy": {
+            "value": 0
+          },
+          "threat": {
+            "value": 0
+          }
+        }
+      },
+      "abilities": {
+        "Power": {
+          "value": 0
+        },
+        "Agility": {
+          "value": 0
+        },
+        "Grit": {
+          "value": 0
+        },
+        "Arcana": {
+          "value": 0
+        },
+        "Intuition": {
+          "value": 0
+        },
+        "Will": {
+          "value": 0
+        }
+      }
+    },
+    "monster": {
+      "templates": ["base"],
+      "attributes": {
+        "weight_class": 4,
+        "challenge": {
+          "value": 0
+        },
+        "move": {
+          "running": {
+            "value": 7,
+            "expertise": false
+          },
+          "climbing": {
+            "value": 3,
+            "expertise": false
+          },
+          "crawling": {
+            "value": 2,
+            "expertise": false
+          },
+          "marching": {
+            "value": 4,
+            "expertise": false
+          },
+          "swimming": {
+            "value": 4,
+            "expertise": false
+          },
+          "max": 7
+        },
+        "sense": {
+          "sight": {
+            "value": 0
+          },
+          "hearing": {
+            "value": 0
+          },
+          "smell": {
+            "value": 0
+          },
+          "arcane": {
+            "value": 0
+          },
+          "touch": {
+            "value": 0
+          }
+        },
+        "talent": {
+          "endurance": {
+            "value": 0
+          },
+          "nimbleness": {
+            "value": 0
+          },
+          "reflex": {
+            "value": 0
+          },
+          "strength": {
+            "value": 0
+          },
+          "stealth": {
+            "value": 0
+          },
+          "survival": {
+            "value": 0
+          },
+          "charm": {
+            "value": 0
+          },
+          "wit": {
+            "value": 0
+          },
+          "wisdom": {
+            "value": 0
+          },
+          "deceit": {
+            "value": 0
+          },
+          "diplomacy": {
+            "value": 0
+          },
+          "glamor": {
+            "value": 0
+          },
+          "intimacy": {
+            "value": 0
+          },
+          "threat": {
+            "value": 0
+          }
+        }
+      },
+      "abilities": {
+        "might": {
+          "value": 0
+        },
+        "magyk": {
+          "value": 0
+        },
+        "speed": {
+          "value": 0
+        },
+        "instinct": {
+          "value": 0
+        },
+        "armor": {
+          "value": 0
+        }
+      }
+    },
+    "npc": {
+      "templates": ["base"],
+      "level": 0
+    }
+  },
+  "Item": {
+    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession"],
+    "templates": {
+      "base": {
+        "description": "",
+		"roll": {
+			"diceBonus": 0,
+			"diceNum": 2,
+			"diceSize": 6
+		}
+      }
+    },
+    "action": {
+        "templates": ["base"],
+        "roll": {
+          "diceBonus": 0,
+          "diceNum": 2,
+          "diceSize": 6
+        }
+    },
+    "armament": {
+        "templates": ["base"],
+        "armament": {
+          "isWitchblade": false
+        },
+        "roll": {
+          "diceBonus": 0,
+          "diceNum": 2,
+          "diceSize": 6
+        }
+	},
+    "generic": {
+        "templates": ["base"],
+        "roll": {
+          "diceBonus": 0,
+          "diceNum": 2,
+          "diceSize": 6
+        }
+    },
+    "hex": {
+        "templates": ["base"],
+        "roll": {
+          "diceBonus": 0,
+          "diceNum": 2,
+          "diceSize": 6
+        }
+    },
+    "loot": {
+        "templates": ["base"],
+        "rarity": "common",
+        "sell_price": 0
+    },
+    "component": {
+        "templates": ["base"],
+        "grade": "G4",
+        "sell_price": 0
+    },
+    "consumable": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0,
+        "charges": {
+          "value": 1,
+          "max": 1
+        }
+    },
+    "gear": {
+        "templates": ["base"],
+        "quality": "prototype",
+        "nature": "enchanted",
+        "sell_price": 0,
+        "charges": {
+          "value": 0,
+          "max": 0
+        }
+    },
+    "aegiscore": {
+        "templates": ["base"]
+    },
+    "legacies": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted"
+    },
+    "head": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0
+    },
+    "back": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0
+    },
+    "arms": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0
+    },
+    "legs": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0
+    },
+    "gems": {
+        "templates": ["base"],
+        "rarity": "common",
+        "nature": "enchanted",
+        "sell_price": 0
+    },
+    "item": {
+      "templates": ["base"],
+      "quantity": 1,
+      "weight": 0,
+      "formula": "2d6"
+    },
+    "feature": {
+      "templates": ["base"]
+    },
+    "spell": {
+      "templates": ["base"],
+      "spellLevel": 1
+    }
+  }
+}

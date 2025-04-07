@@ -1,0 +1,51 @@
+{
+  "id": "stryder",
+  "title": "Stryder Roleplaying Game",
+  "description": "The official Foundry VTT System for the Stryder Tabletop Roleplaying Game",
+  "authors": [
+    {
+      "name": "Amarulence",
+      "discord": "amarulence"
+    }
+  ],
+  "url": "https://github.com/DarkSerpent/stryder-fvtt",
+  "license": "LICENSE.txt",
+  "readme": "README.md",
+  "changelog": "CHANGELOG.md",
+  "media": [
+    {
+      "type": "setup",
+      "url": "systems/stryder/assets/stryderfvtt.png",
+      "thumbnail": "systems/stryder/assets/stryderfvtt.png"
+    }
+  ],
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12",
+    "maximum": "12"
+  },
+  "esmodules": ["module/stryder.mjs"],
+  "styles": ["css/stryder.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "packs": [
+  ],
+  "packFolders": [
+  ],
+  "socket": true,
+  "manifest": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/1.0.0/system.json",
+  "download": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/1.0.0/system.zip",
+  "background": "systems/stryder/assets/stryderfvtt.png",
+  "grid": {
+    "distance": 1,
+    "units": "m"
+  },
+  "primaryTokenAttribute": "health",
+  "secondaryTokenAttribute": "mana"
+}

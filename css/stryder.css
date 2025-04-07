@@ -526,8 +526,8 @@ progress.resource2-bar::-moz-progress-bar {
 
 .align-right-container-level {
     display: flex;
-    justify-content: flex-end; /* Aligns the container's contents to the right */
-    width: 100%; /* Ensure the container takes full width to allow right alignment */
+    justify-content: flex-end;
+    width: 100%;
 	position: relative;
 	top: 0px;
 	left: 250px;
@@ -535,8 +535,8 @@ progress.resource2-bar::-moz-progress-bar {
 
 .align-right-container-mastery {
     display: flex;
-    justify-content: flex-end; /* Aligns the container's contents to the right */
-    width: 100%; /* Ensure the container takes full width to allow right alignment */
+    justify-content: flex-end;
+    width: 100%;
 	position: relative;
 	top: 185px;
 	left: -238px;
@@ -544,16 +544,16 @@ progress.resource2-bar::-moz-progress-bar {
 
 .resource-content-level {
     display: flex;
-    flex-direction: column; /* Stack children vertically */
-    align-items: center; /* Center align items horizontally */
-    width: 100%; /* Take full width of its parent to help with right alignment */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .resource-content-mastery {
     display: flex;
-    flex-direction: column; /* Stack children vertically */
-    align-items: center; /* Center align items horizontally */
-    width: 100%; /* Take full width of its parent to help with right alignment */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 #level-value-input {
@@ -561,21 +561,21 @@ progress.resource2-bar::-moz-progress-bar {
     height: 50px;
 	font-size: 28px;
 	font-family: Modesto Condensed;
-    text-align: center; /* Center text inside the input */
-    padding: 0; /* Remove padding to avoid visual offset */
-    box-sizing: border-box; /* Include padding and border in the width and height */
-    margin-top: 5px; /* Space between label and input */
+    text-align: center;
+    padding: 0;
+    box-sizing: border-box;
+    margin-top: 5px;
 }
 
 #mastery-value-input {
-    width: 50px; /* Square input */
+    width: 50px;
     height: 50px;
 	font-size: 28px;
 	font-family: Modesto Condensed;
-    text-align: center; /* Center text inside the input */
-    padding: 0; /* Remove padding to avoid visual offset */
-    box-sizing: border-box; /* Include padding and border in the width and height */
-    margin-top: 5px; /* Space between label and input */
+    text-align: center;
+    padding: 0;
+    box-sizing: border-box;
+    margin-top: 5px;
 	pointer-events: auto !important;
 }
 
@@ -598,9 +598,9 @@ progress.resource2-bar::-moz-progress-bar {
 
 .flavor-text {
     color: black !important;
-    font-family: inherit !important;    /* Inherits the font family from the parent */
-    font-size: inherit !important;      /* Inherits the font size from the parent */
-    font-weight: inherit !important;    /* Inherits the font weight from the parent */
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
 }
 
 .fantasy-input {

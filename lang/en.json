@@ -1,0 +1,99 @@
+{
+  "STRYDER": {
+    "Ability": {
+      "power": { "long": "Power", "abbr": "POW" },
+      "agility": { "long": "Agility", "abbr": "AGI" },
+      "grit": { "long": "Grit", "abbr": "GRT" },
+      "arcana": { "long": "Arcana", "abbr": "ARC" },
+      "intuition": { "long": "Intuition", "abbr": "INT" },
+      "will": { "long": "Will", "abbr": "WLP" },
+      "Notargetwarn": "No targets selected.",
+      "Multitargetwarn": "Multiple targets selected.",
+      "Noselectwarn": "No token selected.",
+      "Multiselectwarn": "Multiple tokens selected.",
+      "InputPlaceHolder": "Input here.",
+      "NotTokenwarn": "No token could be located on the Canvas Token.",
+      "Shortage": "Shortage",
+      "Hp": "HP",
+      "Mp": "Mana",
+      "Stm": "Stamina",
+      "UnderZero": "0 or less",
+      "NoCost": "No Cost"
+    },
+    "SheetLabels": {
+      "Actor": "Stryder Actor Sheet",
+      "Item": "Stryder Item Sheet",
+      "Senses": "Senses",
+      "Talents": "Talents",
+      "Sense": {
+        "sight": "Sight",
+        "hearing": "Hearing",
+        "smell": "Smell",
+        "arcane": "Arcane",
+        "taste": "Taste",
+        "touch": "Touch"
+      },
+      "Talent": {
+        "endurance": "Endurance",
+        "nimbleness": "Nimbleness",
+        "reflex": "Reflex",
+        "strength": "Strength",
+        "stealth": "Stealth",
+        "survival": "Survival",
+        "charm": "Charm",
+        "wit": "Wit",
+        "wisdom": "Wisdom",
+        "deceit": "Deceit",
+        "diplomacy": "Diplomacy",
+        "glamor": "Glamor",
+        "intimacy": "Intimacy",
+        "threat": "Threat"
+      }
+    },
+    "Item": {
+      "Spell": {
+        "SpellLVL": "Level {level} Spells",
+        "AddLVL": "Add LVL {level}"
+      }
+    },
+    "Effect": {
+      "Source": "Source",
+      "Toggle": "Toggle Effect",
+      "Temporary": "Temporary Effects",
+      "Passive": "Passive Effects",
+      "Inactive": "Inactive Effects"
+    }
+  },
+
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC",
+      "monster": "Monster"
+    },
+    "Item": {
+      "action": "Action",
+      "armament": "Armament",
+      "generic": "Generic Attack",
+      "aegiscore": "Aegis Core",
+      "legacies": "Legacy",
+      "head": "Head Slot",
+      "back": "Back Slot",
+      "arms": "Arms Slot",
+      "legs": "Legs Slot",
+      "gems": "Gems",
+      "loot": "Loot",
+      "component": "Component",
+      "consumable": "Consumable",
+      "gear": "Gear",
+      "fantasm": "Fantasm",
+      "hex": "Hex",
+      "skill": "Skill",
+      "feature": "Class Feature",
+      "racial": "Folk Ability",
+      "statperk": "Stat Perk",
+      "technique": "Technique",
+      "profession": "Profession"
+    }
+  }
+}

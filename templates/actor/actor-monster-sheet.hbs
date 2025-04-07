@@ -1,0 +1,207 @@
+<link href="https://fonts.googleapis.com/css2?family=Tangerine&display=swap" rel="stylesheet">
+<form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
+<div class="unique-logo-container">
+    <img class="logo" src="systems/stryder/assets/stryderfvtt_title_m.png" width="125" height="125">
+</div>
+<div class="unique-level-container">
+		<div class="resource flex-group-center align-right-container-level">
+			<div class="resource-content-level flex-column flex-center">
+				<label for="level-value-input" class="resource-label-challenge">Challenge</label>
+				<input type="text" id="level-value-input" name="system.attributes.challenge.value" value="{{system.attributes.challenge.value}}" data-dtype="Number"/>
+			</div>
+		</div>
+</div>
+  {{!-- Sheet Header --}}
+  <header class="sheet-header">
+    <img class="profile-img" style="margin-top: 80px;" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+    <div class="header-fields">
+		<div class="fantasy-input">
+				<input name="name" type="text" value="{{actor.name}}" placeholder="Name"/>
+		</div><br />
+      {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
+      use both the "grid" and "grid-Ncol" class where "N" can be any number
+      from 1 to 12 and will create that number of columns.  --}}
+        <div class="character-details-secondary textalign-center flexrow">
+          <div class="character-species">
+            <label for="{{actor._id}}species" class="resource-label">{{localize "Species"}}</label> 
+            <input id="{{actor._id}}species" type="text" name="system.species" value="{{system.species}}" placeholder="Species" data-dtype="String"/>
+          </div>
+          <div class="character-nature">
+            <label for="{{actor._id}}nature" class="resource-label">{{localize "Nature"}}</label>
+            <input id="{{actor._id}}nature" type="text" name="system.attributes.nature" value="{{system.attributes.nature}}" placeholder="Nature" data-dtype="String"/>
+          </div>
+          <div class="character-origin">
+            <label for="{{actor._id}}origin" class="resource-label">{{localize "Origin"}}</label>
+            <input id="{{actor._id}}origin" type="text" name="system.attributes.origin" value="{{system.attributes.origin}}" placeholder="Origin" data-dtype="String"/>
+          </div>
+		</div>
+      <div class="resources grid grid-3col">
+
+        {{!-- "flex-group-center" is also defined in the _grid.scss file
+        and it will add a small amount of padding, a border, and will
+        center all of its child elements content and text. --}}
+
+        <div class="resource flex-group-center">
+          <label for="system.health.value" class="resource-label">Health</label>
+		  <div class="hpbar">
+			<div class="hp-progress-bar">
+			  <progress class="hp-bar grid-span-3" value="{{system.health.value}}" max="{{system.health.max}}"></progress>
+			</div>
+		  </div>
+          <div class="resource-content flexrow flex-center flex-between">
+          <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
+          <span> / </span>
+          <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+
+        <div class="resource flex-group-center">
+          <label for="system.mana.value" class="resource-label">Mana</label>
+		  <div class="mpbar">
+			<div class="mp-progress-bar">
+			  <progress class="mp-bar grid-span-3" value="{{system.mana.value}}" max="{{system.mana.max}}"></progress>
+			</div>
+		  </div>
+          <div class="resource-content flexrow flex-center flex-between">
+          <input type="text" name="system.mana.value" value="{{system.mana.value}}" data-dtype="Number"/>
+          <span> / </span>
+          <input type="text" name="system.mana.max" value="{{system.mana.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+
+        <div class="resource flex-group-center">
+          <label for="system.stamina.value" class="resource-label">Stamina</label>
+		  <div class="staminabar">
+			<div class="stamina-progress-bar">
+			  <progress class="stamina-bar grid-span-3" value="{{system.stamina.value}}" max="{{system.stamina.max}}"></progress>
+			</div>
+		  </div>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="text" name="system.stamina.value" value="{{system.stamina.value}}" data-dtype="Number"/>
+            <span> / </span>
+            <input type="text" name="system.stamina.max" value="{{system.stamina.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    {{!-- Default tab is specified in actor-sheet.mjs --}}
+    <a class="item" data-tab="features">Features</a>
+    <a class="item" data-tab="battle">Senses & Talents</a>
+    <a class="item" data-tab="description">Lore</a>
+    <a class="item" data-tab="effects">Effects</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body">
+
+    {{!-- Owned Features Tab --}}
+    <div class="tab features" data-group="primary" data-tab="features">
+      <section class="grid grid-3col">
+        <aside class="sidebar">
+          <div class="abilities flexcol">
+            <div class="ability flexrow flex-group-center">
+              <label><b>Might</b></label>
+              <input type="text" name="system.abilities.might.value" value="{{system.abilities.might.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="2d6+@abilities.might.value" data-label="Might"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
+			</div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>Magyk</b></label>
+              <input type="text" name="system.abilities.magyk.value" value="{{system.abilities.magyk.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="2d6+@abilities.magyk.value" data-label="Magyk"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
+            </div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>Speed</b></label>
+              <input type="text" name="system.abilities.speed.value" value="{{system.abilities.speed.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="2d6+@abilities.speed.value" data-label="Speed"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
+            </div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>Instinct</b></label>
+              <input type="text" name="system.abilities.instinct.value" value="{{system.abilities.instinct.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="2d6+@abilities.instinct.value" data-label="Instinct"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
+            </div><br />
+			<div class="ability flexrow flex-group-center">
+              <label><b>Armor</b></label>
+              <input type="text" name="system.abilities.armor.value" value="{{system.abilities.armor.value}}" data-dtype="Number"/>
+            </div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>Weight Class</b></label>
+              <input type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" data-dtype="Number"/>
+            </div>
+          </div>
+        </aside>
+
+        {{!-- For the main features list, span the right two columns --}}
+        <section class="main grid-span-2">
+          {{!-- This is a Handlebars partial. They're stored in the `/parts` folder next to this sheet, and defined in module/helpers/templates.mjs --}}
+          {{> "systems/stryder/templates/actor/parts/monster-features.hbs"}}
+        </section>
+
+      </section>
+    </div>
+
+<!-- Battle Tab -->
+
+<div class="tab battle" data-group="primary" data-tab="battle">
+    <div class="movement-container">
+        <div class="movement flexcol">
+            <!-- Running Speed -->
+            <div class="flexrow flex-group-center">
+                <img src="systems/stryder/assets/run.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Running Speed</b></label>
+            </div>
+            <input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number">
+
+            <!-- Crawling Speed -->
+            <div class="flexrow flex-group-center">
+                <img src="systems/stryder/assets/crawl.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Crawling Speed</b></label>
+            </div>
+            <input type="text" name="system.attributes.move.crawling.value" value="{{system.attributes.move.crawling.value}}" data-dtype="Number">
+
+            <!-- Swimming Speed -->
+            <div class="flexrow flex-group-center">
+                <img src="systems/stryder/assets/swim.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Swimming Speed</b></label>
+            </div>
+            <input type="text" name="system.attributes.move.swimming.value" value="{{system.attributes.move.swimming.value}}" data-dtype="Number">
+        </div>
+        <div class="movement flexcol">
+            <!-- Climbing Speed -->	
+            <div class="flexrow flex-group-center">
+                <img src="systems/stryder/assets/climb.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Climbing Speed</b></label>
+            </div>
+            <div style="height: 66%; width: 100%; margin-left: 160px;"><input type="text" name="system.attributes.move.climbing.value" value="{{system.attributes.move.climbing.value}}" data-dtype="Number"></div>
+
+            <!-- Marching Speed -->
+            <div class="flexrow flex-group-center">
+                <img src="systems/stryder/assets/march.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Marching Speed</b></label>
+            </div>
+            <div style="height: 66%; width: 100%; margin-left: 160px;"><input type="text" name="system.attributes.move.marching.value" value="{{system.attributes.move.marching.value}}" data-dtype="Number"></div>
+
+        </div>
+    </div><br />
+    {{> "systems/stryder/templates/actor/parts/monster-battle.hbs"}}
+</div>
+
+    {{!-- Biography Tab --}}
+    <div class="tab biography" data-group="primary" data-tab="description">
+      {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
+    </div>
+
+    {{!-- Active Effects Tab --}}
+    <div class="tab effects flexcol" data-group="primary" data-tab="effects">
+      {{> "systems/stryder/templates/actor/parts/actor-effects.hbs"}}
+    </div>
+
+  </section>
+</form>
+
+{{log system}}
+

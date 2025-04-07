@@ -1,0 +1,120 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name"/></h1>
+	  <div style="color:gray; font-family: Arial; padding-top: 5px;">
+		<b>Class Feature</b>
+	  </div>
+    </div>
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="description">Description</a>
+    <a class="item" data-tab="attributes">Attributes</a>
+    <a class="item" data-tab="effects">Effects</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body">
+
+    {{!-- Description Tab --}}
+    <div class="tab" data-group="primary" data-tab="description">
+      {{editor system.description target="system.description" rollData=rollData button=true owner=owner editable=editable}}
+    </div>
+
+    {{!-- Attributes Tab --}}
+    <div class="tab attributes" data-group="primary" data-tab="attributes">
+      {{!-- Existing fields --}}
+      <div class="section">
+        <h2><b>Restrictions</b></h2>
+        <div class="field">
+          <label>Action:</label>
+          <select name="system.action_type">
+			{{#select system.action_type}}
+            <option value="focused">Focused</option>
+            <option value="swift">Swift</option>
+            <option value="passive">Passive</option>
+			{{/select}}
+          </select>
+        </div>
+		<div class="field" style="display: flex; align-items: center; padding-top: 10px;">
+		  <label style="margin-right: 10px;">Cooldown:</label>
+		  <input type="number" name="system.cooldown_value" value="{{system.cooldown_value}}" "min="0" placeholder="Number" style="width: 80px; margin-right: 10px;">
+		  <select name="system.cooldown_unit">
+			{{#select system.cooldown_unit}}
+			<option value="turn">Turn(s)</option>
+			<option value="round">Round(s)</option>
+			<option value="perRest">per Rest</option>
+			<option value="perTurn">per Turn</option>
+			{{/select}}
+		  </select>
+		</div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Range:</label>
+          <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Stamina:</label>
+          <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Mana:</label>
+          <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Other:</label>
+          <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+        </div>
+      </div><br />
+
+		<div class="section">
+			<h2><b>Tags</b></h2>
+			<div class="fields-container">
+				<div class="field">
+					<select name="system.tag1">
+						{{#select system.tag1}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+				<div class="field">
+					<select name="system.tag2">
+						{{#select system.tag2}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+				<div class="field">
+					<select name="system.tag3">
+						{{#select system.tag3}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+			</div>
+		</div>
+	</div>
+
+    {{!-- Effects Tab --}}
+    <div class="tab effects" data-group="primary" data-tab="effects">
+      {{> "systems/stryder/templates/item/parts/item-effects.hbs"}}
+    </div>
+  </section>
+</form>

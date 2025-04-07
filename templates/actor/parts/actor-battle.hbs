@@ -1,0 +1,530 @@
+<ol class='items-list'>
+  <li class='item flexrow items-header'>
+    <div class='item-name'>{{localize 'Soul Armaments'}}</div>
+    <div class='item-armament-form'>{{localize 'Form'}}</div>
+    <div class='item-controls'>
+      <a
+        class='item-control item-create'
+        title='Create item'
+        data-type='armament'
+      >
+        <i class='fas fa-plus'></i>
+        {{localize 'DOCUMENT.New' type=''}}
+      </a>
+    </div>
+  </li>
+  {{#each armament as |item id|}}
+    <li class='item flexrow' data-item-id='{{item._id}}'>
+      <div class='item-name'>
+        <div class='item-image'>
+          <a class='rollable' data-roll-type='item'>
+            <img
+              src='{{item.img}}'
+              title='{{item.name}}'
+              width='24'
+              height='24'
+            />
+          </a>
+        </div>
+        <h4>{{item.name}}</h4>
+      </div>
+      <div class='item-armament-form item-prop'>{{system.form}}</div>
+      <div class='item-controls'>
+        <a
+          class='item-control item-edit'
+          title='{{localize "DOCUMENT.Edit" type='feature'}}'
+        >
+          <i class='fas fa-edit'></i>
+        </a>
+        <a
+          class='item-control item-delete'
+          title='{{localize "DOCUMENT.Delete" type='feature'}}'
+        >
+          <i class='fas fa-trash'></i>
+        </a>
+      </div>
+    </li>
+  {{/each}}
+</ol>
+<ol class='items-list'>
+  <li class='item flexrow items-header'>
+    <div class='item-name'>{{localize 'Generic Attacks'}}</div>
+    <div class='item-generic-form'>{{localize 'Parent Ability'}}</div>
+    <div class='item-controls'>
+      <a
+        class='item-control item-create'
+        title='Create item'
+        data-type='generic'
+      >
+        <i class='fas fa-plus'></i>
+        {{localize 'DOCUMENT.New' type=''}}
+      </a>
+    </div>
+  </li>
+  {{#each generic as |item id|}}
+    <li class='item flexrow' data-item-id='{{item._id}}'>
+      <div class='item-name'>
+        <div class='item-image'>
+          <a class='rollable' data-roll-type='item'>
+            <img
+              src='{{item.img}}'
+              title='{{item.name}}'
+              width='24'
+              height='24'
+            />
+          </a>
+        </div>
+        <h4>{{item.name}}</h4>
+      </div>
+      <div class='item-armament-form item-prop'>{{system.parent_ability}}</div>
+      <div class='item-controls'>
+        <a
+          class='item-control item-edit'
+          title='{{localize "DOCUMENT.Edit" type='feature'}}'
+        >
+          <i class='fas fa-edit'></i>
+        </a>
+        <a
+          class='item-control item-delete'
+          title='{{localize "DOCUMENT.Delete" type='feature'}}'
+        >
+          <i class='fas fa-trash'></i>
+        </a>
+      </div>
+    </li>
+  {{/each}}
+</ol>
+<ol class='items-list'>
+  <li class='item flexrow items-header'>
+    <div class='item-name'>{{localize 'Actions'}}</div>
+    <div class='item-controls'>
+      <a
+        class='item-control item-create'
+        title='Create item'
+        data-type='action'
+      >
+        <i class='fas fa-plus'></i>
+        {{localize 'DOCUMENT.New' type=''}}
+      </a>
+    </div>
+  </li>
+  {{#each actions as |item id|}}
+    <li class='item flexrow' data-item-id='{{item._id}}'>
+      <div class='item-name'>
+        <div class='item-image'>
+          <a class='rollable' data-roll-type='item'>
+            <img
+              src='{{item.img}}'
+              title='{{item.name}}'
+              width='24'
+              height='24'
+            />
+          </a>
+        </div>
+        <h4>{{item.name}}</h4>
+      </div>
+      <div class='item-controls'>
+        <a
+          class='item-control item-edit'
+          title='{{localize "DOCUMENT.Edit" type='feature'}}'
+        >
+          <i class='fas fa-edit'></i>
+        </a>
+        <a
+          class='item-control item-delete'
+          title='{{localize "DOCUMENT.Delete" type='feature'}}'
+        >
+          <i class='fas fa-trash'></i>
+        </a>
+      </div>
+    </li>
+  {{/each}}
+</ol>
+
+<br />
+<div class="skills-container">
+    <h2><b>Senses</b></h2>
+    <div class="skills-grid senses">
+        {{#each system.attributes.sense as |sense key|}}
+            <div class="skill">
+                <img src="systems/stryder/assets/{{key}}-icon.svg" alt="{{key}} icon" class="skill-icon" style='border:0px'>
+                <span class="skill-label rollable" data-roll="2d6+@attributes.sense.{{key}}.value" data-label="{{key}}">
+                    {{key}}
+                </span>
+                <input type="text" name="system.attributes.sense.{{key}}.value" value="{{sense.value}}" readonly data-dtype="Number">
+            </div>
+        {{/each}}
+    </div>
+	<br />
+    <h2><b>Talents</b></h2>
+    <div class="skills-grid talents">
+        {{#each system.attributes.talent as |talent key|}}
+            <div class="skill">
+                <img src="systems/stryder/assets/{{key}}-icon.svg" alt="{{key}} icon" class="skill-icon" style='border:0px'>
+                <span class="skill-label rollable" data-roll="2d6+@attributes.talent.{{key}}.value" data-label="{{key}}">
+                    {{key}}
+                </span>
+                <input type="text" name="system.attributes.talent.{{key}}.value" value="{{talent.value}}" readonly data-dtype="Number">
+            </div>
+        {{/each}}
+    </div><br />
+</div>
+	<ol class='items-list'>
+	  <li class='item flexrow items-header'>
+		<div class='item-name'>{{localize 'Fantasms'}}</div>
+		<div class='item-controls'>
+		  <a
+			class='item-control item-create'
+			title='Create item'
+			data-type='fantasm'
+		  >
+			<i class='fas fa-plus'></i>
+			{{localize 'DOCUMENT.New' type=''}}
+		  </a>
+		</div>
+	  </li>
+	  {{#each fantasms as |item id|}}
+		<li class='item flexrow' data-item-id='{{item._id}}'>
+		  <div class='item-name'>
+			<div class='item-image'>
+			  <a class='rollable' data-roll-type='item'>
+				<img
+				  src='{{item.img}}'
+				  title='{{item.name}}'
+				  width='24'
+				  height='24'
+				/>
+			  </a>
+			</div>
+			<h4>{{item.name}}</h4>
+		  </div>
+		  <div class='item-controls'>
+			<a
+			  class='item-control item-edit'
+			  title='{{localize "DOCUMENT.Edit" type='fantasm'}}'
+			>
+			  <i class='fas fa-edit'></i>
+			</a>
+			<a
+			  class='item-control item-delete'
+			  title='{{localize "DOCUMENT.Delete" type='fantasm'}}'
+			>
+			  <i class='fas fa-trash'></i>
+			</a>
+		  </div>
+		</li>
+	  {{/each}}
+	</ol>
+<br />
+
+<h2><b>Adjust Talents</b></h2>
+<div class="talent-adjustments">
+<center>
+    <!-- Dropdown 1 -->
+    <select class="talent-select" id="talent-select-1" name="system.talent.level1.selection">
+		{{#select system.talent.level1.selection}}
+        <option value=""></option>
+        <option value="endurance">Endurance</option>
+        <option value="nimbleness">Nimbleness</option>
+        <option value="reflex">Reflex</option>
+        <option value="strength">Strength</option>
+        <option value="stealth">Stealth</option>
+        <option value="survival">Survival</option>
+        <option value="charm">Charm</option>
+        <option value="wit">Wit</option>
+        <option value="wisdom">Wisdom</option>
+        <option value="deceit">Deceit</option>
+        <option value="diplomacy">Diplomacy</option>
+        <option value="glamor">Glamor</option>
+        <option value="intimacy">Intimacy</option>
+        <option value="threat">Threat</option>
+		{{/select}}
+    </select>
+
+    <!-- Dropdown 2 -->
+    <select class="talent-select" id="talent-select-2" name="system.talent.level2.selection">
+		{{#select system.talent.level2.selection}}
+        <option value=""></option>
+        <option value="endurance">Endurance</option>
+        <option value="nimbleness">Nimbleness</option>
+        <option value="reflex">Reflex</option>
+        <option value="strength">Strength</option>
+        <option value="stealth">Stealth</option>
+        <option value="survival">Survival</option>
+        <option value="charm">Charm</option>
+        <option value="wit">Wit</option>
+        <option value="wisdom">Wisdom</option>
+        <option value="deceit">Deceit</option>
+        <option value="diplomacy">Diplomacy</option>
+        <option value="glamor">Glamor</option>
+        <option value="intimacy">Intimacy</option>
+        <option value="threat">Threat</option>
+		{{/select}}
+    </select>
+
+    <!-- Dropdown 3 -->
+    <select class="talent-select" id="talent-select-3" name="system.talent.level3.selection">
+		{{#select system.talent.level3.selection}}
+        <option value=""></option>
+        <option value="endurance">Endurance</option>
+        <option value="nimbleness">Nimbleness</option>
+        <option value="reflex">Reflex</option>
+        <option value="strength">Strength</option>
+        <option value="stealth">Stealth</option>
+        <option value="survival">Survival</option>
+        <option value="charm">Charm</option>
+        <option value="wit">Wit</option>
+        <option value="wisdom">Wisdom</option>
+        <option value="deceit">Deceit</option>
+        <option value="diplomacy">Diplomacy</option>
+        <option value="glamor">Glamor</option>
+        <option value="intimacy">Intimacy</option>
+        <option value="threat">Threat</option>
+		{{/select}}
+    </select>
+
+    <!-- Dropdown 4 -->
+    <select class="talent-select" id="talent-select-4" name="system.talent.level4.selection">
+		{{#select system.talent.level4.selection}}
+        <option value=""></option>
+        <option value="endurance">Endurance</option>
+        <option value="nimbleness">Nimbleness</option>
+        <option value="reflex">Reflex</option>
+        <option value="strength">Strength</option>
+        <option value="stealth">Stealth</option>
+        <option value="survival">Survival</option>
+        <option value="charm">Charm</option>
+        <option value="wit">Wit</option>
+        <option value="wisdom">Wisdom</option>
+        <option value="deceit">Deceit</option>
+        <option value="diplomacy">Diplomacy</option>
+        <option value="glamor">Glamor</option>
+        <option value="intimacy">Intimacy</option>
+        <option value="threat">Threat</option>
+		{{/select}}
+    </select>
+
+    <!-- Dropdown 5 -->
+    <select class="talent-select" id="talent-select-5" name="system.talent.level5.selection">
+		{{#select system.talent.level5.selection}}
+        <option value=""></option>
+        <option value="endurance">Endurance</option>
+        <option value="nimbleness">Nimbleness</option>
+        <option value="reflex">Reflex</option>
+        <option value="strength">Strength</option>
+        <option value="stealth">Stealth</option>
+        <option value="survival">Survival</option>
+        <option value="charm">Charm</option>
+        <option value="wit">Wit</option>
+        <option value="wisdom">Wisdom</option>
+        <option value="deceit">Deceit</option>
+        <option value="diplomacy">Diplomacy</option>
+        <option value="glamor">Glamor</option>
+        <option value="intimacy">Intimacy</option>
+        <option value="threat">Threat</option>
+		{{/select}}
+    </select>
+
+	<!-- Dropdown 6 - Conditionally Displayed -->
+	{{#if (gte system.attributes.level.value 4)}}
+		<br />
+		<select class="talent-select" id="talent-select-6" name="system.talent.level6.selection">
+			{{#select system.talent.level6.selection}}
+			<option value=""></option>
+			<option value="endurance">Endurance</option>
+			<option value="nimbleness">Nimbleness</option>
+			<option value="reflex">Reflex</option>
+			<option value="strength">Strength</option>
+			<option value="stealth">Stealth</option>
+			<option value="survival">Survival</option>
+			<option value="charm">Charm</option>
+			<option value="wit">Wit</option>
+			<option value="wisdom">Wisdom</option>
+			<option value="deceit">Deceit</option>
+			<option value="diplomacy">Diplomacy</option>
+			<option value="glamor">Glamor</option>
+			<option value="intimacy">Intimacy</option>
+			<option value="threat">Threat</option>
+			{{/select}}
+		</select>
+	{{/if}}
+
+	<!-- Dropdown 7 - Conditionally Displayed -->
+	{{#if (gte system.attributes.level.value 7)}}
+		<select class="talent-select" id="talent-select-7" name="system.talent.level7.selection">
+			{{#select system.talent.level7.selection}}
+			<option value=""></option>
+			<option value="endurance">Endurance</option>
+			<option value="nimbleness">Nimbleness</option>
+			<option value="reflex">Reflex</option>
+			<option value="strength">Strength</option>
+			<option value="stealth">Stealth</option>
+			<option value="survival">Survival</option>
+			<option value="charm">Charm</option>
+			<option value="wit">Wit</option>
+			<option value="wisdom">Wisdom</option>
+			<option value="deceit">Deceit</option>
+			<option value="diplomacy">Diplomacy</option>
+			<option value="glamor">Glamor</option>
+			<option value="intimacy">Intimacy</option>
+			<option value="threat">Threat</option>
+			{{/select}}
+		</select>
+	{{/if}}
+
+	<!-- Dropdown 8 - Conditionally Displayed -->
+	{{#if (gte system.attributes.level.value 9)}}
+		<select class="talent-select" id="talent-select-8" name="system.talent.level8.selection">
+			{{#select system.talent.level8.selection}}
+			<option value=""></option>
+			<option value="endurance">Endurance</option>
+			<option value="nimbleness">Nimbleness</option>
+			<option value="reflex">Reflex</option>
+			<option value="strength">Strength</option>
+			<option value="stealth">Stealth</option>
+			<option value="survival">Survival</option>
+			<option value="charm">Charm</option>
+			<option value="wit">Wit</option>
+			<option value="wisdom">Wisdom</option>
+			<option value="deceit">Deceit</option>
+			<option value="diplomacy">Diplomacy</option>
+			<option value="glamor">Glamor</option>
+			<option value="intimacy">Intimacy</option>
+			<option value="threat">Threat</option>
+			{{/select}}
+		</select>
+	{{/if}}
+
+	<!-- Dropdown 9 - Conditionally Displayed -->
+	{{#if (gte system.attributes.level.value 13)}}
+		<select class="talent-select" id="talent-select-9" name="system.talent.level9.selection">
+			{{#select system.talent.level9.selection}}
+			<option value=""></option>
+			<option value="endurance">Endurance</option>
+			<option value="nimbleness">Nimbleness</option>
+			<option value="reflex">Reflex</option>
+			<option value="strength">Strength</option>
+			<option value="stealth">Stealth</option>
+			<option value="survival">Survival</option>
+			<option value="charm">Charm</option>
+			<option value="wit">Wit</option>
+			<option value="wisdom">Wisdom</option>
+			<option value="deceit">Deceit</option>
+			<option value="diplomacy">Diplomacy</option>
+			<option value="glamor">Glamor</option>
+			<option value="intimacy">Intimacy</option>
+			<option value="threat">Threat</option>
+			{{/select}}
+		</select>
+	{{/if}}
+</center>
+</div>
+
+<script>
+    Hooks.on("renderActorSheet", function(actorSheet, html, data) {
+        // Handle changes for multiple select elements
+        for (let i = 1; i <= 9; i++) {
+            if (html.find(`#talent-select-${i}`).length > 0) { // Check if the element exists before attaching the listener
+                attachTalentChangeListener(actorSheet, html, `#talent-select-${i}`);
+            }
+        }
+
+        function attachTalentChangeListener(actorSheet, html, selectId) {
+            const selectElement = html.find(selectId)[0];
+            let previousValue = selectElement ? selectElement.value : null;
+
+            if (selectElement) {
+                selectElement.addEventListener("change", (event) => {
+                    const newValue = event.target.value;
+                    
+                    // Exit function if new value is the same as previous value
+                    if (newValue === previousValue) return;
+                    
+                    let updateData = {};
+
+                    // Only process previousValue if it's not null, "", or 0.
+                    if (previousValue) {
+                        const previousTalentPath = `system.attributes.talent.${previousValue}.value`;
+                        let prevTalentValue = actorSheet.actor.system.attributes.talent[previousValue]?.value || 0;
+                        updateData[previousTalentPath] = Math.max(0, prevTalentValue - 1);
+                        console.log(`Decreased ${previousValue}`);
+                    }
+
+                    // Process newValue only if it's not null, "", or 0.
+                    if (newValue) {
+                        const newTalentPath = `system.attributes.talent.${newValue}.value`;
+                        let newTalentValue = actorSheet.actor.system.attributes.talent[newValue]?.value || 0;
+                        updateData[newTalentPath] = newTalentValue + 1;
+                        console.log(`Increased ${newValue}`);
+                    }
+
+                    actorSheet.actor.update(updateData).then(() => {
+                        console.log(`Talent values updated for ${selectId}: ${previousValue} decreased, ${newValue} increased`);
+                    });
+
+                    previousValue = newValue;
+                });
+            }
+        }
+    });
+</script>
+
+<style>
+    .skills-container {
+        font-family: Signika;
+		font-size: 20px;
+    }
+
+    .skills-container .skills-grid {
+		font-family: Modesto Condensed;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        padding: 20px;
+		background-image: url("systems/stryder/assets/parchment.jpg");
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .skills-container .skill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .skills-container .skill-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .skills-container .skill-label {
+        font-weight: bold;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+    .skills-container .rollable:hover {
+        text-decoration: underline;
+    }
+
+    .skills-container .skills-grid input[type="text"] {
+        border: none;
+        background-color: #DABE77;
+        color: #333;
+        text-align: center;
+        border-radius: 4px;
+        padding: 5px;
+        width: 50px;
+    }
+
+    .skills-container .skills-grid input[type="text"]:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    }
+
+    .skills-container h2 {
+        color: #333;
+        font-size: 18px;
+    }
+</style>

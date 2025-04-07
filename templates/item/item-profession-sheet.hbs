@@ -1,0 +1,60 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+      <div class="grid grid-2col">
+        <div class="resource">
+          <label class="resource-label">Profession Level</label>
+          <input type="text" name="system.profession_level" value="{{system.profession_level}}" placeholder="0" data-dtype="Number" />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="description">Description</a>
+    <a class="item" data-tab="attributes">Benefits</a>
+    <a class="item" data-tab="effects">Effects</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body">
+
+    {{!-- Description Tab --}}
+    <div class="tab" data-group="primary" data-tab="description">
+      {{!-- To render inline rolls in a TinyMCE editor, you need to pass the parent actor's (if any) roll data to the
+      rollData prop. --}}
+      {{editor system.description target="system.description" rollData=rollData button=true owner=owner
+      editable=editable}}
+    </div>
+
+    {{!-- Attributes Tab --}}
+    <div class="tab attributes" data-group="primary" data-tab="attributes">
+      {{!-- Existing fields --}}
+      <div class="section">
+        <h2><b>Level 1 (Novice)</b></h2>
+		<div style="height: 150px;">
+			{{editor system.novice target="system.novice" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+        <h2><b>Level 2 (Journeyman)</b></h2>
+		<div style="height: 150px;">
+			{{editor system.journeyman target="system.journeyman" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+        <h2><b>Level 1 (Master)</b></h2>
+		<div style="height: 150px;">
+			{{editor system.master target="system.master" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+      </div>
+	</div>
+
+    {{!-- Effects Tab --}}
+    <div class="tab effects" data-group="primary" data-tab="effects">
+      {{> "systems/stryder/templates/item/parts/item-effects.hbs"}}
+    </div>
+
+  </section>
+</form>
+
+{{log system}}

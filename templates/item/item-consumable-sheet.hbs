@@ -1,0 +1,71 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+	  <div style="color:gray; font-family: Arial; padding-top: 5px;">
+		<b>Consumable Item</b>
+	  </div>
+      <div class="grid grid-3col">
+        <div class="resource">
+		<label class="resource-label">Rarity</label><br />
+			<select name="system.rarity" style="width: 100%;">
+				{{#select system.rarity}}
+				<option value="common">Common</option>
+				<option value="uncommon">Uncommon</option>
+				<option value="rare">Rare</option>
+				<option value="mythic">Legendary</option>
+				<option value="one of a kind">One of a Kind</option>
+				{{/select}}
+			</select>
+		</div>
+        <div class="resource">
+		<label class="resource-label">Nature</label><br />
+			<select name="system.nature" style="width: 100%;">
+				{{#select system.nature}}
+				<option value="enchanted">Enchanted</option>
+				<option value="magytech">Magytech</option>
+				<option value="other">Other</option>
+				{{/select}}
+			</select>
+		</div>
+        <div class="resource">
+          <label class="resource-label">Sell Price</label> (Grail)
+          <input type="text" name="system.sell_price" value="{{system.sell_price}}" placeholder="0" data-dtype="Number" />
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="description">Description</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body" style="height: 150px;">
+
+    {{!-- Description Tab --}}
+    <div class="tab" data-group="primary" data-tab="description" style="height: 200px;">
+      {{!-- To render inline rolls in a TinyMCE editor, you need to pass the parent actor's (if any) roll data to the
+      rollData prop. --}}
+      {{editor system.description target="system.description" rollData=rollData button=true owner=owner
+      editable=editable}}
+    </div>
+
+		<center>
+        <div class="resource flex-group-center" style="width: 50%;">
+          <label for="system.charges" class="resource-label">Charges</label>
+          <div class="resource-content flexrow flex-center flex-between">
+			<input type="text" name="system.charges.value" value="{{system.charges.value}}" data-dtype="Number"/>
+			<span style="margin-top: 5px;"> / </span>
+			<input type="text" name="system.charges.max" value="{{system.charges.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+		</center>
+
+  </section>
+</form>
+
+{{log system}}

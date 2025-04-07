@@ -1,0 +1,122 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <div class="header-fields">
+      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+      <div class="grid grid-2col">
+        <div class="resource">
+         <label class="resource-label">Action</label>
+		 <select name="system.action_type">
+			{{#select system.action_type}}
+            <option value="focused">Focused</option>
+            <option value="swift">Swift</option>
+            <option value="passive">Passive</option>
+	     {{/select}}
+         </select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="description">Description</a>
+    <a class="item" data-tab="attributes">Attributes</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body">
+
+    {{!-- Description Tab --}}
+    <div class="tab" data-group="primary" data-tab="description">
+      {{!-- To render inline rolls in a TinyMCE editor, you need to pass the parent actor's (if any) roll data to the
+      rollData prop. --}}
+      {{editor system.description target="system.description" rollData=rollData button=true owner=owner
+      editable=editable}}
+    </div>
+
+    {{!-- Attributes Tab --}}
+    <div class="tab attributes" data-group="primary" data-tab="attributes">
+      {{!-- As you add new fields, add them in here! --}}
+      <div class="resource">
+        <label class="resource-label">Roll Formula:</label>
+		<span>{{calculateFormula system.roll.diceNum system.roll.diceSize system.roll.diceBonus}}</span>
+        <span>{{system.formula}}</span>
+        <div class="grid grid-4col">
+          <div class="grid-span-1">
+            <label class="resource-label">Number of Dice</label>
+            <input type="text" name="system.roll.diceNum" value="{{system.roll.diceNum}}" data-dtype="Number" />
+          </div>
+          <div class="grid-span-1">
+            <label class="resource-label">Die Size</label>
+            <input type="text" name="system.roll.diceSize" value="{{system.roll.diceSize}}" data-dtype="Number" />
+          </div>
+          <div class="grid-span-2" style="margin-top: -11px;">
+            <label class="resource-label">Roll Modifier</label> <div style="font-size:70%"><i>(accepts talent names & mastery as inputs)</i></div>
+            <input type="text" name="system.roll.diceBonus" value="{{system.roll.diceBonus}}" />
+          </div>
+        </div>
+
+        <div class="field" style="padding-top: 10px;">
+          <label>Stamina:</label>
+          <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Mana:</label>
+          <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Other:</label>
+          <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+        </div>
+      </div><br />
+
+		<div class="section">
+			<h2><b>Tags</b></h2>
+			<div class="fields-container">
+				<div class="field">
+					<select name="system.tag1">
+						{{#select system.tag1}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+				<div class="field">
+					<select name="system.tag2">
+						{{#select system.tag2}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+				<div class="field">
+					<select name="system.tag3">
+						{{#select system.tag3}}
+						<option value=""></option>
+						<option value="aid">Aid</option>
+						<option value="augment">Augment</option>
+						<option value="multi-target">Multi-Target</option>
+						<option value="persistent">Persistent</option>
+						<option value="targeted">Targeted</option>
+						{{/select}}
+					</select>
+				</div>
+			</div>
+		</div>
+	</div>
+
+      </div>
+    </div>
+  </section>
+</form>
+
+{{log system}}

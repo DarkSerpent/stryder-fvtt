@@ -60,6 +60,8 @@ export class StryderItem extends Item {
 		cooldown = `${item.system.cooldown_value} Turn(s)`;
 	} else if (item.system.cooldown_unit === "round") {
 		cooldown = `${item.system.cooldown_value} Round(s)`;
+	} else if (item.system.cooldown_unit === "perRest") {
+		cooldown = `${item.system.cooldown_value} per Rest`;
 	} else if (item.system.cooldown_unit === "perTurn") {
 		cooldown = `${item.system.cooldown_value} per Turn`;
 	} else if (item.system.cooldown_unit === "perRound") {
@@ -429,27 +431,64 @@ export class StryderItem extends Item {
 		  });
 		}
 		else if (item.type === "hex") {
-		  // Retrieve the necessary properties to construct the roll formula.
-		  const diceNum = item.system.roll.diceNum;
-		  const diceSize = item.system.roll.diceSize;
-		  const diceBonus = item.system.roll.diceBonus;
+			// Retrieve the necessary properties to construct the roll formula.
+			const diceNum = item.system.roll.diceNum;
+			const diceSize = item.system.roll.diceSize;
+			const diceBonus = item.system.roll.diceBonus;
 
-		  // Construct the roll formula.
-		  const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
+			// Construct the roll formula.
+			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
 
-		  // Create the roll using the constructed formula.
-		  const roll = new Roll(formula);
-		  await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
+			// Create the roll using the constructed formula.
+			const roll = new Roll(formula);
+			await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
 
-		  // Send the result of the roll to the chat.
-		  roll.toMessage({
-			speaker: speaker,
-			flavor: contentHTMLhex,
-			rollMode: rollMode
-		  });
+			// Send the result of the roll to the chat.
+			roll.toMessage({
+				speaker: speaker,
+				flavor: contentHTMLhex,
+				rollMode: rollMode
+			});
 
-		  // Return the roll object for further processing if necessary.
-		  return roll;
+			// If rollsDamage is true, proceed with additional chat messages.
+			if (item.system.hex.rollsDamage) {
+				let result = roll.total;
+				let quality, damageMultiplier;
+
+				if (result >= 2 && result <= 4) {
+					quality = "Poor";
+					damageMultiplier = 0.5;
+				} else if (result >= 5 && result <= 10) {
+					quality = "Good";
+					damageMultiplier = 1.0;
+				} else if (result >= 11) {
+					quality = "Excellent";
+					damageMultiplier = 1.5;
+				}
+
+				if (!item.actor || !item.actor.system.abilities.Arcana) {
+					console.error("Actor or Arcana ability not found for this item.");
+					return;
+				}
+
+				const arcanaValue = item.actor.system.abilities.Arcana.value;
+				const adjustedPower = arcanaValue;
+				let baseDamage = Math.floor(adjustedPower * damageMultiplier);
+				if (quality === "Excellent") {
+					baseDamage = Math.ceil(adjustedPower * damageMultiplier);
+				}
+				const totalDamage = baseDamage;
+
+				const qualityMessage = `You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did ${totalDamage} damage.`;
+				ChatMessage.create({
+					speaker: speaker,
+					content: qualityMessage,
+					whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+				});
+			}
+
+			// Return the roll object for further processing if necessary.
+			return roll;
 		}
 		else if (item.type === "statperk") {
 		  ChatMessage.create({

@@ -65,6 +65,8 @@ export class StryderActorSheet extends ActorSheet {
     // Add roll data for TinyMCE editors.
     context.rollData = context.actor.getRollData();
 
+    context.gearSlotsUsed = this._calculateGearSlotsUsed();
+
     // Prepare active effects
     context.effects = prepareActiveEffectCategories(
       // A generator that returns all effects stored on the actor
@@ -73,6 +75,13 @@ export class StryderActorSheet extends ActorSheet {
     );
 
     return context;
+  }
+
+  _calculateGearSlotsUsed() {
+    const gearItems = this.actor.items.filter(i => i.type === 'gear');
+    return gearItems.reduce((total, item) => {
+      return total + parseInt(item.system.inventory_size || 1);
+    }, 0);
   }
 
   /**
@@ -356,28 +365,22 @@ export class StryderActorSheet extends ActorSheet {
 				});
 				return;
 			}
-		} else if (type === 'gear') {
-			const gearItems = this.actor.items.filter(i => i.type === 'gear');
-			if (gearItems.length >= 4) {
-				let message = game.i18n.localize('<b>Notice:</b> Your "Gear" slots are full! Please drop an item or move one to storage before adding another.');
-				ChatMessage.create({
-					content: message,
-					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-					whisper: [game.user.id]
-				});
-				return;
-			}
-		} else if (type === 'aegiscore') {
-			const aegiscoreItems = this.actor.items.filter(i => i.type === 'aegiscore');
-			if (aegiscoreItems.length >= 2) {
-				let message = game.i18n.localize('<b>Notice:</b> You cannot equip more than 2 Aegis Cores!');
-				ChatMessage.create({
-					content: message,
-					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-					whisper: [game.user.id]
-				});
-				return;
-			}
+			} else if (type === 'gear') {
+				const gearItems = this.actor.items.filter(i => i.type === 'gear');
+				const gearInventorySizeUsed = gearItems.reduce((acc, item) => {
+					return acc + parseInt(item.system.inventory_size || 1);
+				}, 0);
+
+				const newItemSize = parseInt(header.dataset.inventorySize || 1);
+				if (gearInventorySizeUsed + newItemSize > 4) {
+					let message = game.i18n.localize('<b>Notice:</b> Your "Gear" slots are full! Please drop an item or move one to storage before adding another.');
+					ChatMessage.create({
+						content: message,
+						speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+						whisper: [game.user.id]
+					});
+					return;
+				}
 		} else if (type === 'legacies') {
 			const legaciesItems = this.actor.items.filter(i => i.type === 'legacies');
 			if (legaciesItems.length >= 3) {

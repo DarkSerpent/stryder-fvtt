@@ -81,6 +81,30 @@
 			{{/select}}
 		  </select>
 		</div>
+		<script>
+			function adjustInventorySize(change, itemId) {
+				const inventoryInput = document.getElementById(`inventory-size-${itemId}`);
+				let currentValue = parseInt(inventoryInput.value);
+				const minVal = 1;
+				const maxVal = 4;
+
+				// Calculate new value within the bounds of 1 to 4
+				const newValue = Math.min(maxVal, Math.max(minVal, currentValue + change));
+
+				// Set the new value back to the input
+				inventoryInput.value = newValue;
+
+				// Update the item data
+				const item = game.items.get(itemId);
+				item.update({'system.inventory_size': newValue});
+			}
+		</script>
+		<div class="field" style="padding-top: 10px; width: 30%; display: flex; align-items: center;">
+			<label style="margin-right: 10px; white-space: nowrap;">Slot Space:</label>
+			<button type="button" class="button-minus" onclick="adjustInventorySize(-1, '{{item.id}}')">-</button>
+			<input type="number" name="system.inventory_size" value="{{system.inventory_size}}" min="1" max="4" placeholder="0" data-dtype="Number" readonly id="inventory-size-{{item.id}}"/>
+			<button type="button" class="button-plus" onclick="adjustInventorySize(1, '{{item.id}}')">+</button>
+		</div>
         <div class="field" style="padding-top: 10px;">
           <label>Range:</label>
           <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">

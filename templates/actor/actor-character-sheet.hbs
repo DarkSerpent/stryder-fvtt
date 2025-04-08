@@ -1,5 +1,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Tangerine&display=swap" rel="stylesheet">
 <form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
+
+<script>
+	function adjustElixirSickness(change) {
+		const elixirInput = document.querySelector('input[name="system.elixir_sickness.value"]');
+		let currentValue = parseInt(elixirInput.value);
+
+		// Calculate new value within the bounds of 0 to 5
+		const newValue = Math.min(5, Math.max(0, currentValue + change));
+
+		// Set the new value back to the input
+		elixirInput.value = newValue;
+
+		// Update the actor data
+		// Assume actor is globally available or retrieved via some other means
+		const actorId = elixirInput.getAttribute('data-actor-id'); // Ensure this attribute is set on the input element if using this method
+		const actor = game.actors.get(actorId);
+		actor.update({ 'system.elixir_sickness.value': newValue });
+	}
+</script>
+
 <div class="unique-logo-container">
     <img class="logo" src="systems/stryder/assets/stryderfvtt_title.png" width="125" height="125">
 </div>
@@ -106,32 +126,27 @@
         </div>
 
         <div class="resource flex-group-center">
-          <label for="system.aegis.value" class="resource-label">Resource #1</label>
+          <label for="system.aegis.value" class="resource-label">Focus</label>
 		  <div class="resource1bar">
 			<div class="resource1-progress-bar">
-			  <progress class="resource1-bar grid-span-3" value="{{system.resource1.value}}" max="{{system.resource1.max}}"></progress>
+			  <progress class="resource1-bar grid-span-3" value="{{system.focus.value}}" max="{{system.focus.max}}"></progress>
 			</div>
 		  </div>
           <div class="resource-content flexrow flex-center flex-between">
-            <input type="text" name="system.resource1.value" value="{{system.resource1.value}}" data-dtype="Number"/>
+            <input type="text" name="system.focus.value" value="{{system.focus.value}}" data-dtype="Number"/>
             <span> / </span>
-            <input type="text" name="system.resource1.max" value="{{system.resource1.max}}" data-dtype="Number"/>
+            <input type="text" name="system.focus.max" value="{{system.focus.max}}" data-dtype="Number"/>
           </div>
         </div>
 
-        <div class="resource flex-group-center">
-          <label for="system.aegis.value" class="resource-label">Resource #2</label>
-		  <div class="resource2bar">
-			<div class="resource2-progress-bar">
-			  <progress class="resource2-bar grid-span-3" value="{{system.resource2.value}}" max="{{system.resource2.max}}"></progress>
+		<div class="resource flex-group-center">
+			<label class="resource-label">Elixir Sickness</label>
+			<div class="elixir-sickness-bar">
+				<button type="button" class="button-minus" onclick="adjustElixirSickness(-1)">-</button>
+				<input type="text" name="system.elixir_sickness.value" value="{{system.elixir_sickness.value}}" data-actor-id="{{actor.id}}" readonly class="elixir-sickness-input"/>
+				<button type="button" class="button-plus" onclick="adjustElixirSickness(1)">+</button>
 			</div>
-		  </div>
-          <div class="resource-content flexrow flex-center flex-between">
-            <input type="text" name="system.resource2.value" value="{{system.resource2.value}}" data-dtype="Number"/>
-            <span> / </span>
-            <input type="text" name="system.resource2.max" value="{{system.resource2.max}}" data-dtype="Number"/>
-          </div>
-        </div>
+		</div>
 
       </div>
     </div>

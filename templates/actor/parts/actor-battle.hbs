@@ -218,6 +218,8 @@
 <br />
 
 <h2><b>Adjust Talents</b></h2>
+<i>The following section is to help keep track of which Talents you increased as part of the leveling process using your Talent Points. New dropdowns will become available when you reach the appropiate level, but these dropdowns do not automatically apply. Use Active Effects to increase your Senses & Talents.</i>
+<br /><br />
 <div class="talent-adjustments">
 <center>
     <!-- Dropdown 1 -->
@@ -419,55 +421,6 @@
 	{{/if}}
 </center>
 </div>
-
-<script>
-    Hooks.on("renderActorSheet", function(actorSheet, html, data) {
-        // Handle changes for multiple select elements
-        for (let i = 1; i <= 9; i++) {
-            if (html.find(`#talent-select-${i}`).length > 0) { // Check if the element exists before attaching the listener
-                attachTalentChangeListener(actorSheet, html, `#talent-select-${i}`);
-            }
-        }
-
-        function attachTalentChangeListener(actorSheet, html, selectId) {
-            const selectElement = html.find(selectId)[0];
-            let previousValue = selectElement ? selectElement.value : null;
-
-            if (selectElement) {
-                selectElement.addEventListener("change", (event) => {
-                    const newValue = event.target.value;
-                    
-                    // Exit function if new value is the same as previous value
-                    if (newValue === previousValue) return;
-                    
-                    let updateData = {};
-
-                    // Only process previousValue if it's not null, "", or 0.
-                    if (previousValue) {
-                        const previousTalentPath = `system.attributes.talent.${previousValue}.value`;
-                        let prevTalentValue = actorSheet.actor.system.attributes.talent[previousValue]?.value || 0;
-                        updateData[previousTalentPath] = Math.max(0, prevTalentValue - 1);
-                        console.log(`Decreased ${previousValue}`);
-                    }
-
-                    // Process newValue only if it's not null, "", or 0.
-                    if (newValue) {
-                        const newTalentPath = `system.attributes.talent.${newValue}.value`;
-                        let newTalentValue = actorSheet.actor.system.attributes.talent[newValue]?.value || 0;
-                        updateData[newTalentPath] = newTalentValue + 1;
-                        console.log(`Increased ${newValue}`);
-                    }
-
-                    actorSheet.actor.update(updateData).then(() => {
-                        console.log(`Talent values updated for ${selectId}: ${previousValue} decreased, ${newValue} increased`);
-                    });
-
-                    previousValue = newValue;
-                });
-            }
-        }
-    });
-</script>
 
 <style>
     .skills-container {

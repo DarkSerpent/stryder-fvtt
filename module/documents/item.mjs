@@ -277,6 +277,18 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	let contentHTMLfantasm = `
+	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
+		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
+		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
+		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
+		<div style="margin-bottom: 10px;">
+			<strong>Cost:</strong> 1 focus<br>
+		</div>
+		<div>${item.system.description ?? ''}</div>
+	</div>
+	`;
+
 	let contentHTMLaction = `
 	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
 		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
@@ -454,16 +466,29 @@ export class StryderItem extends Item {
 			if (item.system.hex.rollsDamage) {
 				let result = roll.total;
 				let quality, damageMultiplier;
-
-				if (result >= 2 && result <= 4) {
-					quality = "Poor";
-					damageMultiplier = 0.5;
-				} else if (result >= 5 && result <= 10) {
-					quality = "Good";
-					damageMultiplier = 1.0;
-				} else if (result >= 11) {
+				
+				// Check if alwaysRollsExcellent is true
+				if (item.system.hex.alwaysRollsExcellent) {
 					quality = "Excellent";
 					damageMultiplier = 1.5;
+					const excellentMessage = `<strong>Always Excellent Hex!</strong> This hex always performs at its best!`;
+					ChatMessage.create({
+						speaker: speaker,
+						content: excellentMessage,
+						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+					});
+				} else {
+					// Determine quality based on roll result
+					if (result >= 2 && result <= 4) {
+						quality = "Poor";
+						damageMultiplier = 0.5;
+					} else if (result >= 5 && result <= 10) {
+						quality = "Good";
+						damageMultiplier = 1.0;
+					} else if (result >= 11) {
+						quality = "Excellent";
+						damageMultiplier = 1.5;
+					}
 				}
 
 				if (!item.actor || !item.actor.system.abilities.Arcana) {
@@ -471,13 +496,13 @@ export class StryderItem extends Item {
 					return;
 				}
 
-				const arcanaValue = item.actor.system.abilities.Arcana.value;
-				const adjustedPower = arcanaValue;
-				let baseDamage = Math.floor(adjustedPower * damageMultiplier);
+				let arcanaValue = item.actor.system.abilities.Arcana.value;
+				let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+				let baseDamage = Math.floor(arcanaValue * damageMultiplier);
 				if (quality === "Excellent") {
-					baseDamage = Math.ceil(adjustedPower * damageMultiplier);
+					baseDamage = Math.ceil(arcanaValue * damageMultiplier);
 				}
-				const totalDamage = baseDamage;
+				const totalDamage = baseDamage + masteryBonus;
 
 				const qualityMessage = `You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did ${totalDamage} damage.`;
 				ChatMessage.create({
@@ -502,6 +527,13 @@ export class StryderItem extends Item {
 			speaker: speaker,
 			rollMode: rollMode,
 			content: contentHTMLprofession
+		  });
+		}
+		else if (item.type === "fantasm") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			content: contentHTMLfantasm
 		  });
 		}
 		else if (item.type === "loot") {
@@ -596,74 +628,80 @@ export class StryderItem extends Item {
 		  return roll;
 		}
 		else if (item.type === "armament") {
-		  // Retrieve the necessary properties to construct the roll formula.
-		  const diceNum = item.system.roll.diceNum;
-		  const diceSize = item.system.roll.diceSize;
-		  const diceBonus = item.system.roll.diceBonus;
-		  const baseDamageAmp = item.system.roll.baseDamageAmp || 0;  // Default to 0 if not defined
-		  const rawDamageAmp = item.system.roll.rawDamageAmp || 0;    // Default to 0 if not defined
+			// Retrieve the necessary properties to construct the roll formula.
+			const diceNum = item.system.roll.diceNum;
+			const diceSize = item.system.roll.diceSize;
+			const diceBonus = item.system.roll.diceBonus;
+			const baseDamageAmp = item.system.roll.baseDamageAmp || 0;
+			const rawDamageAmp = item.system.roll.rawDamageAmp || 0;
 
-		  // Construct the roll formula.
-		  const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
+			// Construct the roll formula.
+			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
 
-		  // Create the roll using the constructed formula.
-		  const roll = new Roll(formula);
-		  await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
+			// Create the roll using the constructed formula.
+			const roll = new Roll(formula);
+			await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
 
-		  // Send the result of the roll to the chat.
-		  roll.toMessage({
-			speaker: speaker,
-			flavor: contentHTMLarmament,
-			rollMode: rollMode
-		  });
+			// Send the result of the roll to the chat.
+			roll.toMessage({
+				speaker: speaker,
+				flavor: contentHTMLarmament,
+				rollMode: rollMode
+			});
 
-		  // Determine the quality of the roll based on the total
-		  let result = roll.total;
-		  let quality;
-		  let damageMultiplier;
-		  if (result >= 2 && result <= 4) {
-			quality = "Poor";
-			damageMultiplier = 0.5;
-		  } else if (result >= 5 && result <= 10) {
-			quality = "Good";
-			damageMultiplier = 1.0;
-		  } else if (result >= 11) {
-			quality = "Excellent";
-			damageMultiplier = 1.5;
-		  }
+			// Determine the quality of the roll based on the total, unless alwaysRollsExcellent is true
+			let result = roll.total;
+			let quality;
+			let damageMultiplier;
+			if (item.system.armament.alwaysRollsExcellent) {
+				quality = "Excellent";
+				damageMultiplier = 1.5;
+			} else {
+				if (result >= 2 && result <= 4) {
+					quality = "Poor";
+					damageMultiplier = 0.5;
+				} else if (result >= 5 && result <= 10) {
+					quality = "Good";
+					damageMultiplier = 1.0;
+				} else if (result >= 11) {
+					quality = "Excellent";
+					damageMultiplier = 1.5;
+				}
+			}
 
-		  // Ensure the Actor exists and has the necessary properties
-		  if (!item.actor || (!item.actor.system.abilities.Power && !item.actor.system.abilities.Arcana)) {
-			console.error("Actor or necessary abilities not found for this item.");
-			return;
-		  }
+			if (!item.actor || (!item.actor.system.abilities.Power && !item.actor.system.abilities.Arcana)) {
+				console.error("Actor or necessary abilities not found for this item.");
+				return;
+			}
 
-		  // Validate if armament is a Witchblade to choose the correct ability
-		  const abilityType = item.system.armament.isWitchblade ? "Arcana" : "Power";
-		  const abilityValue = item.actor.system.abilities[abilityType].value;
+			// Validate if armament is a Witchblade to choose the correct ability
+			const abilityType = item.system.armament.isWitchblade ? "Arcana" : "Power";
+			const abilityValue = item.actor.system.abilities[abilityType].value;
 
-		  // Calculate the damage using the chosen ability value from the Actor
-		  const adjustedPower = abilityValue + baseDamageAmp; // Add baseDamageAmp before multiplier
-		  let baseDamage;
-		  if (quality === "Poor") {
-			baseDamage = Math.floor(adjustedPower * damageMultiplier);
-		  } else if (quality === "Excellent") {
-			baseDamage = Math.ceil(adjustedPower * damageMultiplier);
-		  } else {
-			baseDamage = Math.floor(adjustedPower * damageMultiplier);
-		  }
-		  const totalDamage = baseDamage + rawDamageAmp; // Add rawDamageAmp after multiplier
+			let baseDamage;
+			const adjustedPower = abilityValue + baseDamageAmp; // Add baseDamageAmp before multiplier
+			if (quality === "Poor") {
+				baseDamage = Math.floor(adjustedPower * damageMultiplier);
+			} else if (quality === "Excellent") {
+				baseDamage = Math.ceil(adjustedPower * damageMultiplier);
+			} else {
+				baseDamage = Math.floor(adjustedPower * damageMultiplier);
+			}
 
-		  // Create follow-up chat message
-		  const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
-		  ChatMessage.create({
-			speaker: speaker,
-			content: qualityMessage,
-			whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-		  });
+			// Add mastery bonus if applicable
+			const masteryBonus = item.system.armament.addsMastery ? item.actor.system.attributes.mastery : 0;
+			const totalDamage = baseDamage + rawDamageAmp + masteryBonus; // Add rawDamageAmp and mastery bonus after multiplier
 
-		  // Return the roll object for further processing if necessary
-		  return roll;
+			// Create follow-up chat message
+			const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
+			ChatMessage.create({
+				speaker: speaker,
+				content: qualityMessage,
+				whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+			});
+
+			// Return the roll object for further processing if necessary
+			return roll;
 		}
 		else if (item.type === "generic") {
 		  // Retrieve the necessary properties to construct the roll formula.

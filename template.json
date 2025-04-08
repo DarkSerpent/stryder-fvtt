@@ -298,7 +298,9 @@
     "armament": {
         "templates": ["base"],
         "armament": {
-          "isWitchblade": false
+          "isWitchblade": false,
+          "alwaysRollsExcellent": false,
+          "addsMastery": false
         },
         "roll": {
           "diceBonus": 0,
@@ -317,7 +319,9 @@
     "hex": {
         "templates": ["base"],
         "hex": {
-          "rollsDamage": false
+          "rollsDamage": false,
+          "alwaysRollsExcellent": false,
+          "addsMastery": false
         },
         "roll": {
           "diceBonus": 0,

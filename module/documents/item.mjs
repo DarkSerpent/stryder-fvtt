@@ -66,6 +66,8 @@ export class StryderItem extends Item {
 		cooldown = `${item.system.cooldown_value} per Turn`;
 	} else if (item.system.cooldown_unit === "perRound") {
 		cooldown = `${item.system.cooldown_value} per Round`;
+	} else if (item.system.cooldown_unit === "perSpring") {
+		cooldown = `${item.system.cooldown_value} per Spring of Life`;
 	}
 
 	let range = "";
@@ -256,6 +258,23 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	let contentHTMLracial = `
+	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
+		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
+		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
+		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
+		<div style="margin-bottom: 10px; font-family: Modesto Condensed">${tag1} ${tag2} ${tag3}</div>
+		<div style="margin-bottom: 10px;">
+			<strong>Action:</strong> ${actionType}<br>
+			<strong>Cooldown:</strong> ${cooldown}<br>
+			${charges}
+			<strong>Range:</strong> ${range}<br>
+			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+		</div>
+		<div>${item.system.description ?? ''}</div>
+	</div>
+	`;
+
 	let contentHTMLstat = `
 	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
 		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
@@ -427,7 +446,7 @@ export class StryderItem extends Item {
 	`;
 
     // If there's no roll data, send a chat message.
-		if (item.type === "feature" || item.type === "racial" || item.type === "skill" || item.type === "technique") {
+		if (item.type === "feature" || item.type === "skill" || item.type === "technique") {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
@@ -514,6 +533,13 @@ export class StryderItem extends Item {
 
 			// Return the roll object for further processing if necessary.
 			return roll;
+		}
+		else if (item.type === "racial") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			content: contentHTMLracial
+		  });
 		}
 		else if (item.type === "statperk") {
 		  ChatMessage.create({

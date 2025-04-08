@@ -48,6 +48,7 @@
 			<option value="round">Round(s)</option>
 			<option value="perRest">per Rest</option>
 			<option value="perTurn">per Turn</option>
+			<option value="perSpring">per Spring of Life</option>
 			{{/select}}
 		  </select>
 		</div>
@@ -110,6 +111,16 @@
 				</div>
 			</div>
 		</div>
+		<center>
+        <div class="resource flex-group-center" style="width: 50%; margin-top: 15px;">
+          <label for="system.charges" class="resource-label">Charges</label>
+          <div class="resource-content flexrow flex-center flex-between">
+			<input type="text" name="system.charges.value" value="{{system.charges.value}}" data-dtype="Number"/>
+			<span style="margin-top: 5px;"> / </span>
+			<input type="text" name="system.charges.max" value="{{system.charges.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+		</center>
 	</div>
 
     {{!-- Effects Tab --}}

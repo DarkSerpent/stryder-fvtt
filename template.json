@@ -23,6 +23,11 @@
           "min": 0,
           "max": 20
         },
+        "focus": {
+          "value": 3,
+          "min": 0,
+          "max": 3
+        },
         "resource1": {
           "value": 0,
           "min": 0,
@@ -32,6 +37,9 @@
           "value": 0,
           "min": 0,
           "max": 0
+        },
+        "elixir_sickness": {
+          "value": 0
         },
         "biography": ""
       }
@@ -308,6 +316,9 @@
     },
     "hex": {
         "templates": ["base"],
+        "hex": {
+          "rollsDamage": false
+        },
         "roll": {
           "diceBonus": 0,
           "diceNum": 2,
@@ -338,6 +349,7 @@
         "templates": ["base"],
         "quality": "prototype",
         "nature": "enchanted",
+        "inventory_size": 1,
         "sell_price": 0,
         "charges": {
           "value": 0,

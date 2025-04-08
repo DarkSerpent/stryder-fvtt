@@ -623,6 +623,20 @@ export class StryderItem extends Item {
 				let attributePath;
 				if (diceBonus === "mastery") {
 					attributePath = "attributes.mastery";
+				} else if (diceBonus === "might" || diceBonus === "magyk" || diceBonus === "speed" || diceBonus === "instinct") {
+					attributePath = `abilities.${diceBonus}.value`;
+				} else if (diceBonus === "power") {
+					attributePath = `abilities.Power.value`;
+				} else if (diceBonus === "agility") {
+					attributePath = `abilities.Agility.value`;
+				} else if (diceBonus === "grit") {
+					attributePath = `abilities.Grit.value`;
+				} else if (diceBonus === "arcana") {
+					attributePath = `abilities.Arcana.value`;
+				} else if (diceBonus === "intuition") {
+					attributePath = `abilities.Intuition.value`;
+				} else if (diceBonus === "will") {
+					attributePath = `abilities.Will.value`;
 				} else {
 					attributePath = `attributes.talent.${diceBonus}.value`;
 				}
@@ -730,71 +744,91 @@ export class StryderItem extends Item {
 			return roll;
 		}
 		else if (item.type === "generic") {
-		  // Retrieve the necessary properties to construct the roll formula.
-		  const diceNum = item.system.roll.diceNum;
-		  const diceSize = item.system.roll.diceSize;
-		  const diceBonus = item.system.roll.diceBonus;
-		  const baseDamageAmp = item.system.roll.baseDamageAmp || 0;  // Default to 0 if not defined
-		  const rawDamageAmp = item.system.roll.rawDamageAmp || 0;    // Default to 0 if not defined
+			const diceNum = item.system.roll.diceNum;
+			const diceSize = item.system.roll.diceSize;
+			let diceBonus = item.system.roll.diceBonus;
+			const baseDamageAmp = item.system.roll.baseDamageAmp || 0;
+			const rawDamageAmp = item.system.roll.rawDamageAmp || 0;
 
-		  // Construct the roll formula.
-		  const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
+			const actor = item.actor;
+			if (!actor) {
+				console.error("No actor associated with this item:", item);
+				return;
+			}
 
-		  // Create the roll using the constructed formula.
-		  const roll = new Roll(formula);
-		  await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
+			if (typeof diceBonus === 'string' && isNaN(parseInt(diceBonus))) {
+				let attributePath;
+				const attributeMapping = {
+					mastery: "attributes.mastery",
+					might: "abilities.might.value",
+					magyk: "abilities.magyk.value",
+					speed: "abilities.speed.value",
+					instinct: "abilities.instinct.value",
+					power: "abilities.Power.value",
+					agility: "abilities.Agility.value",
+					grit: "abilities.Grit.value",
+					arcana: "abilities.Arcana.value",
+					intuition: "abilities.Intuition.value",
+					will: "abilities.Will.value"
+				};
 
-		  // Send the result of the roll to the chat.
-		  roll.toMessage({
-			speaker: speaker,
-			flavor: contentHTMLgeneric,
-			rollMode: rollMode
-		  });
+				attributePath = attributeMapping[diceBonus] || `attributes.talent.${diceBonus}.value`;
 
-		  // Determine the quality of the roll based on the total
-		  let result = roll.total;
-		  let quality;
-		  let damageMultiplier;
-		  if (result >= 2 && result <= 4) {
-			quality = "Poor";
-			damageMultiplier = 0.5;
-		  } else if (result >= 5 && result <= 10) {
-			quality = "Good";
-			damageMultiplier = 1.0;
-		  } else if (result >= 11) {
-			quality = "Excellent";
-			damageMultiplier = 1.5;
-		  }
+				const attributeValue = getProperty(actor.system, attributePath);
+				diceBonus = attributeValue !== undefined ? attributeValue : 0;
+				if (attributeValue === undefined) {
+					console.error(`Attribute ${diceBonus} not found on actor. Path tried: ${attributePath}`);
+					console.log(`Actor system object:`, actor.system);
+				}
+			} else {
+				diceBonus = parseInt(diceBonus) || 0;
+			}
 
-		  // Ensure the Actor exists and has the necessary properties
-		  if (!item.actor || !item.actor.system.abilities.Power) {
-			console.error("Actor or Power ability not found for this item.");
-			return;
-		  }
+			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
+			const roll = new Roll(formula);
+			await roll.evaluate({async: true});
+			roll.toMessage({
+				speaker: speaker,
+				flavor: contentHTMLgeneric,
+				rollMode: rollMode
+			});
 
-		  // Calculate the damage using Power value from the Actor
-		  const powerValue = item.actor.system.abilities.Power.value;
-		  const adjustedPower = powerValue + baseDamageAmp; // Add baseDamageAmp before multiplier
-		  let baseDamage;
-		  if (quality === "Poor") {
-			baseDamage = Math.floor(adjustedPower * damageMultiplier);
-		  } else if (quality === "Excellent") {
-			baseDamage = Math.ceil(adjustedPower * damageMultiplier);
-		  } else {
-			baseDamage = Math.floor(adjustedPower * damageMultiplier);
-		  }
-		  const totalDamage = baseDamage + rawDamageAmp; // Add rawDamageAmp after multiplier
+			let result = roll.total;
+			let quality;
+			let damageMultiplier;
+			if (result >= 2 && result <= 4) {
+				quality = "Poor";
+				damageMultiplier = 0.5;
+			} else if (result >= 5 && result <= 10) {
+				quality = "Good";
+				damageMultiplier = 1.0;
+			} else if (result >= 11) {
+				quality = "Excellent";
+				damageMultiplier = 1.5;
+			}
 
-		  // Create follow-up chat message
-		  const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
-		  ChatMessage.create({
-			speaker: speaker,
-			content: qualityMessage,
-			whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-		  });
+			let totalDamage;
+			let powerValue = actor.system.abilities.Power?.value || actor.system.abilities.might?.value || 0;
+			if (item.system.enableCustomDamage && item.system.customDamage[quality.toLowerCase()] !== null && item.system.customDamage[quality.toLowerCase()] !== undefined && item.system.customDamage[quality.toLowerCase()] !== "") {
+				totalDamage = parseInt(item.system.customDamage[quality.toLowerCase()]);
+			} else {
+				const adjustedPower = powerValue + baseDamageAmp;
+				if (quality === "Excellent") {
+					totalDamage = Math.ceil(adjustedPower * damageMultiplier);
+				} else {
+					totalDamage = Math.floor(adjustedPower * damageMultiplier);
+				}
+			}
+			totalDamage += rawDamageAmp;
 
-		  // Return the roll object for further processing if necessary.
-		  return roll;
+			const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
+			ChatMessage.create({
+				speaker: speaker,
+				content: qualityMessage,
+				whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+			});
+
+			return roll;
 		}
 		// Handle all other cases that don't match the above conditions
 		else {

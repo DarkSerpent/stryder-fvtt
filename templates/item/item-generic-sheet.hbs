@@ -46,9 +46,9 @@
             <label class="resource-label">Die Size</label>
             <input type="text" name="system.roll.diceSize" value="{{system.roll.diceSize}}" data-dtype="Number" />
           </div>
-          <div class="grid-span-2">
-            <label class="resource-label">Roll Modifier</label>
-            <input type="text" name="system.roll.diceBonus" value="{{system.roll.diceBonus}}" data-dtype="Number" />
+          <div class="grid-span-2" style="margin-top: -11px;">
+            <label class="resource-label">Roll Modifier</label> <div style="font-size:70%"><i>(accepts talent names, ability names, and "mastery")</i></div>
+            <input type="text" name="system.roll.diceBonus" value="{{system.roll.diceBonus}}" />
           </div>
         </div>
         <div class="grid grid-2col">
@@ -60,6 +60,53 @@
             <label class="resource-label">Raw Damage Amp</label>
             <input type="text" name="system.roll.rawDamageAmp" value="{{system.roll.rawDamageAmp}}" data-dtype="Number" />
           </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="system.enableCustomDamage" {{checked system.enableCustomDamage}}>
+          Enable Custom Damage?
+        </label>
+      </div>
+
+      <!-- Additional Inputs for Custom Damage -->
+      <div class="custom-damage-inputs" style="{{#if system.enableCustomDamage}}display: block;{{else}}display: none;{{/if}}">
+        <div class="grid grid-3col">
+          <div>
+            <label class="resource-label">Poor</label>
+            <input type="number" name="system.customDamage.poor" value="{{system.customDamage.poor}}" data-dtype="Number" />
+          </div>
+          <div>
+            <label class="resource-label">Good</label>
+            <input type="number" name="system.customDamage.good" value="{{system.customDamage.good}}" data-dtype="Number" />
+          </div>
+          <div>
+            <label class="resource-label">Excellent</label>
+            <input type="number" name="system.customDamage.excellent" value="{{system.customDamage.excellent}}" data-dtype="Number" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+	  const checkbox = document.querySelector("input[name='system.enableCustomDamage']");
+	  const customDamageInputs = document.querySelector(".custom-damage-inputs");
+	  
+	  function toggleCustomDamageInputs() {
+		if (checkbox.checked) {
+		  customDamageInputs.style.display = "block";
+		} else {
+		  customDamageInputs.style.display = "none";
+		}
+	  }
+
+	  // Event listener for the checkbox
+	  checkbox.addEventListener("change", toggleCustomDamageInputs);
+
+	  // Call the function initially to set the correct display state on page load
+	  toggleCustomDamageInputs();
+	});
+</script>
         </div>
   </section>
 </form>

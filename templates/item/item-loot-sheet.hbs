@@ -6,7 +6,7 @@
 	  <div style="color:gray; font-family: Arial; padding-top: 5px;">
 		<b>Loot Item</b>
 	  </div>
-      <div class="grid grid-2col">
+      <div class="grid grid-3col">
         <div class="resource">
 		<label class="resource-label">Rarity</label><br />
 			<select name="system.rarity" style="width: 100%;">
@@ -19,7 +19,33 @@
 				{{/select}}
 			</select>
 		</div>
-        <div class="resource">
+		<script>
+			function adjustInventorySize(change, itemId) {
+				const inventoryInput = document.getElementById(`inventory-size-${itemId}`);
+				let currentValue = parseInt(inventoryInput.value);
+				const minVal = 1;
+				const maxVal = 6;
+
+				// Calculate new value within the bounds of 1 to 4
+				const newValue = Math.min(maxVal, Math.max(minVal, currentValue + change));
+
+				// Set the new value back to the input
+				inventoryInput.value = newValue;
+
+				// Update the item data
+				const item = game.items.get(itemId);
+				item.update({'system.inventory_size': newValue});
+			}
+		</script>
+		<div class="resource">
+				<label class="resource-label">Slot Space:</label><br />
+			<div class="field" style="padding-top: 10px; width: 30%; display: flex; align-items: center; position: relative; top: -10px;">
+				<button type="button" class="button-minus" onclick="adjustInventorySize(-1, '{{item.id}}')">-</button>
+				<input type="number" name="system.inventory_size" value="{{system.inventory_size}}" min="1" max="4" placeholder="0" data-dtype="Number" readonly id="inventory-size-{{item.id}}"/>
+				<button type="button" class="button-plus" onclick="adjustInventorySize(1, '{{item.id}}')">+</button>
+			</div>
+		</div>
+        <div class="resource" style="position: relative; left: -20px;">
           <label class="resource-label">Sell Price</label> (Grail)
           <input type="text" name="system.sell_price" value="{{system.sell_price}}" placeholder="0" data-dtype="Number" />
         </div>

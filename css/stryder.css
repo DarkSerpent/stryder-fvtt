@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Eagle+Lake&family=Metal+Mania&family=Lavishly+Yours&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Eagle+Lake&family=Metal+Mania&family=Lavishly+Yours&family=Yatra+One&display=swap');
 /* Global styles */
 .window-app {
   font-family: "Roboto", sans-serif;
@@ -546,6 +546,7 @@ progress.resource2-bar::-moz-progress-bar {
     display: flex;
     flex-direction: column;
     align-items: center;
+	justify-content: center;
     width: 100%;
 }
 
@@ -553,6 +554,7 @@ progress.resource2-bar::-moz-progress-bar {
     display: flex;
     flex-direction: column;
     align-items: center;
+	justify-content: center;
     width: 100%;
 }
 
@@ -692,4 +694,30 @@ progress.resource2-bar::-moz-progress-bar {
     text-align: center;
     width: 50px;
     margin: 0 10px;
+}
+
+.ability-resistance-mod {
+    font-family: "Eagle Lake", sans-serif;
+    font-size: 16px;
+}
+
+.dropdown-container {
+	margin: 20px;
+}
+
+.dropdown-trigger {
+    font-family: 'Yatra One';
+	color: gray;
+	font-weight: bold;
+	text-decoration: underline dotted;
+	cursor: pointer;
+}
+
+.dropdown-content {
+	display: none;
+	border: 2px dashed rgba(0, 0, 0, 0.5);
+	border-radius: 10px;
+	padding: 10px;
+	margin-top: 5px;
+	font-size: 12px;
 }

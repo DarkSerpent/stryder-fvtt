@@ -66,6 +66,7 @@ export class StryderActorSheet extends ActorSheet {
     context.rollData = context.actor.getRollData();
 
     context.gearSlotsUsed = this._calculateGearSlotsUsed();
+    context.lootSlotsUsed = this._calculateLootSlotsUsed();
 
     // Prepare active effects
     context.effects = prepareActiveEffectCategories(
@@ -80,6 +81,13 @@ export class StryderActorSheet extends ActorSheet {
   _calculateGearSlotsUsed() {
     const gearItems = this.actor.items.filter(i => i.type === 'gear');
     return gearItems.reduce((total, item) => {
+      return total + parseInt(item.system.inventory_size || 1);
+    }, 0);
+  }
+
+  _calculateLootSlotsUsed() {
+    const lootItems = this.actor.items.filter(i => i.type === 'loot');
+    return lootItems.reduce((total, item) => {
       return total + parseInt(item.system.inventory_size || 1);
     }, 0);
   }

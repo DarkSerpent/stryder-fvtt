@@ -125,13 +125,25 @@
               <span class="ability-mod rollable" data-roll="2d6+@abilities.instinct.value" data-label="Instinct"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div><br />
 			<div class="ability flexrow flex-group-center">
-              <label><b>Armor</b></label>
-              <input type="text" name="system.abilities.armor.value" value="{{system.abilities.armor.value}}" data-dtype="Number"/>
+				<label for="system.armor.value" class="resource-label">Armor</label>
+			  <div class="resource-content flexrow flex-center flex-between" style="margin-bottom: 10px;">
+				<input type="text" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number"/>
+				<span> / </span>
+				<input type="text" name="system.armor.max" value="{{system.armor.max}}" data-dtype="Number"/>
+			  </div>
             </div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>P. Potency</b></label>
+              <input type="text" name="system.attributes.physical_potency.value" value="{{system.attributes.physical_potency.value}}" data-dtype="Number"/>
+            </div>
+			<div class="ability flexrow flex-group-center">
+              <label><b>M. Potency</b></label>
+              <input type="text" name="system.attributes.magykal_potency.value" value="{{system.attributes.magykal_potency.value}}" data-dtype="Number"/>
+            </div><br />
 			<div class="ability flexrow flex-group-center">
               <label><b>Weight Class</b></label>
               <input type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" data-dtype="Number"/>
-            </div>
+            </div><br />
           </div>
         </aside>
 
@@ -187,6 +199,18 @@
 
         </div>
     </div><br />
+
+            <div class="ability flexrow flex-group-center">
+		   	  <span class="ability-resistance-mod rollable" data-roll="@attributes.physical_potency.value" data-label="Physical Potency">
+			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Physical Potency</b></label>
+			  </span>
+		   	  <span class="ability-resistance-mod rollable" data-roll="@attributes.magykal_potency.value" data-label="Magykal Potency">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Magykal Potency</b></label>
+			  </span>
+			</div><br />
+
     {{> "systems/stryder/templates/actor/parts/monster-battle.hbs"}}
 </div>
 

@@ -334,6 +334,19 @@
             <input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number" readonly>
         </div>
     </div><br />
+
+            <div class="ability flexrow flex-group-center">
+		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Power.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency">
+			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Physical Potency</b></label>
+			  </span>
+		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Arcana.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Magykal Potency</b></label>
+			  </span>
+			</div><br />
+
+
     {{> "systems/stryder/templates/actor/parts/actor-battle.hbs"}}
 </div>
 

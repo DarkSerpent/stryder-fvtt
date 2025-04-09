@@ -51,6 +51,12 @@
       "attributes": {
         "mastery": 0,
         "weight_class": 4,
+        "physical_potency": {
+          "mod": 0
+        },
+        "magykal_potency": {
+          "mod": 0
+        },
         "level": {
           "value": 1
         },
@@ -101,7 +107,7 @@
           "nimbleness": {
             "value": 0
           },
-          "reflex": {
+          "finesse": {
             "value": 0
           },
           "strength": {
@@ -164,8 +170,19 @@
       "templates": ["base"],
       "attributes": {
         "weight_class": 4,
+        "physical_potency": {
+          "value": 0
+        },
+        "magykal_potency": {
+          "value": 0
+        },
         "challenge": {
           "value": 0
+        },
+        "armor": {
+          "value": 0,
+          "min": 0,
+          "max": 0
         },
         "move": {
           "running": {
@@ -214,7 +231,7 @@
           "nimbleness": {
             "value": 0
           },
-          "reflex": {
+          "finesse": {
             "value": 0
           },
           "strength": {
@@ -263,9 +280,6 @@
           "value": 0
         },
         "instinct": {
-          "value": 0
-        },
-        "armor": {
           "value": 0
         }
       }
@@ -332,6 +346,7 @@
     "loot": {
         "templates": ["base"],
         "rarity": "common",
+        "inventory_size": 1,
         "sell_price": 0
     },
     "component": {

@@ -72,11 +72,11 @@ export class StryderItem extends Item {
 
 	let range = "";
 	if (item.system.range === 0) {
-		range = "Melee";
+		range = "<strong>Range:</strong> Melee<br>";
 	} else if (item.system.range > 0) {
-		range = `${item.system.range} meters`;
+		range = `<strong>Range:</strong> ${item.system.range} meters<br>`;
 	} else if (item.system.range === null || item.system.range === undefined) {
-		range = `No range entered.`;
+		range = ``;
 	}
 
 	let manacost = "";
@@ -233,7 +233,7 @@ export class StryderItem extends Item {
 		<div style="margin-bottom: 10px;">
 			<strong>Action:</strong> ${actionType}<br>
 			<strong>Cooldown:</strong> ${cooldown}<br>
-			<strong>Range:</strong> ${range}<br>
+			${range}
 			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
@@ -251,7 +251,7 @@ export class StryderItem extends Item {
 			<strong>Element:</strong> ${hexElement}<br><br>
 			<strong>Action:</strong> ${actionType}<br>
 			<strong>Cooldown:</strong> ${cooldown}<br>
-			<strong>Range:</strong> ${range}<br>
+			${range}
 			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
@@ -268,7 +268,7 @@ export class StryderItem extends Item {
 			<strong>Action:</strong> ${actionType}<br>
 			<strong>Cooldown:</strong> ${cooldown}<br>
 			${charges}
-			<strong>Range:</strong> ${range}<br>
+			${range}
 			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
@@ -341,6 +341,8 @@ export class StryderItem extends Item {
 		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
 		<div style="margin-bottom: 10px;">
 			<strong>Parent Ability:</strong> ${parentAbility}<br>
+			${range}
+			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
 	</div>
@@ -400,7 +402,7 @@ export class StryderItem extends Item {
 			<br>
 			<strong>Action:</strong> ${actionType}<br>
 			<strong>Cooldown:</strong> ${cooldown}<br>
-			<strong>Range:</strong> ${range}<br>
+			${range}
 			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
@@ -498,7 +500,7 @@ export class StryderItem extends Item {
 					});
 				} else {
 					// Determine quality based on roll result
-					if (result >= 2 && result <= 4) {
+					if (result <= 4) {
 						quality = "Poor";
 						damageMultiplier = 0.5;
 					} else if (result >= 5 && result <= 10) {
@@ -697,7 +699,7 @@ export class StryderItem extends Item {
 				quality = "Excellent";
 				damageMultiplier = 1.5;
 			} else {
-				if (result >= 2 && result <= 4) {
+				if (result <= 4) {
 					quality = "Poor";
 					damageMultiplier = 0.5;
 				} else if (result >= 5 && result <= 10) {
@@ -796,7 +798,7 @@ export class StryderItem extends Item {
 			let result = roll.total;
 			let quality;
 			let damageMultiplier;
-			if (result >= 2 && result <= 4) {
+			if (result <= 4) {
 				quality = "Poor";
 				damageMultiplier = 0.5;
 			} else if (result >= 5 && result <= 10) {

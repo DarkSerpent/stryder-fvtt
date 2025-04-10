@@ -32,6 +32,22 @@
     {{!-- Attributes Tab --}}
     <div class="tab attributes" data-group="primary" data-tab="attributes">
       {{!-- As you add new fields, add them in here! --}}
+        <div class="field" style="padding-top: 10px;">
+          <label>Range:</label>
+          <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Stamina:</label>
+          <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Mana:</label>
+          <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+        </div>
+        <div class="field" style="padding-top: 10px;">
+          <label>Other:</label>
+          <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+        </div><br />
       <div class="resource">
         <label class="resource-label">Roll Formula:</label>
 		<span>{{calculateFormula system.roll.diceNum system.roll.diceSize system.roll.diceBonus}}</span>

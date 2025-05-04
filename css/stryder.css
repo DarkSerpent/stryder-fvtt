@@ -721,3 +721,16 @@ progress.resource2-bar::-moz-progress-bar {
 	margin-top: 5px;
 	font-size: 12px;
 }
+
+.items-list li.item.flexrow {
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  overflow: hidden;
+  max-height: 200px; /* adjust as needed */
+  opacity: 1;
+}
+
+.hidden-item {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px; /* Adjust padding to match your design */
+}

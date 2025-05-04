@@ -155,8 +155,8 @@
   {{!-- Sheet Tab Navigation --}}
   <nav class="sheet-tabs tabs" data-group="primary">
     {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="features">Features</a>
-    <a class="item" data-tab="battle">Battle</a>
+    <a class="item" data-tab="features">Battle</a>
+    <a class="item" data-tab="battle">Features</a>
     <a class="item" data-tab="items">Inventory</a>
     <a class="item" data-tab="description">Biography</a>
     <a class="item" data-tab="effects">Effects</a>
@@ -182,6 +182,17 @@
             </div>
             {{/each}}
           </div>
+			<br />
+            <div class="ability flexrow flex-group-center">
+		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Power.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency">
+			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Physical Potency</b></label>
+			  </span>
+		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Arcana.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
+              <label><b>Magykal Potency</b></label>
+			  </span>
+			</div><br />
         </aside>
 
         {{!-- For the main features list, span the right two columns --}}
@@ -335,17 +346,6 @@
         </div>
     </div><br />
 
-            <div class="ability flexrow flex-group-center">
-		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Power.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency">
-			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Physical Potency</b></label>
-			  </span>
-		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Arcana.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency">
-			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Magykal Potency</b></label>
-			  </span>
-			</div><br />
-
 
     {{> "systems/stryder/templates/actor/parts/actor-battle.hbs"}}
 </div>
@@ -377,6 +377,54 @@
             <input id="{{actor._id}}weight_class" type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" placeholder="4" data-dtype="Number"/>
           </div>
 		</div><br />
+		<ol class='items-list'>
+		  <li class='item flexrow items-header'>
+			<div class='item-name'>{{localize 'Bonds'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
+			<div class='item-armament-form'>{{localize 'Level'}}</div>
+			<div class='item-controls'>
+			  <a
+				class='item-control item-create'
+				title='Create item'
+				data-type='bonds'
+			  >
+				<i class='fas fa-plus'></i>
+				{{localize 'DOCUMENT.New' type=''}}
+			  </a>
+			</div>
+		  </li>
+		  {{#each bonds as |item id|}}
+			<li class='item flexrow' data-item-id='{{item._id}}'>
+			  <div class='item-name'>
+				<div class='item-image'>
+				  <a class='rollable' data-roll-type='item'>
+					<img
+					  src='{{item.img}}'
+					  title='{{item.name}}'
+					  width='24'
+					  height='24'
+					/>
+				  </a>
+				</div>
+				<h4>{{item.name}}</h4>
+			  </div>
+			  <div class='item-bond-levels item-prop'>{{system.bond.level}}</div>
+			  <div class='item-controls'>
+				<a
+				  class='item-control item-edit'
+				  title='{{localize "DOCUMENT.Edit" type='bonds'}}'
+				>
+				  <i class='fas fa-edit'></i>
+				</a>
+				<a
+				  class='item-control item-delete'
+				  title='{{localize "DOCUMENT.Delete" type='bonds'}}'
+				>
+				  <i class='fas fa-trash'></i>
+				</a>
+			  </div>
+			</li>
+		  {{/each}}
+		</ol><br />
 	   <h2><b>Appearance</b></h2>
 		<div style="height: 150px;">
 			{{editor system.appearance target="system.appearance" rollData=rollData button=true owner=owner editable=editable}}

@@ -290,7 +290,7 @@
     }
   },
   "Item": {
-    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession"],
+    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession", "bonds"],
     "templates": {
       "base": {
         "description": "",
@@ -412,6 +412,15 @@
         "rarity": "common",
         "nature": "enchanted",
         "sell_price": 0
+    },
+    "bonds": {
+        "bond": {
+          "level": "Neutral",
+          "date": "",
+          "folk": "",
+          "gender": "",
+          "age": ""
+        }
     },
     "item": {
       "templates": ["base"],

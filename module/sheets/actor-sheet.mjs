@@ -24,6 +24,66 @@ export class StryderActorSheet extends ActorSheet {
     });
   }
 
+	/**
+	 * Toggle the visibility of item lists in the actor sheet
+	 * @param {HTMLElement} header - The header element that was clicked
+	 */
+	toggleItems(header) {
+	  const listItem = header.closest('li.items-header');
+	  if (!listItem) return;
+	  
+	  const itemList = listItem.parentElement;
+	  const items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+	  const icon = header.querySelector('.toggle-icon');
+	  const sectionName = header.textContent.trim().toLowerCase().replace(/\s+/g, '-');
+	  
+	  // Skip if elements aren't found
+	  if (!items.length || !icon) return;
+	  
+	  // Determine new state
+	  const isCollapsed = items[0].style.display !== "none";
+	  const newState = isCollapsed ? "collapsed" : "expanded";
+	  
+	  // Update display and icon
+	  items.forEach(item => item.style.display = isCollapsed ? "none" : "flex");
+	  icon.classList.toggle('fa-chevron-down', !isCollapsed);
+	  icon.classList.toggle('fa-chevron-up', isCollapsed);
+	  
+	  // Store state in actor flags without triggering a full re-render
+	  this.actor.setFlag('stryder', `section-${sectionName}`, newState).catch(err => {
+		console.error("Error saving section state:", err);
+	  });
+	}
+
+	async _restoreSectionStates(html) {
+	  const flags = this.actor.flags.stryder || {};
+	  
+	  // Find all section headers
+	  html.find('.items-header .item-name').each((i, header) => {
+		const sectionName = header.textContent.trim().toLowerCase().replace(/\s+/g, '-');
+		const sectionState = flags[`section-${sectionName}`];
+		const listItem = header.closest('li.items-header');
+		if (!listItem) return;
+		
+		const itemList = listItem.parentElement;
+		const items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+		const icon = header.querySelector('.toggle-icon');
+		
+		// Skip if elements aren't found
+		if (!items.length || !icon) return;
+		
+		if (sectionState === "collapsed") {
+		  items.forEach(item => item.style.display = "none");
+		  icon.classList.remove('fa-chevron-down');
+		  icon.classList.add('fa-chevron-up');
+		} else {
+		  items.forEach(item => item.style.display = "flex");
+		  icon.classList.remove('fa-chevron-up');
+		  icon.classList.add('fa-chevron-down');
+		}
+	  });
+	}
+
   /** @override */
   get template() {
     return `systems/stryder/templates/actor/actor-${this.actor.type}-sheet.hbs`;
@@ -67,6 +127,8 @@ export class StryderActorSheet extends ActorSheet {
 
     context.gearSlotsUsed = this._calculateGearSlotsUsed();
     context.lootSlotsUsed = this._calculateLootSlotsUsed();
+
+	context.sectionStates = this.actor.flags.stryder || {};
 
     // Prepare active effects
     context.effects = prepareActiveEffectCategories(
@@ -137,6 +199,7 @@ export class StryderActorSheet extends ActorSheet {
     const statperks = [];
     const techniques = [];
     const professions = [];
+    const bonds = [];
     const spells = {
       0: [],
       1: [],
@@ -241,6 +304,10 @@ export class StryderActorSheet extends ActorSheet {
       else if (i.type === 'profession') {
         professions.push(i);
       }
+      // Append to bonds.
+      else if (i.type === 'bonds') {
+        bonds.push(i);
+      }
       // Append to spells.
       else if (i.type === 'spell') {
         if (i.system.spellLevel != undefined) {
@@ -272,6 +339,7 @@ export class StryderActorSheet extends ActorSheet {
     context.statperks = statperks;
     context.techniques = techniques;
     context.professions = professions;
+    context.bonds = bonds;
     context.spells = spells;
   }
 
@@ -280,6 +348,12 @@ export class StryderActorSheet extends ActorSheet {
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
+
+	this._restoreSectionStates(html);
+
+	  html.find('.item-name').click(ev => {
+		this.toggleItems(ev.currentTarget);
+	  });
 
     // Render the item sheet for viewing/editing prior to the editable check.
     html.on('click', '.item-edit', (ev) => {

@@ -121,7 +121,7 @@ export class StryderItem extends Item {
 		tag3 = `, [${item.system.tag3}]`;
 	}
 
-	let itemType = item.type === "feature" ? "Class Feature" : item.type === "racial" ? "Folk Ability" : item.type === "hex" ? "Hex" : item.type === "skill" ? "Skill" : item.type === "statperk" ? "Stat Perk" : item.type === "technique" ? "Technique" : item.type === "profession" ? "Profession" : item.type === "action" ? "Action" : item.type === "armament" ? "Soul Armament" : item.type === "generic" ? "Attack" : item.type === "loot" ? "Loot" : item.type === "component" ? "Component" : item.type === "consumable" ? "Consumable" : item.type === "gear" ? "Gear" : item.type === "aegiscore" ? "Aegis Core" : item.type === "legacies" ? "Legacy" : item.type === "head" ? "Head Item" : item.type === "back" ? "Back Item" : item.type === "arms" ? "Arms Item" : item.type === "legs" ? "Legs Item" : item.type === "gems" ? "Gem" : "";
+	let itemType = item.type === "feature" ? "Class Feature" : item.type === "racial" ? "Folk Ability" : item.type === "hex" ? "Hex" : item.type === "skill" ? "Skill" : item.type === "statperk" ? "Stat Perk" : item.type === "technique" ? "Technique" : item.type === "profession" ? "Profession" : item.type === "action" ? "Action" : item.type === "armament" ? "Soul Armament" : item.type === "generic" ? "Attack" : item.type === "loot" ? "Loot" : item.type === "component" ? "Component" : item.type === "consumable" ? "Consumable" : item.type === "gear" ? "Gear" : item.type === "aegiscore" ? "Aegis Core" : item.type === "legacies" ? "Legacy" : item.type === "head" ? "Head Item" : item.type === "back" ? "Back Item" : item.type === "arms" ? "Arms Item" : item.type === "legs" ? "Legs Item" : item.type === "gems" ? "Gem" : item.type === "bonds" ? "Bond" : "";
 
 	let hexAspect = "";
 	if (item.system.aspect === null || item.system.aspect === undefined || item.system.aspect === "") {
@@ -142,6 +142,34 @@ export class StryderItem extends Item {
 		professionLevel = "No experience.";
 	} else {
 		professionLevel = `${item.system.profession_level}`;
+	}
+
+	let bondLevel = "";
+	if (item.system.bond.level === null || item.system.bond.level === undefined || item.system.bond.level === "") {
+		bondLevel = "Esoteric";
+	} else {
+		bondLevel = item.system.bond.level;
+	}
+
+	let bondFolk = "";
+	if (item.system.bond.folk === null || item.system.bond.folk === undefined || item.system.bond.folk === "") {
+		bondFolk = "Unknown";
+	} else {
+		bondFolk = item.system.bond.folk;
+	}
+
+	let bondGender = "";
+	if (item.system.bond.gender === null || item.system.bond.gender === undefined || item.system.bond.gender === "") {
+		bondGender = "Unknown";
+	} else {
+		bondGender = item.system.bond.gender;
+	}
+
+	let bondAge = "";
+	if (item.system.bond.age === null || item.system.bond.age === undefined || item.system.bond.age === "") {
+		bondAge = "No Age Entered";
+	} else {
+		bondAge = item.system.bond.age;
 	}
 
 	let armamentForm = "";
@@ -295,6 +323,26 @@ export class StryderItem extends Item {
 		<div>${item.system.description ?? ''}</div>
 	</div>
 	`;
+
+	let contentHTMLbonds = `
+	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px; font-family: serif;">
+		<div style="position: relative; left: 40%; margin-bottom: 5px;">
+			<img src="${item.img}" width="50" height="50">
+		</div>
+		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
+		<div style="text-align: center; font-style: italic; margin-bottom: 10px;">${itemType}</div>
+		<div style="margin-bottom: 10px; text-align: center;">
+			<strong>Bond Level:</strong> ${bondLevel}
+		</div>
+		<div style="margin-bottom: 10px;">${item.system.description ?? ''}</div>
+		<div style="font-size: 12px; color: #555; border-top: 1px solid #ccc; padding-top: 5px; display: flex; justify-content: space-between; gap: 10px;">
+			<div><strong>Folk:</strong> ${bondFolk}</div>
+			<div><strong>Gender:</strong> ${bondGender}</div>
+			<div><strong>Age:</strong> ${bondAge}</div>
+		</div>
+	</div>
+	`;
+
 
 	let contentHTMLfantasm = `
 	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
@@ -555,6 +603,13 @@ export class StryderItem extends Item {
 			speaker: speaker,
 			rollMode: rollMode,
 			content: contentHTMLprofession
+		  });
+		}
+		else if (item.type === "bonds") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			content: contentHTMLbonds
 		  });
 		}
 		else if (item.type === "fantasm") {

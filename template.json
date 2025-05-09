@@ -164,7 +164,15 @@
         "Will": {
           "value": 0
         }
-      }
+      },
+      "checks": {
+        "Physical": {
+          "mod": 0
+        },
+        "Magykal": {
+          "mod": 0
+        }
+	}
     },
     "monster": {
       "templates": ["base"],

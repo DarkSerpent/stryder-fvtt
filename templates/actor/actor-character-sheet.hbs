@@ -183,18 +183,39 @@
             {{/each}}
           </div>
 			<br />
-            <div class="ability flexrow flex-group-center">
-		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Power.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency">
-			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Physical Potency</b></label>
-			  </span>
-		   	  <span class="ability-resistance-mod rollable" data-roll="2*@abilities.Arcana.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency">
-			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Magykal Potency</b></label>
-			  </span>
-			</div><br />
-        </aside>
+		<div class="ability flexcol flex-group-center">
+		  <!-- Potency Row -->
+		  <div class="flexrow flex-group-center">
+			<!-- Physical Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="2*@abilities.Power.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency DC">
+			  <img src="systems/stryder/assets/physical_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Physical Potency</b></label>
+			</span>
 
+			<!-- Magykal Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="2*@abilities.Arcana.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency DC">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Magykal Potency</b></label>
+			</span>
+		  </div>
+
+		  <!-- Resistance Row -->
+		  <div class="flexrow flex-group-center" style="margin-top: 5px;">
+			<!-- Physical Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Grit.value+@checks.Physical.mod" data-label="Physical Resistance Check">
+			  <img src="systems/stryder/assets/d6.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; padding-left: 4px;">Roll resistance</label>
+			</span>
+
+			<!-- Magykal Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Will.value+@checks.Magykal.mod" data-label="Magykal Resistance Check">
+			  <img src="systems/stryder/assets/d6.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; padding-left: 4px;">Roll resistance</label>
+			</span>
+		  </div>
+		</div>
+		<br />
+        </aside>
         {{!-- For the main features list, span the right two columns --}}
         <section class="main grid-span-2">
           {{!-- This is a Handlebars partial. They're stored in the `/parts` folder next to this sheet, and defined in module/helpers/templates.mjs --}}

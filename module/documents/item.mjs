@@ -144,32 +144,24 @@ export class StryderItem extends Item {
 		professionLevel = `${item.system.profession_level}`;
 	}
 
-	let bondLevel = "";
-	if (item.system.bond.level === null || item.system.bond.level === undefined || item.system.bond.level === "") {
-		bondLevel = "Esoteric";
-	} else {
-		bondLevel = item.system.bond.level;
+	let bondLevel = "Esoteric";
+	if (item.system.bond && item.system.bond.level) {
+	  bondLevel = item.system.bond.level;
 	}
 
-	let bondFolk = "";
-	if (item.system.bond.folk === null || item.system.bond.folk === undefined || item.system.bond.folk === "") {
-		bondFolk = "Unknown";
-	} else {
-		bondFolk = item.system.bond.folk;
+	let bondFolk = "Unknown";
+	if (item.system.bond && item.system.bond.folk) {
+	  bondFolk = item.system.bond.folk;
 	}
 
-	let bondGender = "";
-	if (item.system.bond.gender === null || item.system.bond.gender === undefined || item.system.bond.gender === "") {
-		bondGender = "Unknown";
-	} else {
-		bondGender = item.system.bond.gender;
+	let bondGender = "Unknown";
+	if (item.system.bond && item.system.bond.gender) {
+	  bondGender = item.system.bond.gender;
 	}
 
-	let bondAge = "";
-	if (item.system.bond.age === null || item.system.bond.age === undefined || item.system.bond.age === "") {
-		bondAge = "No Age Entered";
-	} else {
-		bondAge = item.system.bond.age;
+	let bondAge = "No Age Entered";
+	if (item.system.bond && item.system.bond.age) {
+	  bondAge = item.system.bond.age;
 	}
 
 	let armamentForm = "";

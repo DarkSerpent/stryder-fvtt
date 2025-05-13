@@ -104,27 +104,27 @@
       <section class="grid grid-3col">
         <aside class="sidebar">
           <div class="abilities flexcol">
-            <div class="ability flexrow flex-group-center">
-              <label><b>Might</b></label>
+            <div class="ability flexrow flex-group-center stat-font">
+              <label><b>Might</b>&nbsp;&nbsp;</label>
               <input type="text" name="system.abilities.might.value" value="{{system.abilities.might.value}}" data-dtype="Number"/>
               <span class="ability-mod rollable" data-roll="2d6+@abilities.might.value" data-label="Might"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
 			</div>
-			<div class="ability flexrow flex-group-center">
-              <label><b>Magyk</b></label>
+			<div class="ability flexrow flex-group-center stat-font">
+              <label><b>Magyk</b>&nbsp;&nbsp;</label>
               <input type="text" name="system.abilities.magyk.value" value="{{system.abilities.magyk.value}}" data-dtype="Number"/>
               <span class="ability-mod rollable" data-roll="2d6+@abilities.magyk.value" data-label="Magyk"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div>
-			<div class="ability flexrow flex-group-center">
-              <label><b>Speed</b></label>
+			<div class="ability flexrow flex-group-center stat-font">
+              <label><b>Speed</b>&nbsp;&nbsp;</label>
               <input type="text" name="system.abilities.speed.value" value="{{system.abilities.speed.value}}" data-dtype="Number"/>
               <span class="ability-mod rollable" data-roll="2d6+@abilities.speed.value" data-label="Speed"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div>
-			<div class="ability flexrow flex-group-center">
-              <label><b>Instinct</b></label>
+			<div class="ability flexrow flex-group-center stat-font">
+              <label><b>Instinct</b>&nbsp;&nbsp;</label>
               <input type="text" name="system.abilities.instinct.value" value="{{system.abilities.instinct.value}}" data-dtype="Number"/>
               <span class="ability-mod rollable" data-roll="2d6+@abilities.instinct.value" data-label="Instinct"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div><br />
-			<div class="ability flexrow flex-group-center">
+			<div class="ability flexrow flex-group-center stat-font">
 				<label for="system.armor.value" class="resource-label">Armor</label>
 			  <div class="resource-content flexrow flex-center flex-between" style="margin-bottom: 10px;">
 				<input type="text" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number"/>
@@ -132,15 +132,15 @@
 				<input type="text" name="system.armor.max" value="{{system.armor.max}}" data-dtype="Number"/>
 			  </div>
             </div>
-			<div class="ability flexrow flex-group-center">
+			<div class="ability flexrow flex-group-center stat-font">
               <label><b>P. Potency</b></label>
               <input type="text" name="system.attributes.physical_potency.value" value="{{system.attributes.physical_potency.value}}" data-dtype="Number"/>
             </div>
-			<div class="ability flexrow flex-group-center">
+			<div class="ability flexrow flex-group-center stat-font">
               <label><b>M. Potency</b></label>
               <input type="text" name="system.attributes.magykal_potency.value" value="{{system.attributes.magykal_potency.value}}" data-dtype="Number"/>
             </div><br />
-			<div class="ability flexrow flex-group-center">
+			<div class="ability flexrow flex-group-center stat-font">
               <label><b>Weight Class</b></label>
               <input type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" data-dtype="Number"/>
             </div><br />
@@ -162,21 +162,21 @@
     <div class="movement-container">
         <div class="movement flexcol">
             <!-- Running Speed -->
-            <div class="flexrow flex-group-center">
+            <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/run.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Running Speed</b></label>
             </div>
             <input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number">
 
             <!-- Crawling Speed -->
-            <div class="flexrow flex-group-center">
+            <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/crawl.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Crawling Speed</b></label>
             </div>
             <input type="text" name="system.attributes.move.crawling.value" value="{{system.attributes.move.crawling.value}}" data-dtype="Number">
 
             <!-- Swimming Speed -->
-            <div class="flexrow flex-group-center">
+            <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/swim.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Swimming Speed</b></label>
             </div>
@@ -184,14 +184,14 @@
         </div>
         <div class="movement flexcol">
             <!-- Climbing Speed -->	
-            <div class="flexrow flex-group-center">
+            <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/climb.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Climbing Speed</b></label>
             </div>
             <div style="height: 66%; width: 100%; margin-left: 160px;"><input type="text" name="system.attributes.move.climbing.value" value="{{system.attributes.move.climbing.value}}" data-dtype="Number"></div>
 
             <!-- Marching Speed -->
-            <div class="flexrow flex-group-center">
+            <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/march.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Marching Speed</b></label>
             </div>
@@ -216,7 +216,19 @@
 
     {{!-- Biography Tab --}}
     <div class="tab biography" data-group="primary" data-tab="description">
-      {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
+      <div class="biography-container">
+        <div class="biography-section taxonomy-section">
+          <h2 class="section-header">Taxonomy</h2>
+          <p class="section-description"><em>Scientific classification, origins, and ecological context of this creature.</em></p>
+          {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
+        </div>
+        
+        <div class="biography-section attitude-section">
+          <h2 class="section-header">Behavior</h2>
+          <p class="section-description"><em>Behavioral patterns, combat tactics, and situational responses.</em></p>
+          {{editor system.attitude target="system.behavior" rollData=rollData button=true owner=owner editable=editable}}
+        </div>
+      </div>
     </div>
 
     {{!-- Active Effects Tab --}}

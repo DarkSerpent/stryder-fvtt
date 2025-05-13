@@ -30,23 +30,40 @@
       editable=editable}}
     </div>
 
-    {{!-- Attributes Tab --}}
-    <div class="tab attributes" data-group="primary" data-tab="attributes">
-      {{!-- Existing fields --}}
-      <div class="section">
-        <h2><b>Level 1 (Novice)</b></h2>
-		<div style="height: 150px;">
+	<div class="tab attributes" data-group="primary" data-tab="attributes">
+	  <div class="section grid grid-2col gap-3">
+		<!-- Novice -->
+		<div class="benefit-block">
+		  <h3 class="benefit-header">Level 1 (Novice)</h3>
+		  <div class="editor-wrapper">
 			{{editor system.novice target="system.novice" rollData=rollData button=true owner=owner editable=editable}}
+		  </div>
 		</div>
-        <h2><b>Level 2 (Journeyman)</b></h2>
-		<div style="height: 150px;">
+
+		<!-- Journeyman -->
+		<div class="benefit-block">
+		  <h3 class="benefit-header">Level 2 (Journeyman)</h3>
+		  <div class="editor-wrapper">
 			{{editor system.journeyman target="system.journeyman" rollData=rollData button=true owner=owner editable=editable}}
+		  </div>
 		</div>
-        <h2><b>Level 1 (Master)</b></h2>
-		<div style="height: 150px;">
+
+		<!-- Master -->
+		<div class="benefit-block">
+		  <h3 class="benefit-header">Level 3 (Master)</h3>
+		  <div class="editor-wrapper">
 			{{editor system.master target="system.master" rollData=rollData button=true owner=owner editable=editable}}
+		  </div>
 		</div>
-      </div>
+
+		<!-- Profession Kit -->
+		<div class="benefit-block">
+		  <h3 class="benefit-header">Profession Kit</h3>
+		  <div class="editor-wrapper">
+			{{editor system.extra target="system.extra" rollData=rollData button=true owner=owner editable=editable}}
+		  </div>
+		</div>
+	  </div>
 	</div>
 
     {{!-- Effects Tab --}}

@@ -35,6 +35,7 @@ export class StryderItem extends Item {
    * @private
    */
   async roll() {
+
     const item = this;
 
     // Initialize chat data.
@@ -304,16 +305,38 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	async function createCollapsibleSection(title, content) {
+	  if (!content) return '';
+	  const enriched = await TextEditor.enrichHTML(content, {async: true});
+	  return `
+		<div class="collapsible-section">
+		  <button type="button" class="collapsible-toggle">${title} <i class="fas fa-caret-down"></i></button>
+		  <div class="collapsible-content" style="display: none;">
+			<div class="collapsible-inner">${enriched}</div>
+		  </div>
+		</div>
+	  `;
+	}
+
+	let section1 = await createCollapsibleSection("Level 1 - Novice", item.system.novice);
+	let section2 = await createCollapsibleSection("Level 2 - Journeyman", item.system.journeyman);
+	let section3 = await createCollapsibleSection("Level 3 - Master", item.system.master);
+	let section4 = await createCollapsibleSection("Profession Kit", item.system.extra);
+
 	let contentHTMLprofession = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
+	  <div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
 		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
 		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
 		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
 		<div style="margin-bottom: 10px;">
-			<strong>Level:</strong> ${professionLevel}<br>
+		  <strong>Level:</strong> ${professionLevel}<br>
 		</div>
 		<div>${item.system.description ?? ''}</div>
-	</div>
+	  </div>
+	  ${section1}
+	  ${section2}
+	  ${section3}
+	  ${section4}
 	`;
 
 	let contentHTMLbonds = `
@@ -486,6 +509,17 @@ export class StryderItem extends Item {
 		<div>${item.system.description ?? ''}</div>
 	</div>
 	`;
+
+	Hooks.on("renderChatMessage", (message, html, data) => {
+	  html[0].querySelectorAll(".collapsible-toggle").forEach(button => {
+		button.addEventListener("click", () => {
+		  const content = button.nextElementSibling;
+		  if (content) {
+			content.classList.toggle("hidden");
+		  }
+		});
+	  });
+	});
 
     // If there's no roll data, send a chat message.
 		if (item.type === "feature" || item.type === "skill" || item.type === "technique") {

@@ -335,25 +335,12 @@
 
 
 
-<h2><b>The Vault</b></h2>
-<center>
-<div class="dropdown-container">
-    <div class="dropdown-trigger" onclick="toggleDropdown()">Click for information about the Vault</div>
-    <div class="dropdown-content">
-        <i>The Vault (idiomatically expressed as "my Vault" and "your Vault") manifests as a personalized pocket dimension that operates outside normal spatial-temporal constraints. Observations indicate that while storage capacity has definite limitations, items contained within these spaces experience suspension of both gravitational effects and temporal degradation processes. This characteristic proves particularly valuable for Stryders, as it eliminates the physical burden of carried equipment and specimens. While current evidence suggests Vault manifestation is limited to those within the Stryder designation, several theoretical frameworks propose that this ability may potentially exist in a broader population, possibly in dormant or undeveloped states.</i>
-    </div>
+<div class="vault-description">
+    <h2 class="vault-title"><b>The Vault</b></h2>
+    <p class="vault-text">
+        <span class="dropcap">T</span>he Vault (idiomatically expressed as "my Vault" and "your Vault") manifests as a personalized pocket dimension that operates outside normal spatial-temporal constraints. Observations indicate that while storage capacity has definite limitations, items contained within these spaces experience suspension of both gravitational effects and temporal degradation processes. This characteristic proves particularly valuable for Stryders, as it eliminates the physical burden of carried equipment and specimens. While current evidence suggests Vault manifestation is limited to those within the Stryder designation, several theoretical frameworks propose that this ability may potentially exist in a broader population, possibly in dormant or undeveloped states.
+    </p>
 </div>
-</center>
-<script>
-function toggleDropdown() {
-    var content = document.querySelector('.dropdown-content');
-    if (content.style.display === 'block') {
-        content.style.display = 'none';
-    } else {
-        content.style.display = 'block';
-    }
-}
-</script>
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Loot'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>

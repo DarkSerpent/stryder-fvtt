@@ -29,8 +29,8 @@ Hooks.once('init', function () {
    * @type {String}
    */
   CONFIG.Combat.initiative = {
-    formula: '1d20 + @abilities.dex.mod',
-    decimals: 2,
+    formula: '2d6 + @abilities.Agility.value + @abilities.speed.value + @initiative.bonus',
+    decimals: 0,
   };
 
   // Define custom Document classes
@@ -91,6 +91,19 @@ Hooks.once('init', function() {
 Hooks.once('ready', function () {
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+});
+
+/* -------------------------------------------- */
+/*  Chat Message Enhancements                   */
+/* -------------------------------------------- */
+
+Hooks.on('renderChatMessage', (message, html, data) => {
+  // Handle collapsible sections
+  html.on('click', '.collapsible-toggle', function() {
+    const content = $(this).next('.collapsible-content');
+    content.slideToggle(200);
+    $(this).find('i').toggleClass('fa-caret-down fa-caret-up');
+  });
 });
 
 /* -------------------------------------------- */

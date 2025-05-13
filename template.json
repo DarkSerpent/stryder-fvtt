@@ -38,6 +38,9 @@
           "min": 0,
           "max": 0
         },
+        "initiative": {
+          "bonus": 0
+        },
         "elixir_sickness": {
           "value": 0
         },

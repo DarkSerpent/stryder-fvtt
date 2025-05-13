@@ -14,6 +14,7 @@ export class StryderActorSheet extends ActorSheet {
       classes: ['stryder', 'sheet', 'actor'],
       width: 600,
       height: 700,
+      resizable: ["vertical"],
       tabs: [
         {
           navSelector: '.sheet-tabs',

@@ -199,19 +199,35 @@
 		  </div>
 
 		  <!-- Resistance Row -->
-		  <div class="flexrow flex-group-center" style="margin-top: 5px;">
+		  <div class="flexrow flex-group-center" style="margin-top: -5px;">
 			<!-- Physical Resistance -->
 			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Grit.value+@checks.Physical.mod" data-label="Physical Resistance Check">
-			  <img src="systems/stryder/assets/d6.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
-			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; padding-left: 4px;">Roll resistance</label>
+			  <img src="systems/stryder/assets/physical_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
 			</span>
 
 			<!-- Magykal Resistance -->
 			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Will.value+@checks.Magykal.mod" data-label="Magykal Resistance Check">
-			  <img src="systems/stryder/assets/d6.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
-			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; padding-left: 4px;">Roll resistance</label>
+			  <img src="systems/stryder/assets/magykal_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
+			</span>
+		  </div> <br />
+
+		  <!-- Dodge & Evade Row -->
+		  <div class="flexrow flex-group-center">
+			<!-- Dodge Roll -->
+			<span class="ability-dodge-evade-mod rollable" data-custom-roll="1d6+@abilities.Agility.value+@dodge.bonus" data-label="Dodge Roll">
+			  <img src="systems/stryder/assets/dodge.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Dodge</b></label>
+			</span>
+
+			<!-- Evade Roll -->
+			<span class="ability-dodge-evade-mod rollable" data-custom-roll="2d6+@abilities.Agility.value+@evade.bonus" data-label="Evade Roll">
+			  <img src="systems/stryder/assets/evade.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Evade</b></label>
 			</span>
 		  </div>
+
 		</div>
 		<br />
         </aside>

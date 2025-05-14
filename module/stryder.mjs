@@ -89,8 +89,61 @@ Hooks.once('init', function() {
 /* -------------------------------------------- */
 
 Hooks.once('ready', function () {
-  // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
+  // Hotbar macros
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+
+  $(document).off("click", ".ability-dodge-evade-mod");
+
+  $(document).on("click", ".ability-dodge-evade-mod", async function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    const appId = this.closest(".app")?.dataset.appid;
+    const app = ui.windows[appId];
+    const actor = app?.actor || app?.object?.actor || app?.object;
+    
+    if (!actor) return ui.notifications.error("No character selected!");
+
+    const currentStamina = actor.system.stamina?.value;
+    if (currentStamina === undefined) return;
+    if (currentStamina < 1) {
+      return ui.notifications.warn(`${actor.name} doesn't have enough Stamina!`);
+    }
+
+    try {
+      const rollFormula = this.dataset.customRoll;
+      const flavor = this.dataset.label;
+      const roll = new Roll(rollFormula, actor.system);
+      
+      await roll.evaluate({async: true});
+
+      await actor.update({"system.stamina.value": currentStamina - 1});
+      const rollResult = await roll.render();
+
+      await ChatMessage.create({
+        user: game.user.id,
+        speaker: ChatMessage.getSpeaker({actor: actor}),
+        content: `
+        <div style="background: url('systems/stryder/assets/parchment.jpg'); 
+                    background-size: cover; 
+                    padding: 15px; 
+                    border: 1px solid #c9a66b; 
+                    border-radius: 3px;">
+          <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${flavor}</strong></h3>
+          ${rollResult}
+          <p style="margin-bottom: 0; border-top: 1px solid #c9a66b; padding-top: 5px;">${actor.name} spent 1 Stamina.</p>
+        </div>
+        `,
+        type: CONST.CHAT_MESSAGE_TYPES.ROLL,
+        sound: CONFIG.sounds.dice
+      });
+
+    } catch (err) {
+      console.error("Roll error:", err);
+      ui.notifications.error("Failed to process roll!");
+    }
+  });
 });
 
 /* -------------------------------------------- */

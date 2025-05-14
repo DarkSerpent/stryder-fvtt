@@ -318,6 +318,158 @@ export class StryderItem extends Item {
 	  `;
 	}
 
+	function createResourceSpendButton(item) {
+	  const hasStaminaCost = item.system.stamina_cost > 0;
+	  const hasManaCost = item.system.mana_cost > 0;
+	  
+	  if (!hasStaminaCost && !hasManaCost) return '';
+
+	  let buttonText = 'Spend Resources';
+	  if (hasStaminaCost && hasManaCost) {
+		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span> and <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
+	  } else if (hasStaminaCost) {
+		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span>`;
+	  } else if (hasManaCost) {
+		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
+	  }
+
+	  return `
+		<div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
+		  <button class="resource-spend-button" 
+				  data-stamina-cost="${item.system.stamina_cost || 0}"
+				  data-mana-cost="${item.system.mana_cost || 0}">
+			${buttonText}
+		  </button>
+		</div>
+	  `;
+	}
+
+	function handleResourceSpend(event) {
+	  event.preventDefault();
+	  const button = event.currentTarget;
+	  const staminaCost = parseInt(button.dataset.staminaCost) || 0;
+	  const manaCost = parseInt(button.dataset.manaCost) || 0;
+
+	  // Get the currently controlled tokens
+	  const controlledTokens = canvas.tokens.controlled;
+	  
+	  if (controlledTokens.length === 0) {
+		ui.notifications.warn("No character selected! Please select a token first.");
+		return;
+	  }
+
+	  const token = controlledTokens[0];
+	  const actor = token.actor;
+	  
+	  if (!actor) {
+		ui.notifications.error("Selected token has no associated actor!");
+		return;
+	  }
+
+	  // Check if the actor has enough resources
+	  let canAfford = true;
+	  let warningMessage = "";
+
+	  if (staminaCost > 0) {
+		if (actor.system.stamina?.value === undefined) {
+		  ui.notifications.warn("Selected character doesn't have stamina to spend!");
+		  return;
+		}
+		if (actor.system.stamina.value < staminaCost) {
+		  canAfford = false;
+		  warningMessage += `Not enough Stamina (${actor.system.stamina.value}/${staminaCost})`;
+		}
+	  }
+
+	  if (manaCost > 0) {
+		if (actor.system.mana?.value === undefined) {
+		  ui.notifications.warn("Selected character doesn't have mana to spend!");
+		  return;
+		}
+		if (actor.system.mana.value < manaCost) {
+		  canAfford = false;
+		  if (warningMessage) warningMessage += " and ";
+		  warningMessage += `Not enough Mana (${actor.system.mana.value}/${manaCost})`;
+		}
+	  }
+
+	  if (!canAfford) {
+		ui.notifications.warn(`Not enough resources to spend! ${warningMessage}`);
+		return;
+	  }
+
+	  // Prepare updates
+	  const updates = {};
+	  let hasResources = false;
+
+	  if (staminaCost > 0 && actor.system.stamina?.value !== undefined) {
+		updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - staminaCost);
+		hasResources = true;
+	  }
+
+	  if (manaCost > 0 && actor.system.mana?.value !== undefined) {
+		updates['system.mana.value'] = Math.max(0, actor.system.mana.value - manaCost);
+		hasResources = true;
+	  }
+
+	  // Apply updates if there are any
+		if (hasResources && Object.keys(updates).length > 0) {
+		  actor.update(updates).then(() => {
+			ui.notifications.info(`Resources spent for ${actor.name}!`);
+			// Disable the button after clicking
+			button.disabled = true;
+			button.textContent = "Resources Spent";
+			
+			// Create chat message content
+			let messageContent;
+			if (staminaCost > 0 && manaCost > 0) {
+			  messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana.`;
+			} else if (staminaCost > 0) {
+			  messageContent = `${actor.name} spent ${staminaCost} Stamina.`;
+			} else if (manaCost > 0) {
+			  messageContent = `${actor.name} spent ${manaCost} Mana.`;
+			} else {
+			  messageContent = `${actor.name} spent resources.`;
+			}
+			
+			// Create chat message
+			const chatData = {
+			  user: game.user.id,
+			  speaker: ChatMessage.getSpeaker({ actor: actor }),
+			  content: messageContent,
+			  type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+			  sound: CONFIG.sounds.notification,
+			  flags: {
+				core: {
+				  canPopout: true
+				}
+			  }
+			};
+			
+			chatData.content = `
+			  <div style="background: url('systems/stryder/assets/parchment.jpg'); 
+						  background-size: cover; 
+						  padding: 15px; 
+						  border: 1px solid #c9a66b; 
+						  border-radius: 3px;">
+				<h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Resource Expenditure</strong></h3>
+				<p>${messageContent}</p>
+			  </div>
+			`;
+			
+			ChatMessage.create(chatData);
+			
+		  }).catch(err => {
+			console.error("Error spending resources:", err);
+			ui.notifications.error("Failed to spend resources!");
+		  });
+		}
+	}
+
+	Hooks.once('renderChatMessage', (message, html, data) => {
+	  html.find('.resource-spend-button').click(handleResourceSpend);
+	});
+
 	let section1 = await createCollapsibleSection("Level 1 - Novice", item.system.novice);
 	let section2 = await createCollapsibleSection("Level 2 - Journeyman", item.system.journeyman);
 	let section3 = await createCollapsibleSection("Level 3 - Master", item.system.master);
@@ -523,10 +675,12 @@ export class StryderItem extends Item {
 
     // If there's no roll data, send a chat message.
 		if (item.type === "feature" || item.type === "skill" || item.type === "technique") {
+		  const resourceButton = createResourceSpendButton(item);
+
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTML
+			flavor: contentHTML + resourceButton
 		  });
 		}
 		// Handle the case where item.type is "hex"
@@ -543,6 +697,8 @@ export class StryderItem extends Item {
 			const diceSize = item.system.roll.diceSize;
 			const diceBonus = item.system.roll.diceBonus;
 
+			const resourceButton = createResourceSpendButton(item);
+
 			// Construct the roll formula.
 			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
 
@@ -553,7 +709,7 @@ export class StryderItem extends Item {
 			// Send the result of the roll to the chat.
 			roll.toMessage({
 				speaker: speaker,
-				flavor: contentHTMLhex,
+				flavor: contentHTMLhex + resourceButton,
 				rollMode: rollMode
 			});
 
@@ -611,10 +767,12 @@ export class StryderItem extends Item {
 			return roll;
 		}
 		else if (item.type === "racial") {
+		  const resourceButton = createResourceSpendButton(item);
+
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTMLracial
+			flavor: contentHTMLracial + resourceButton
 		  });
 		}
 		else if (item.type === "statperk") {
@@ -699,6 +857,8 @@ export class StryderItem extends Item {
 		  const diceSize = item.system.roll.diceSize;
 		  let diceBonus = item.system.roll.diceBonus;
 
+		  const resourceButton = createResourceSpendButton(item);
+
 		  const actor = game.actors.get(speaker.actor);
 
 		if (actor) {
@@ -744,7 +904,7 @@ export class StryderItem extends Item {
 		  await roll.evaluate({async: true});
 		  roll.toMessage({
 			speaker: speaker,
-			flavor: contentHTMLaction,
+			flavor: contentHTMLaction + resourceButton,
 			rollMode: rollMode
 		  });
 
@@ -833,6 +993,8 @@ export class StryderItem extends Item {
 			const baseDamageAmp = item.system.roll.baseDamageAmp || 0;
 			const rawDamageAmp = item.system.roll.rawDamageAmp || 0;
 
+			const resourceButton = createResourceSpendButton(item);
+
 			const actor = item.actor;
 			if (!actor) {
 				console.error("No actor associated with this item:", item);
@@ -872,7 +1034,7 @@ export class StryderItem extends Item {
 			await roll.evaluate({async: true});
 			roll.toMessage({
 				speaker: speaker,
-				flavor: contentHTMLgeneric,
+				flavor: contentHTMLgeneric + resourceButton,
 				rollMode: rollMode
 			});
 

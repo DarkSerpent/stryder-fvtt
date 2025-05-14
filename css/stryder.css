@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Eagle+Lake&family=Metal+Mania&family=Lavishly+Yours&family=Yatra+One&family=Cinzel+Decorative:wght@400;700&family=MedievalSharp&family=EB+Garamond:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Eagle+Lake&family=Metal+Mania&family=Lavishly+Yours&family=Yatra+One&family=Cinzel+Decorative:wght@400;700&family=Varela+Round&family=MedievalSharp&family=EB+Garamond:wght@400;500&display=swap');
 /* Global styles */
 .window-app {
   font-family: "Roboto", sans-serif;
@@ -621,6 +621,11 @@ progress.resource2-bar::-moz-progress-bar {
     font-size: 16px;
 }
 
+.ability-dodge-evade-mod {
+    font-family: "Eagle Lake", sans-serif;
+    font-size: 16px;
+}
+
 .items-list li.item.flexrow {
   transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
   overflow: hidden;
@@ -857,7 +862,6 @@ progress.resource2-bar::-moz-progress-bar {
 
 .scroll-border {
   height: 20px;
-  background: url('ui/scroll-edge.png') repeat-x;
   opacity: 0.8;
 }
 

@@ -116,9 +116,6 @@
           "strength": {
             "value": 0
           },
-          "stealth": {
-            "value": 0
-          },
           "survival": {
             "value": 0
           },
@@ -135,9 +132,6 @@
             "value": 0
           },
           "diplomacy": {
-            "value": 0
-          },
-          "glamor": {
             "value": 0
           },
           "intimacy": {
@@ -248,9 +242,6 @@
           "strength": {
             "value": 0
           },
-          "stealth": {
-            "value": 0
-          },
           "survival": {
             "value": 0
           },
@@ -267,9 +258,6 @@
             "value": 0
           },
           "diplomacy": {
-            "value": 0
-          },
-          "glamor": {
             "value": 0
           },
           "intimacy": {

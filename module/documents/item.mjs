@@ -122,7 +122,7 @@ export class StryderItem extends Item {
 		tag3 = `, [${item.system.tag3}]`;
 	}
 
-	let itemType = item.type === "feature" ? "Class Feature" : item.type === "racial" ? "Folk Ability" : item.type === "hex" ? "Hex" : item.type === "skill" ? "Skill" : item.type === "statperk" ? "Stat Perk" : item.type === "technique" ? "Technique" : item.type === "profession" ? "Profession" : item.type === "action" ? "Action" : item.type === "armament" ? "Soul Armament" : item.type === "generic" ? "Attack" : item.type === "loot" ? "Loot" : item.type === "component" ? "Component" : item.type === "consumable" ? "Consumable" : item.type === "gear" ? "Gear" : item.type === "aegiscore" ? "Aegis Core" : item.type === "legacies" ? "Legacy" : item.type === "head" ? "Head Item" : item.type === "back" ? "Back Item" : item.type === "arms" ? "Arms Item" : item.type === "legs" ? "Legs Item" : item.type === "gems" ? "Gem" : item.type === "bonds" ? "Bond" : "";
+	let itemType = item.type === "feature" ? "Class Feature" : item.type === "racial" ? "Folk Ability" : item.type === "hex" ? "Hex" : item.type === "skill" ? "Skill" : item.type === "statperk" ? "Stat Perk" : item.type === "technique" ? "Technique" : item.type === "profession" ? "Profession" : item.type === "action" ? "Action" : item.type === "armament" ? "Soul Armament" : item.type === "generic" ? "Attack" : item.type === "loot" ? "Loot" : item.type === "component" ? "Component" : item.type === "consumable" ? "Consumable" : item.type === "gear" ? "Gear" : item.type === "aegiscore" ? "Aegis Core" : item.type === "legacies" ? "Legacy" : item.type === "head" ? "Head Item" : item.type === "back" ? "Back Item" : item.type === "arms" ? "Arms Item" : item.type === "legs" ? "Legs Item" : item.type === "gems" ? "Gem" : item.type === "bonds" ? "Bond" : item.type === "passive" ? "Passive" : "";
 
 	let hexAspect = "";
 	if (item.system.aspect === null || item.system.aspect === undefined || item.system.aspect === "") {
@@ -563,6 +563,16 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	let contentHTMLpassive = `
+	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
+		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
+		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
+		<div style="margin-bottom: 10px;">
+		</div>
+		<div>${item.system.description ?? ''}</div>
+	</div>
+	`;
+
 	let contentHTMLloot = `
 	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
 		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
@@ -765,6 +775,13 @@ export class StryderItem extends Item {
 
 			// Return the roll object for further processing if necessary.
 			return roll;
+		}
+		else if (item.type === "passive") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			flavor: contentHTMLpassive
+		  });
 		}
 		else if (item.type === "racial") {
 		  const resourceButton = createResourceSpendButton(item);

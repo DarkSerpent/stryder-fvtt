@@ -41,6 +41,12 @@
         "initiative": {
           "bonus": 0
         },
+        "dodge": {
+          "bonus": 0
+        },
+        "evade": {
+          "bonus": 0
+        },
         "elixir_sickness": {
           "value": 0
         },
@@ -289,7 +295,7 @@
     }
   },
   "Item": {
-    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession", "bonds"],
+    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession", "bonds", "passive"],
     "templates": {
       "base": {
         "description": "",

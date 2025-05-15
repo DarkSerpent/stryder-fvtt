@@ -201,6 +201,7 @@ export class StryderActorSheet extends ActorSheet {
     const techniques = [];
     const professions = [];
     const bonds = [];
+    const passive = [];
     const spells = {
       0: [],
       1: [],
@@ -309,6 +310,10 @@ export class StryderActorSheet extends ActorSheet {
       else if (i.type === 'bonds') {
         bonds.push(i);
       }
+      // Append to passives.
+      else if (i.type === 'passive') {
+        passive.push(i);
+      }
       // Append to spells.
       else if (i.type === 'spell') {
         if (i.system.spellLevel != undefined) {
@@ -341,6 +346,7 @@ export class StryderActorSheet extends ActorSheet {
     context.techniques = techniques;
     context.professions = professions;
     context.bonds = bonds;
+    context.passive = passive;
     context.spells = spells;
   }
 
@@ -400,6 +406,13 @@ export class StryderActorSheet extends ActorSheet {
         li.addEventListener('dragstart', handler, false);
       });
     }
+
+	const inputmaxspeed = html.find("#running-speed")[0];
+	if (!inputmaxspeed) return;
+
+	const runningValue = getProperty(this.object.system, "attributes.move.running.value");
+	inputmaxspeed.value = runningValue ?? "";
+
   }
 
   /**

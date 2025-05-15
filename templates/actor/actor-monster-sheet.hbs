@@ -90,9 +90,9 @@
   {{!-- Sheet Tab Navigation --}}
   <nav class="sheet-tabs tabs" data-group="primary">
     {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="features">Features</a>
-    <a class="item" data-tab="battle">Senses & Talents</a>
-    <a class="item" data-tab="description">Lore</a>
+    <a class="item" data-tab="features">Battle</a>
+    <a class="item" data-tab="battle">Features</a>
+    <a class="item" data-tab="description">Information</a>
     <a class="item" data-tab="effects">Effects</a>
   </nav>
 
@@ -124,23 +124,55 @@
               <input type="text" name="system.abilities.instinct.value" value="{{system.abilities.instinct.value}}" data-dtype="Number"/>
               <span class="ability-mod rollable" data-roll="2d6+@abilities.instinct.value" data-label="Instinct"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div><br />
-			<div class="ability flexrow flex-group-center stat-font">
+			<div class="ability flexrow flex-group-center monster-substat-font">
 				<label for="system.armor.value" class="resource-label">Armor</label>
 			  <div class="resource-content flexrow flex-center flex-between" style="margin-bottom: 10px;">
 				<input type="text" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number"/>
-				<span> / </span>
+				<span style="position: relative; top: 5px;"> / </span>
 				<input type="text" name="system.armor.max" value="{{system.armor.max}}" data-dtype="Number"/>
 			  </div>
-            </div>
-			<div class="ability flexrow flex-group-center stat-font">
-              <label><b>P. Potency</b></label>
+            </div> <br />
+
+		<div class="ability flexcol flex-group-center">
+		  <!-- Potency Row -->
+		  <div class="flexrow flex-group-center">
+			<!-- Physical Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="@attributes.physical_potency.value" data-label="Physical Potency DC">
+			  <img src="systems/stryder/assets/physical_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Physical Potency</b></label>
+			</span>
+
+			<!-- Magykal Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="@attributes.magykal_potency.value" data-label="Magykal Potency DC">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Magykal Potency</b></label>
+			</span>
+		  </div>
+
+		  <!-- Resistance Row -->
+		  <div class="flexrow flex-group-center" style="margin-top: -5px;">
+			<!-- Physical Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.might.value" data-label="Physical Resistance Check">
+			  <img src="systems/stryder/assets/physical_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
+			</span>
+
+			<!-- Magykal Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.magyk.value" data-label="Magykal Resistance Check">
+			  <img src="systems/stryder/assets/magykal_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
+			</span>
+		  </div> <br />
+
+			<div class="ability flexrow flex-group-center monster-substat-font">
+              <label><b>Physical Potency DC</b></label>
               <input type="text" name="system.attributes.physical_potency.value" value="{{system.attributes.physical_potency.value}}" data-dtype="Number"/>
             </div>
-			<div class="ability flexrow flex-group-center stat-font">
-              <label><b>M. Potency</b></label>
+			<div class="ability flexrow flex-group-center monster-substat-font">
+              <label><b>Magykal Potency DC</b></label>
               <input type="text" name="system.attributes.magykal_potency.value" value="{{system.attributes.magykal_potency.value}}" data-dtype="Number"/>
             </div><br />
-			<div class="ability flexrow flex-group-center stat-font">
+			<div class="ability flexrow flex-group-center monster-substat-font">
               <label><b>Weight Class</b></label>
               <input type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" data-dtype="Number"/>
             </div><br />
@@ -166,50 +198,58 @@
                 <img src="systems/stryder/assets/run.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Running Speed</b></label>
             </div>
-            <input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number">
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number">
+			</span>
 
             <!-- Crawling Speed -->
             <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/crawl.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Crawling Speed</b></label>
             </div>
-            <input type="text" name="system.attributes.move.crawling.value" value="{{system.attributes.move.crawling.value}}" data-dtype="Number">
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.crawling.value" value="{{system.attributes.move.crawling.value}}" data-dtype="Number">
+			</span>
 
             <!-- Swimming Speed -->
             <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/swim.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Swimming Speed</b></label>
             </div>
-            <input type="text" name="system.attributes.move.swimming.value" value="{{system.attributes.move.swimming.value}}" data-dtype="Number">
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.swimming.value" value="{{system.attributes.move.swimming.value}}" data-dtype="Number">
+			</span>
         </div>
+
         <div class="movement flexcol">
             <!-- Climbing Speed -->	
             <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/climb.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Climbing Speed</b></label>
             </div>
-            <div style="height: 66%; width: 100%; margin-left: 160px;"><input type="text" name="system.attributes.move.climbing.value" value="{{system.attributes.move.climbing.value}}" data-dtype="Number"></div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.climbing.value" value="{{system.attributes.move.climbing.value}}" data-dtype="Number">
+			</span>
 
             <!-- Marching Speed -->
             <div class="flexrow flex-group-center-speed">
                 <img src="systems/stryder/assets/march.svg" width="30px" height="30px" style="border:0px;">
                 <label><b>Marching Speed</b></label>
             </div>
-            <div style="height: 66%; width: 100%; margin-left: 160px;"><input type="text" name="system.attributes.move.marching.value" value="{{system.attributes.move.marching.value}}" data-dtype="Number"></div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.marching.value" value="{{system.attributes.move.marching.value}}" data-dtype="Number">
+			</span>
 
+			<!-- Maximum Movement -->
+			<div class="flexrow flex-group-center-speed">
+				<img src="systems/stryder/assets/move.svg" width="30px" height="30px" style="border:0px;">
+				<label for="running-speed"><b>Maximum Movement</b></label>
+			</div>
+			<span class="speed-input-box">
+				<input type="text" id="running-speed" readonly>
+			</span>
         </div>
     </div><br />
-
-            <div class="ability flexrow flex-group-center">
-		   	  <span class="ability-resistance-mod rollable" data-roll="@attributes.physical_potency.value" data-label="Physical Potency">
-			  <img src="systems/stryder/assets/physical_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Physical Potency</b></label>
-			  </span>
-		   	  <span class="ability-resistance-mod rollable" data-roll="@attributes.magykal_potency.value" data-label="Magykal Potency">
-			  <img src="systems/stryder/assets/magykal_potency.svg" width=25px height=25px style='border:0px; position: relative; top: 7px;'>
-              <label><b>Magykal Potency</b></label>
-			  </span>
-			</div><br />
 
     {{> "systems/stryder/templates/actor/parts/monster-battle.hbs"}}
 </div>

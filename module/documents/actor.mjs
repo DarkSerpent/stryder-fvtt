@@ -41,18 +41,33 @@ export class StryderActor extends Actor {
   /**
    * Prepare Character type specific data
    */
-  _prepareCharacterData(actorData) {
-    if (actorData.type !== 'character') return;
+	_prepareCharacterData(actorData) {
+	  if (actorData.type !== 'character') return;
 
-    // Make modifications to data here. For example:
-    const systemData = actorData.system;
+	  const systemData = actorData.system;
 
-    // Loop through ability scores, and add their modifiers to our sheet output.
-    for (let [key, ability] of Object.entries(systemData.abilities)) {
-      // Calculate the modifier using d20 rules.
-      ability.mod = Math.floor((ability.value - 10) / 2);
-    }
-  }
+	  // Initialize talent values if they don't exist
+	  if (!systemData.attributes.talent) {
+		systemData.attributes.talent = {};
+	  }
+
+	  // Ensure all talents have a base value of 0
+	  const talents = [
+		"endurance", "nimbleness", "strength", "survival", "charm",
+		"wit", "wisdom", "deceit", "diplomacy", "intimacy", "threat"
+	  ];
+	  
+	  talents.forEach(talent => {
+		if (!systemData.attributes.talent[talent]) {
+		  systemData.attributes.talent[talent] = { value: 0 };
+		}
+	  });
+
+	  // Calculate ability modifiers
+	  for (let [key, ability] of Object.entries(systemData.abilities)) {
+		ability.mod = Math.floor((ability.value - 10) / 2);
+	  }
+	}
 
   /**
    * Prepare NPC type specific data.

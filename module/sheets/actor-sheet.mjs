@@ -93,7 +93,7 @@ export class StryderActorSheet extends ActorSheet {
   /* -------------------------------------------- */
 
   /** @override */
-  getData() {
+  async getData() {
     // Retrieve the data structure from the base sheet. You can inspect or log
     // the context variable to see the structure, but some key properties for
     // sheets are the actor object, the data object, whether or not it's
@@ -154,6 +154,55 @@ export class StryderActorSheet extends ActorSheet {
       return total + parseInt(item.system.inventory_size || 1);
     }, 0);
   }
+
+	/**
+	 * Update level-up talent active effects based on dropdown selections
+	 * @param {string} dropdownId - The dropdown identifier (e.g., "level1", "level2")
+	 * @param {string} talentKey - The selected talent key (e.g., "endurance")
+	 */
+	async _updateTalentEffect(dropdownId, talentKey) {
+	  const effectName = `Level-Up Talent (Dropdown ${dropdownId.replace('level', '')})`;
+	  
+	  // Find the specific effect for this dropdown (using both name and flag)
+	  const existingEffect = this.actor.effects.find(e => 
+		e.flags?.stryder?.dropdownId === dropdownId
+	  );
+	  
+	  // Remove existing effect if it exists and doesn't match the current selection
+	  if (existingEffect) {
+		if (!talentKey || talentKey === "" || existingEffect.changes[0]?.key !== `system.attributes.talent.${talentKey}.value`) {
+		  await this.actor.deleteEmbeddedDocuments("ActiveEffect", [existingEffect.id]);
+		} else {
+		  // Effect already exists and matches current selection, no need to do anything
+		  return;
+		}
+	  }
+	  
+	  // Create new effect if a talent is selected
+	  if (talentKey && talentKey !== "") {
+		const effectData = {
+		  label: effectName,
+		  icon: "icons/logo-scifi-blank.png",
+		  changes: [{
+			key: `system.attributes.talent.${talentKey}.value`,
+			mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+			value: 1,
+			priority: 20
+		  }],
+		  disabled: false,
+		  origin: this.actor.uuid,
+		  transfer: false,
+		  flags: {
+			stryder: {
+			  isLevelUpTalent: true,
+			  dropdownId: dropdownId
+			}
+		  }
+		};
+		
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+	  }
+	}
 
   /**
    * Organize and classify Items for Character sheets.
@@ -394,6 +443,85 @@ export class StryderActorSheet extends ActorSheet {
       onManageActiveEffect(ev, document);
     });
 
+	// Resource buttons
+	html.on('click', '.resource-button', async (event) => {
+	  event.preventDefault();
+	  const button = event.currentTarget;
+	  const action = button.dataset.action;
+	  
+	  const updates = {};
+	  
+	  switch(action) {
+		case 'turnStart':
+		  updates['system.stamina.value'] = this.actor.system.stamina.max;
+		  break;
+		  
+		case 'resting':
+		  updates['system.stamina.value'] = this.actor.system.stamina.max;
+		  updates['system.mana.value'] = this.actor.system.mana.max;
+		  updates['system.focus.value'] = this.actor.system.focus.max;
+		  break;
+		  
+		case 'springOfLife':
+		  updates['system.health.value'] = this.actor.system.health.max;
+		  updates['system.mana.value'] = this.actor.system.mana.max;
+		  updates['system.aegis.value'] = this.actor.system.aegis.max;
+		  updates['system.focus.value'] = this.actor.system.focus.max;
+		  updates['system.stamina.value'] = 0;
+		  break;
+	  }
+	  
+	  try {
+		await this.actor.update(updates);
+		
+		// Create a chat message to notify players
+		let message = '';
+		switch(action) {
+		  case 'turnStart':
+			message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
+			break;
+		  case 'resting':
+			message = `${this.actor.name} has rested, regaining all Stamina, Mana, and Focus.`;
+			break;
+		  case 'springOfLife':
+			message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, Aegis, and Focus but setting Stamina to 0.`;
+			break;
+		}
+		
+		ChatMessage.create({
+		  content: `
+			<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+						background-size: cover; 
+						padding: 15px; 
+						border: 1px solid #c9a66b; 
+						border-radius: 3px;">
+			  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${button.textContent.trim()}</strong></h3>
+			  <p style="margin-bottom: 0;">${message}</p>
+			</div>
+		  `,
+		  speaker: ChatMessage.getSpeaker({actor: this.actor})
+		});
+		
+	  } catch(err) {
+		console.error("Error updating actor resources:", err);
+		ui.notifications.error("Failed to update resources!");
+	  }
+	});
+
+	// Talent dropdown changes
+	html.find('.talent-select').on('change', foundry.utils.debounce(async (ev) => {
+	  const dropdown = ev.currentTarget;
+	  const dropdownId = dropdown.name.replace('system.talent.', '').replace('.selection', '');
+	  const talentKey = dropdown.value;
+	  
+	  await this._updateTalentEffect(dropdownId, talentKey);
+	  
+	  // Update the actor data to store the selection
+	  const updateData = {};
+	  updateData[`system.talent.${dropdownId}.selection`] = talentKey;
+	  await this.actor.update(updateData);
+	}, 100));
+
     // Rollable abilities.
     html.on('click', '.rollable', this._onRoll.bind(this));
 
@@ -461,22 +589,33 @@ export class StryderActorSheet extends ActorSheet {
 				});
 				return;
 			}
-			} else if (type === 'gear') {
-				const gearItems = this.actor.items.filter(i => i.type === 'gear');
-				const gearInventorySizeUsed = gearItems.reduce((acc, item) => {
-					return acc + parseInt(item.system.inventory_size || 1);
-				}, 0);
+		} else if (type === 'gear') {
+			const gearItems = this.actor.items.filter(i => i.type === 'gear');
+			const gearInventorySizeUsed = gearItems.reduce((acc, item) => {
+				return acc + parseInt(item.system.inventory_size || 1);
+			}, 0);
 
-				const newItemSize = parseInt(header.dataset.inventorySize || 1);
-				if (gearInventorySizeUsed + newItemSize > 4) {
-					let message = game.i18n.localize('<b>Notice:</b> Your "Gear" slots are full! Please drop an item or move one to storage before adding another.');
-					ChatMessage.create({
-						content: message,
-						speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-						whisper: [game.user.id]
-					});
-					return;
-				}
+			const newItemSize = parseInt(header.dataset.inventorySize || 1);
+			if (gearInventorySizeUsed + newItemSize > 4) {
+				let message = game.i18n.localize('<b>Notice:</b> Your "Gear" slots are full! Please drop an item or move one to storage before adding another.');
+				ChatMessage.create({
+					content: message,
+					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+					whisper: [game.user.id]
+				});
+				return;
+			}
+		} else if (type === 'aegiscore') {
+			const componentItems = this.actor.items.filter(i => i.type === 'aegiscore');
+			if (componentItems.length >= 2) {
+				let message = game.i18n.localize('<b>Notice:</b> You cannot hold more than 2 "Aegis Cores"! Please move one to storage before adding another.');
+				ChatMessage.create({
+					content: message,
+					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+					whisper: [game.user.id]
+				});
+				return;
+			}
 		} else if (type === 'legacies') {
 			const legaciesItems = this.actor.items.filter(i => i.type === 'legacies');
 			if (legaciesItems.length >= 3) {

@@ -6,8 +6,8 @@
 <div class="unique-level-container">
 		<div class="resource flex-group-center align-right-container-level">
 			<div class="resource-content-level flex-column flex-center">
-				<label for="level-value-input" class="resource-label-challenge">Challenge</label>
-				<input type="text" id="level-value-input" name="system.attributes.challenge.value" value="{{system.attributes.challenge.value}}" data-dtype="Number"/>
+				<label for="level-value-input" class="resource-label-challenge">Rank</label>
+				<input type="text" id="level-value-input" name="system.attributes.rank.value" value="{{system.attributes.rank.value}}">
 			</div>
 		</div>
 </div>
@@ -23,15 +23,15 @@
       from 1 to 12 and will create that number of columns.  --}}
         <div class="character-details-secondary textalign-center flexrow">
           <div class="character-species">
-            <label for="{{actor._id}}species" class="resource-label">{{localize "Species"}}</label> 
+            <label for="{{actor._id}}species" class="resource-label-info">{{localize "Species"}}</label> 
             <input id="{{actor._id}}species" type="text" name="system.species" value="{{system.species}}" placeholder="Species" data-dtype="String"/>
           </div>
           <div class="character-nature">
-            <label for="{{actor._id}}nature" class="resource-label">{{localize "Nature"}}</label>
+            <label for="{{actor._id}}nature" class="resource-label-info">{{localize "Nature"}}</label>
             <input id="{{actor._id}}nature" type="text" name="system.attributes.nature" value="{{system.attributes.nature}}" placeholder="Nature" data-dtype="String"/>
           </div>
           <div class="character-origin">
-            <label for="{{actor._id}}origin" class="resource-label">{{localize "Origin"}}</label>
+            <label for="{{actor._id}}origin" class="resource-label-info">{{localize "Origin"}}</label>
             <input id="{{actor._id}}origin" type="text" name="system.attributes.origin" value="{{system.attributes.origin}}" placeholder="Origin" data-dtype="String"/>
           </div>
 		</div>
@@ -125,8 +125,8 @@
               <span class="ability-mod rollable" data-roll="2d6+@abilities.instinct.value" data-label="Instinct"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
             </div><br />
 			<div class="ability flexrow flex-group-center monster-substat-font">
-				<label for="system.armor.value" class="resource-label">Armor</label>
-			  <div class="resource-content flexrow flex-center flex-between" style="margin-bottom: 10px;">
+				<label for="system.armor.value" style="position: relative; left: -20px;" class="resource-label-armor">Armor</label>
+			  <div class="resource-content-armor flexrow flex-center flex-between" style="margin-bottom: 10px; position: relative; left: -20px; top: 5px;">
 				<input type="text" name="system.armor.value" value="{{system.armor.value}}" data-dtype="Number"/>
 				<span style="position: relative; top: 5px;"> / </span>
 				<input type="text" name="system.armor.max" value="{{system.armor.max}}" data-dtype="Number"/>
@@ -152,13 +152,13 @@
 		  <!-- Resistance Row -->
 		  <div class="flexrow flex-group-center" style="margin-top: -5px;">
 			<!-- Physical Resistance -->
-			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.might.value" data-label="Physical Resistance Check">
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@attributes.physical_resistance.base" data-label="Physical Resistance Check">
 			  <img src="systems/stryder/assets/physical_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
 			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
 			</span>
 
 			<!-- Magykal Resistance -->
-			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.magyk.value" data-label="Magykal Resistance Check">
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@attributes.magykal_resistance.base" data-label="Magykal Resistance Check">
 			  <img src="systems/stryder/assets/magykal_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
 			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
 			</span>
@@ -171,6 +171,14 @@
 			<div class="ability flexrow flex-group-center monster-substat-font">
               <label><b>Magykal Potency DC</b></label>
               <input type="text" name="system.attributes.magykal_potency.value" value="{{system.attributes.magykal_potency.value}}" data-dtype="Number"/>
+            </div>
+			<div class="ability flexrow flex-group-center monster-substat-font">
+              <label><b>Physical Resist Base</b></label>
+              <input type="text" name="system.attributes.physical_resistance.base" value="{{system.attributes.physical_resistance.base}}" data-dtype="Number"/>
+            </div>
+			<div class="ability flexrow flex-group-center monster-substat-font">
+              <label><b>Magykal Resist Base</b></label>
+              <input type="text" name="system.attributes.magykal_resistance.base" value="{{system.attributes.magykal_resistance.base}}" data-dtype="Number"/>
             </div><br />
 			<div class="ability flexrow flex-group-center monster-substat-font">
               <label><b>Weight Class</b></label>
@@ -266,7 +274,7 @@
         <div class="biography-section attitude-section">
           <h2 class="section-header">Behavior</h2>
           <p class="section-description"><em>Behavioral patterns, combat tactics, and situational responses.</em></p>
-          {{editor system.attitude target="system.behavior" rollData=rollData button=true owner=owner editable=editable}}
+          {{editor system.attitude target="system.attitude" rollData=rollData button=true owner=owner editable=editable}}
         </div>
       </div>
     </div>

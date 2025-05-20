@@ -48,17 +48,17 @@
       {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
       use both the "grid" and "grid-Ncol" class where "N" can be any number
       from 1 to 12 and will create that number of columns.  --}}
-        <div class="character-details-secondary textalign-center flexrow">
+        <div class="character-details-secondary textalign-center flexrow" style="margin-bottom: 20px;">
           <div class="character-race">
-            <label for="{{actor._id}}folk" class="resource-label">{{localize "Folk"}}</label> 
+            <label for="{{actor._id}}folk" class="resource-label-info">{{localize "Folk"}}</label> 
             <input id="{{actor._id}}folk" type="text" name="system.folk" value="{{system.folk}}" placeholder="Folk" data-dtype="String"/>
           </div>
           <div class="character-class">
-            <label for="{{actor._id}}class" class="resource-label">{{localize "Class"}}</label>
+            <label for="{{actor._id}}class" class="resource-label-info">{{localize "Class"}}</label>
             <input id="{{actor._id}}class" type="text" name="system.attributes.class" value="{{system.attributes.class}}" placeholder="Class" data-dtype="String"/>
           </div>
           <div class="character-gender">
-            <label for="{{actor._id}}gender" class="resource-label">{{localize "Gender"}}</label>
+            <label for="{{actor._id}}gender" class="resource-label-info">{{localize "Gender"}}</label>
             <input id="{{actor._id}}gender" type="text" name="system.attributes.gender" value="{{system.attributes.gender}}" placeholder="Gender" data-dtype="String"/>
           </div>
 		</div>
@@ -69,7 +69,7 @@
         center all of its child elements content and text. --}}
 
         <div class="resource flex-group-center">
-          <label for="system.health.value" class="resource-label">Health</label>
+          <label for="system.health.value" class="resource-label"><img style="width: 15px; height: 15px; border: 0px; position: relative; top: 2px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/health-symbol.svg">Health</label>
 		  <div class="hpbar">
 			<div class="hp-progress-bar">
 			  <progress class="hp-bar grid-span-3" value="{{system.health.value}}" max="{{system.health.max}}"></progress>
@@ -83,7 +83,7 @@
         </div>
 
         <div class="resource flex-group-center">
-          <label for="system.mana.value" class="resource-label">Mana</label>
+          <label for="system.mana.value" class="resource-label"><img style="width: 20px; height: 20px; border: 0px; position: relative; top: -2px; margin-bottom: -5px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/mana-symbol.svg">Mana</label>
 		  <div class="mpbar">
 			<div class="mp-progress-bar">
 			  <progress class="mp-bar grid-span-3" value="{{system.mana.value}}" max="{{system.mana.max}}"></progress>
@@ -97,7 +97,7 @@
         </div>
 
         <div class="resource flex-group-center">
-          <label for="system.stamina.value" class="resource-label">Stamina</label>
+          <label for="system.stamina.value" class="resource-label"><img style="width: 20px; height: 20px; border: 0px; position: relative; top: -2px; margin-bottom: -6px; left: 0px; margin-left: -15px;" src="systems/stryder/assets/stamina-symbol.svg">Stamina </label>
 		  <div class="staminabar">
 			<div class="stamina-progress-bar">
 			  <progress class="stamina-bar grid-span-3" value="{{system.stamina.value}}" max="{{system.stamina.max}}"></progress>
@@ -111,7 +111,7 @@
         </div>
 
         <div class="resource flex-group-center">
-          <label for="system.aegis.value" class="resource-label">Aegis</label>
+          <label for="system.aegis.value" class="resource-label"><img style="width: 20px; height: 20px; border: 0px; position: relative; top: -2px; margin-bottom: -6px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/aegis-symbol.svg">Aegis</label>
 		  <div class="aegisbar">
 			<div class="aegis-progress-bar">
 			  <progress class="aegis-bar grid-span-3" value="{{system.aegis.value}}" max="{{system.aegis.max}}"></progress>
@@ -125,7 +125,7 @@
         </div>
 
         <div class="resource flex-group-center">
-          <label for="system.aegis.value" class="resource-label">Focus</label>
+          <label for="system.aegis.value" class="resource-label"><img style="width: 20px; height: 20px; border: 0px; position: relative; top: -2px; margin-bottom: -6px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/focus-symbol.svg">Focus</label>
 		  <div class="resource1bar">
 			<div class="resource1-progress-bar">
 			  <progress class="resource1-bar grid-span-3" value="{{system.focus.value}}" max="{{system.focus.max}}"></progress>

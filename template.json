@@ -187,7 +187,13 @@
         "magykal_potency": {
           "value": 0
         },
-        "challenge": {
+        "physical_resistance": {
+          "base": 0
+        },
+        "magykal_resistance": {
+          "base": 0
+        },
+        "rank": {
           "value": 0
         },
         "armor": {

@@ -105,24 +105,49 @@ export class StryderItem extends Item {
 	if (item.system.tag1 === null || item.system.tag1 === "" || item.system.tag1 === undefined) {
 		tag1 = "";
 	} else {
-		tag1 = `[${item.system.tag1}]`;
+		tag1 = `${item.system.tag1}`;
 	}
 
 	let tag2 = "";
 	if (item.system.tag2 === null || item.system.tag2 === "" || item.system.tag2 === undefined) {
 		tag2 = "";
 	} else {
-		tag2 = `, [${item.system.tag2}]`;
+		tag2 = `${item.system.tag2}`;
 	}
 
 	let tag3 = "";
 	if (item.system.tag3 === null || item.system.tag3 === "" || item.system.tag3 === undefined) {
 		tag3 = "";
 	} else {
-		tag3 = `, [${item.system.tag3}]`;
+		tag3 = `${item.system.tag3}`;
 	}
 
-	let itemType = item.type === "feature" ? "Class Feature" : item.type === "racial" ? "Folk Ability" : item.type === "hex" ? "Hex" : item.type === "skill" ? "Skill" : item.type === "statperk" ? "Stat Perk" : item.type === "technique" ? "Technique" : item.type === "profession" ? "Profession" : item.type === "action" ? "Action" : item.type === "armament" ? "Soul Armament" : item.type === "generic" ? "Attack" : item.type === "loot" ? "Loot" : item.type === "component" ? "Component" : item.type === "consumable" ? "Consumable" : item.type === "gear" ? "Gear" : item.type === "aegiscore" ? "Aegis Core" : item.type === "legacies" ? "Legacy" : item.type === "head" ? "Head Item" : item.type === "back" ? "Back Item" : item.type === "arms" ? "Arms Item" : item.type === "legs" ? "Legs Item" : item.type === "gems" ? "Gem" : item.type === "bonds" ? "Bond" : item.type === "passive" ? "Passive" : "";
+	let itemType = item.type === "feature"       ? "Class Feature"   :
+				   item.type === "racial"        ? "Folk Ability"    :
+				   item.type === "hex"           ? "Hex"             :
+				   item.type === "skill"         ? "Skill"           :
+				   item.type === "statperk"      ? "Stat Perk"       :
+				   item.type === "technique"     ? "Technique"       :
+				   item.type === "profession"    ? "Profession"      :
+				   item.type === "action"        ? "Action"          :
+				   item.type === "fantasm"       ? "Fantasm"         :
+				   item.type === "armament"      ? "Soul Armament"   :
+				   item.type === "generic"       ? "Attack"          :
+				   item.type === "loot"          ? "Loot"            :
+				   item.type === "component"     ? "Component"       :
+				   item.type === "consumable"    ? "Consumable"      :
+				   item.type === "gear"          ? "Gear"            :
+				   item.type === "aegiscore"     ? "Aegis Core"      :
+				   item.type === "legacies"      ? "Legacy"          :
+				   item.type === "head"          ? "Head Item"       :
+				   item.type === "back"          ? "Back Item"       :
+				   item.type === "arms"          ? "Arms Item"       :
+				   item.type === "legs"          ? "Legs Item"       :
+				   item.type === "gems"          ? "Gem"             :
+				   item.type === "bonds"         ? "Bond"            :
+				   item.type === "passive"       ? "Passive"         :
+				   item.type === "miscellaneous" ? "Miscellaneous"   :
+				   "";
 
 	let hexAspect = "";
 	if (item.system.aspect === null || item.system.aspect === undefined || item.system.aspect === "") {
@@ -163,6 +188,11 @@ export class StryderItem extends Item {
 	let bondAge = "No Age Entered";
 	if (item.system.bond && item.system.bond.age) {
 	  bondAge = item.system.bond.age;
+	}
+
+	let miscellaneous_type = "Unknown";
+	if (item.system.itemtype) {
+	  miscellaneous_type = item.system.itemtype;
 	}
 
 	let armamentForm = "";
@@ -246,62 +276,164 @@ export class StryderItem extends Item {
 	}
 
 	let contentHTML = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px; font-family: Modesto Condensed">${tag1} ${tag2} ${tag3}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Action:</strong> ${actionType}<br>
-			<strong>Cooldown:</strong> ${cooldown}<br>
-			${range}
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+		${(tag1 || tag2 || tag3) ? `
+		  <div class="chat-message-tags">
+			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
+			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
+			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+		  </div>
+		` : ''}
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cooldown:</span>
+		  <span>${cooldown}</span>
+		</div>
+		${range ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Range:</span>
+			<span>${range.replace('<strong>Range:</strong> ', '').replace('<br>', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLhex = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px; font-family: Modesto Condensed">${tag1} ${tag2} ${tag3}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Aspect:</strong> ${hexAspect}<br>
-			<strong>Element:</strong> ${hexElement}<br><br>
-			<strong>Action:</strong> ${actionType}<br>
-			<strong>Cooldown:</strong> ${cooldown}<br>
-			${range}
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
-	</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+		${(tag1 || tag2 || tag3) ? `
+		  <div class="chat-message-tags">
+			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
+			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
+			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+		  </div>
+		` : ''}
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Aspect:</span>
+		  <span>${hexAspect}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Element:</span>
+		  <span>${hexElement}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cooldown:</span>
+		  <span>${cooldown}</span>
+		</div>
+		${range ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Range:</span>
+			<span>${range.replace('<strong>Range:</strong> ', '').replace('<br>', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	</div><br />
 	`;
 
 	let contentHTMLracial = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px; font-family: Modesto Condensed">${tag1} ${tag2} ${tag3}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Action:</strong> ${actionType}<br>
-			<strong>Cooldown:</strong> ${cooldown}<br>
-			${charges}
-			${range}
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+		${(tag1 || tag2 || tag3) ? `
+		  <div class="chat-message-tags">
+			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
+			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
+			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+		  </div>
+		` : ''}
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cooldown:</span>
+		  <span>${cooldown}</span>
+		</div>
+		${charges ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Charges:</span>
+			<span>${charges.replace('<strong>Charges:</strong> ', '').replace('<br />', '')}</span>
+		  </div>
+		` : ''}
+		${range ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Range:</span>
+			<span>${range.replace('<strong>Range:</strong> ', '').replace('<br>', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLstat = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div>${item.system.description ?? ''}</div>
+	<div class="chat-message-card" style="text-align: center;">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
+		</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-content" style="padding: 0 15px;">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
@@ -476,201 +608,465 @@ export class StryderItem extends Item {
 	let section4 = await createCollapsibleSection("Profession Kit", item.system.extra);
 
 	let contentHTMLprofession = `
-	  <div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-		  <strong>Level:</strong> ${professionLevel}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
 	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Level:</span>
+		  <span>${professionLevel}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	  
 	  ${section1}
 	  ${section2}
 	  ${section3}
 	  ${section4}
-	`;
-
-	let contentHTMLbonds = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px; font-family: serif;">
-		<div style="position: relative; left: 40%; margin-bottom: 5px;">
-			<img src="${item.img}" width="50" height="50">
-		</div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="text-align: center; font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px; text-align: center;">
-			<strong>Bond Level:</strong> ${bondLevel}
-		</div>
-		<div style="margin-bottom: 10px;">${item.system.description ?? ''}</div>
-		<div style="font-size: 12px; color: #555; border-top: 1px solid #ccc; padding-top: 5px; display: flex; justify-content: space-between; gap: 10px;">
-			<div><strong>Folk:</strong> ${bondFolk}</div>
-			<div><strong>Gender:</strong> ${bondGender}</div>
-			<div><strong>Age:</strong> ${bondAge}</div>
-		</div>
 	</div>
 	`;
 
+	let contentHTMLbonds = `
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
+		</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details" style="text-align: center;">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Bond Level:</span>
+		  <span>${bondLevel}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content" style="text-align: center;">
+		${item.system.description ?? ''}
+	  </div>
+	  
+	  <div style="font-size: 13px; color: #5c3a21; border-top: 1px solid #c0a070; padding-top: 10px; margin-top: 15px; display: flex; justify-content: space-around; gap: 10px; font-family: 'MedievalSharp', cursive;">
+		<div><strong>Folk:</strong> ${bondFolk}</div>
+		<div><strong>Gender:</strong> ${bondGender}</div>
+		<div><strong>Age:</strong> ${bondAge}</div>
+	  </div>
+	</div>
+	`;
 
 	let contentHTMLfantasm = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Cost:</strong> 1 focus<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>1 Focus</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLaction = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px; font-family: Modesto Condensed">${tag1} ${tag2} ${tag3}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Action:</strong> ${actionType}<br>
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
-	</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+		${(tag1 || tag2 || tag3) ? `
+		  <div class="chat-message-tags">
+			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
+			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
+			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+		  </div>
+		` : ''}
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	</div><br />
 	`;
 
 	let contentHTMLarmament = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Form:</strong> ${armamentForm}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
-	</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Form:</span>
+		  <span>${armamentForm}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	</div><br />
 	`;
 
 	let contentHTMLgeneric = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Parent Ability:</strong> ${parentAbility}<br>
-			${range}
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
-	</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Parent Ability:</span>
+		  <span>${parentAbility}</span>
+		</div>
+		${range ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Range:</span>
+			<span>${range.replace('<strong>Range:</strong> ', '').replace('<br>', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	</div><br />
 	`;
 
 	let contentHTMLpassive = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="margin-bottom: 10px;">
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">Passive Ability</div>
+	  </div>
+	  
+	  <div class="chat-message-content" style="text-align: center; font-style: italic;">
+		${item.system.description ?? ''}
+	  </div>
+	</div>
+	`;
+
+	let contentHTMLmiscellaneous = `
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
+		</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Type:</span>
+		  <span>${miscellaneous_type}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLloot = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Rarity:</strong> ${rarity}<br>
-			<strong>Sell Price:</strong> ${sell_price}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Rarity:</span>
+		  <span style="color: ${getRarityColor(rarity)}; font-weight: bold;">${rarity}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Value:</span>
+		  <span>${sell_price}</span>
+		</div>
+	  </div
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLcomponent = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Grade:</strong> ${grade_rank}<br>
-			<strong>Sell Price:</strong> ${sell_price}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Grade:</span>
+		  <span style="font-family: 'Cinzel Decorative'; font-weight: bold;">${grade_rank}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Value:</span>
+		  <span>${sell_price}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLconsumable = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Rarity:</strong> ${rarity}<br>
-			<strong>Nature:</strong> ${nature}<br>
-			${charges}
-			<strong>Sell Price:</strong> ${sell_price}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Rarity:</span>
+		  <span style="color: ${getRarityColor(rarity)}; font-weight: bold;">${rarity}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Nature:</span>
+		  <span>${nature}</span>
+		</div>
+		${charges ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Charges:</span>
+			<span>${charges.replace('<strong>Charges:</strong> ', '').replace('<br />', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Value:</span>
+		  <span>${sell_price}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLgear = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Quality:</strong> ${quality}<br>
-			<strong>Nature:</strong> ${nature}<br>
-			${charges}
-			<strong>Sell Price:</strong> ${sell_price}<br>
-			<br>
-			<strong>Action:</strong> ${actionType}<br>
-			<strong>Cooldown:</strong> ${cooldown}<br>
-			${range}
-			<strong>Cost:</strong> ${manacost}, ${staminacost}${othercost}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Quality:</span>
+		  <span style="font-weight: bold;">${quality}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Nature:</span>
+		  <span>${nature}</span>
+		</div>
+		${charges ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Charges:</span>
+			<span>${charges.replace('<strong>Charges:</strong> ', '').replace('<br />', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Value:</span>
+		  <span>${sell_price}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-details" style="margin-top: 15px; border-top: 1px dashed #c0a070; padding-top: 10px;">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cooldown:</span>
+		  <span>${cooldown}</span>
+		</div>
+		${range ? `
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Range:</span>
+			<span>${range.replace('<strong>Range:</strong> ', '').replace('<br>', '')}</span>
+		  </div>
+		` : ''}
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Cost:</span>
+		  <span>${manacost}, ${staminacost}${othercost}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLaegiscore = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-content" style="text-align: center; font-style: italic;">
+		${item.system.description ?? ''}
+	  </div>
 	</div>
 	`;
 
+	function getRarityColor(rarity) {
+	  const colors = {
+		common: '#7a7a7a',
+		uncommon: '#2e8b57',
+		rare: '#4169e1',
+		legendary: '#daa520',
+		'one of a kind': '#ff4500'
+	  };
+	  return colors[rarity.toLowerCase()] || '#5c2b0a';
+	}
+
 	let contentHTMLlegacies = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Rarity:</strong> ${rarity}<br>
-			<strong>Nature:</strong> ${nature}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Rarity:</span>
+		  <span style="color: ${getRarityColor(rarity)}; font-weight: bold;">${rarity}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Nature:</span>
+		  <span>${nature}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	  
+	  <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #c0a070; font-size: 12px; color: #5c3a21; text-align: center;">
+		<i class="fas fa-scroll"></i> Legacy Item - Bound to Character's Soul
+	  </div>
 	</div>
 	`;
 
 	let contentHTMLequippable = `
-	<div style="background-image: url('systems/stryder/assets/parchment.jpg'); background-color: #f9f9f9; border: 2px solid #ddd; border-radius: 5px; padding: 10px;">
-		<div style="position: relative; left: 40%"><img src="${item.img}" width="50" height="50"></div>
-		<div style="text-align: center; font-size: 20px; font-weight: bold;">${item.name}</div>
-		<div style="font-style: italic; margin-bottom: 10px;">${itemType}</div>
-		<div style="margin-bottom: 10px;">
-			<strong>Rarity:</strong> ${rarity}<br>
-			<strong>Nature:</strong> ${nature}<br>
-			<strong>Sell Price:</strong> ${sell_price}<br>
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
 		</div>
-		<div>${item.system.description ?? ''}</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Rarity:</span>
+		  <span style="color: ${getRarityColor(rarity)}">${rarity}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Nature:</span>
+		  <span>${nature}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Value:</span>
+		  <span>${sell_price}</span>
+		</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	  
+	  <div style="margin-top: 15px; padding: 8px; background: rgba(139, 90, 43, 0.1); border-radius: 4px; text-align: center; font-family: 'MedievalSharp', cursive; font-size: 14px;">
+		<i class="fas fa-tshirt"></i> Equippable Item - ${getEquipmentSlot(item.type)}
+	  </div>
 	</div>
 	`;
+
+	function getEquipmentSlot(itemType) {
+	  const slots = {
+		head: "Head Slot",
+		back: "Back Slot", 
+		arms: "Arms Slot",
+		legs: "Legs Slot",
+		gems: "Gem Socket"
+	  };
+	  return slots[itemType] || "Equipment Slot";
+	}
 
 	Hooks.on("renderChatMessage", (message, html, data) => {
 	  html[0].querySelectorAll(".collapsible-toggle").forEach(button => {
@@ -732,10 +1128,41 @@ export class StryderItem extends Item {
 				if (item.system.hex.alwaysRollsExcellent) {
 					quality = "Excellent";
 					damageMultiplier = 1.5;
-					const excellentMessage = `<strong>Always Excellent Hex!</strong> This hex always performs at its best!`;
+					
+					if (!item.actor || !item.actor.system.abilities.Arcana) {
+						console.error("Actor or Arcana ability not found for this item.");
+						return;
+					}
+
+					let arcanaValue = item.actor.system.abilities.Arcana.value;
+					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+					let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+					const totalDamage = baseDamage + masteryBonus;
+
+					const combinedMessage = `
+					<div style="margin-bottom: 5px;">
+						<div class="hex-quality-message" style="
+						  background: rgba(75, 0, 130, 0.15);
+						  border: 1px solid #4b0082;
+						  border-radius: 5px;
+						  padding: 8px 12px;
+						  margin-bottom: 5px;
+						  text-align: center;
+						  font-family: 'Cinzel Decorative', cursive;
+						  color: #4b0082;
+						  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+						">
+						  <strong>Always Excellent Hex</strong> - Perfect execution guaranteed.
+						</div>
+						<div class="damage-quality excellent">
+						  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+						</div>
+					</div>
+					`;
+					
 					ChatMessage.create({
 						speaker: speaker,
-						content: excellentMessage,
+						content: combinedMessage,
 						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
 					});
 				} else {
@@ -750,27 +1177,31 @@ export class StryderItem extends Item {
 						quality = "Excellent";
 						damageMultiplier = 1.5;
 					}
-				}
 
-				if (!item.actor || !item.actor.system.abilities.Arcana) {
-					console.error("Actor or Arcana ability not found for this item.");
-					return;
-				}
+					if (!item.actor || !item.actor.system.abilities.Arcana) {
+						console.error("Actor or Arcana ability not found for this item.");
+						return;
+					}
 
-				let arcanaValue = item.actor.system.abilities.Arcana.value;
-				let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
-				let baseDamage = Math.floor(arcanaValue * damageMultiplier);
-				if (quality === "Excellent") {
-					baseDamage = Math.ceil(arcanaValue * damageMultiplier);
-				}
-				const totalDamage = baseDamage + masteryBonus;
+					let arcanaValue = item.actor.system.abilities.Arcana.value;
+					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+					let baseDamage = Math.floor(arcanaValue * damageMultiplier);
+					if (quality === "Excellent") {
+						baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+					}
+					const totalDamage = baseDamage + masteryBonus;
 
-				const qualityMessage = `You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did ${totalDamage} damage.`;
-				ChatMessage.create({
-					speaker: speaker,
-					content: qualityMessage,
-					whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-				});
+					const qualityMessage = `
+					<div class="damage-quality ${quality.toLowerCase()}">
+					  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+					</div>
+					`;
+					ChatMessage.create({
+						speaker: speaker,
+						content: qualityMessage,
+						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+					});
+				}
 			}
 
 			// Return the roll object for further processing if necessary.
@@ -781,6 +1212,13 @@ export class StryderItem extends Item {
 			speaker: speaker,
 			rollMode: rollMode,
 			flavor: contentHTMLpassive
+		  });
+		}
+		else if (item.type === "miscellaneous") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			flavor: contentHTMLmiscellaneous
 		  });
 		}
 		else if (item.type === "racial") {
@@ -876,52 +1314,65 @@ export class StryderItem extends Item {
 
 		  const resourceButton = createResourceSpendButton(item);
 
+		  const shouldSkipRoll = !diceNum || diceNum === 0;
+
+		  if (shouldSkipRoll) {
+			const cleanedContent = contentHTMLaction.replace(/<br \/>$/, '');
+			
+			ChatMessage.create({
+			  speaker: speaker,
+			  rollMode: rollMode,
+			  content: cleanedContent + resourceButton
+			});
+			return;
+		  }
+
 		  const actor = game.actors.get(speaker.actor);
 
-		if (actor) {
+		  if (actor) {
 			if (isNaN(diceBonus) && typeof diceBonus === 'string') {
-				let attributePath;
-				if (diceBonus === "mastery") {
-					attributePath = "attributes.mastery";
-				} else if (diceBonus === "might" || diceBonus === "magyk" || diceBonus === "speed" || diceBonus === "instinct") {
-					attributePath = `abilities.${diceBonus}.value`;
-				} else if (diceBonus === "power") {
-					attributePath = `abilities.Power.value`;
-				} else if (diceBonus === "agility") {
-					attributePath = `abilities.Agility.value`;
-				} else if (diceBonus === "grit") {
-					attributePath = `abilities.Grit.value`;
-				} else if (diceBonus === "arcana") {
-					attributePath = `abilities.Arcana.value`;
-				} else if (diceBonus === "intuition") {
-					attributePath = `abilities.Intuition.value`;
-				} else if (diceBonus === "will") {
-					attributePath = `abilities.Will.value`;
-				} else {
-					attributePath = `attributes.talent.${diceBonus}.value`;
-				}
+			  let attributePath;
+			  if (diceBonus === "mastery") {
+				attributePath = "attributes.mastery";
+			  } else if (diceBonus === "might" || diceBonus === "magyk" || diceBonus === "speed" || diceBonus === "instinct") {
+				attributePath = `abilities.${diceBonus}.value`;
+			  } else if (diceBonus === "power") {
+				attributePath = `abilities.Power.value`;
+			  } else if (diceBonus === "agility") {
+				attributePath = `abilities.Agility.value`;
+			  } else if (diceBonus === "grit") {
+				attributePath = `abilities.Grit.value`;
+			  } else if (diceBonus === "arcana") {
+				attributePath = `abilities.Arcana.value`;
+			  } else if (diceBonus === "intuition") {
+				attributePath = `abilities.Intuition.value`;
+			  } else if (diceBonus === "will") {
+				attributePath = `abilities.Will.value`;
+			  } else {
+				attributePath = `attributes.talent.${diceBonus}.value`;
+			  }
 
-				const attributeValue = getProperty(actor.system, attributePath);
+			  const attributeValue = getProperty(actor.system, attributePath);
 
-				if (attributeValue !== undefined) {
-					diceBonus = attributeValue;
-				} else {
-					console.error(`Attribute ${diceBonus} not found on actor. Path tried: ${attributePath}`);
-					console.log(`Actor system object:`, actor.system);
-					diceBonus = 0;
-				}
+			  if (attributeValue !== undefined) {
+				diceBonus = attributeValue;
+			  } else {
+				console.error(`Attribute ${diceBonus} not found on actor. Path tried: ${attributePath}`);
+				console.log(`Actor system object:`, actor.system);
+				diceBonus = 0;
+			  }
 			}
-		} else {
+		  } else {
 			console.error("Actor not found for the speaker with ID:", speaker.actor);
 			diceBonus = 0;
-		}
+		  }
 
 		  const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
 		  const roll = new Roll(formula);
 		  await roll.evaluate({async: true});
 		  roll.toMessage({
 			speaker: speaker,
-			flavor: contentHTMLaction + resourceButton,
+			flavor: contentHTMLaction.replace(/<br \/>$/, '') + resourceButton, // Remove last <br /> here too
 			rollMode: rollMode
 		  });
 
@@ -993,7 +1444,11 @@ export class StryderItem extends Item {
 			const totalDamage = baseDamage + rawDamageAmp + masteryBonus; // Add rawDamageAmp and mastery bonus after multiplier
 
 			// Create follow-up chat message
-			const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
+			const qualityMessage = `
+			<div class="damage-quality ${quality.toLowerCase()}">
+			  <strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			</div>
+			`;
 			ChatMessage.create({
 				speaker: speaker,
 				content: qualityMessage,
@@ -1083,7 +1538,11 @@ export class StryderItem extends Item {
 			}
 			totalDamage += rawDamageAmp;
 
-			const qualityMessage = `<strong>${quality} Attack:</strong> The attack did ${totalDamage} damage.`;
+			const qualityMessage = `
+			<div class="damage-quality ${quality.toLowerCase()}">
+			  <strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			</div>
+			`;
 			ChatMessage.create({
 				speaker: speaker,
 				content: qualityMessage,

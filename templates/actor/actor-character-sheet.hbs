@@ -25,7 +25,7 @@
 <div class="unique-level-container">
 		<div class="resource flex-group-center align-right-container-level">
 			<div class="resource-content-level flex-column flex-center">
-				<label for="level-value-input" class="resource-label">Level</label>
+				<label for="level-value-input" class="resource-label" style="color: #000000; !important">Level</label>
 				<input type="text" id="level-value-input" name="system.attributes.level.value" value="{{system.attributes.level.value}}" data-dtype="Number"/>
 			</div>
 		</div>
@@ -449,7 +449,7 @@
       
       {{!-- Bonds Section --}}
       <div class="bonds-container">
-        <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/soul-bonds.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -20px;"><strong>{{localize "Soul Bonds"}}</strong><span class="header-decoration right"></span></h2>
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/soul-bonds.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -20px;"><strong>{{localize "Soul Bonds"}}</strong><span class="header-decoration right"></span></h2>
         <ol class='items-list parchment-background'>
           <li class='item flexrow items-header'>
             <div class='item-name bonds-header'>{{localize 'Bonds'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
@@ -483,11 +483,11 @@
             </li>
           {{/each}}
         </ol>
-      </div>
+      </div><br />
       
       {{!-- Appearance Section --}}
       <div class="appearance-container">
-        <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/visage.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Visage"}}</strong><span class="header-decoration right"></span></h2>
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/visage.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Visage"}}</strong><span class="header-decoration right"></span></h2>
       </div>
 		<div style="height: 150px;">
 			{{editor system.appearance target="system.appearance" rollData=rollData button=true owner=owner editable=editable}}
@@ -495,7 +495,7 @@
       
       {{!-- Backstory Section --}}
       <div class="backstory-container">
-        <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Legend"}}</strong><span class="header-decoration right"></span></h2>
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Legend"}}</strong><span class="header-decoration right"></span></h2>
       </div>
 		<div style="height: 150px;">
           {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
@@ -503,7 +503,7 @@
 
       {{!-- Personality Section --}}
       <div class="personality-container">
-        <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
       </div>
 		<div style="height: 150px;">
           {{editor system.personality target="system.personality" rollData=rollData button=true owner=owner editable=editable}}

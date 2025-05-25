@@ -251,6 +251,7 @@ export class StryderActorSheet extends ActorSheet {
     const professions = [];
     const bonds = [];
     const passive = [];
+    const miscellaneous = [];
     const spells = {
       0: [],
       1: [],
@@ -363,6 +364,10 @@ export class StryderActorSheet extends ActorSheet {
       else if (i.type === 'passive') {
         passive.push(i);
       }
+      // Append to miscellaneous.
+      else if (i.type === 'miscellaneous') {
+        miscellaneous.push(i);
+      }
       // Append to spells.
       else if (i.type === 'spell') {
         if (i.system.spellLevel != undefined) {
@@ -396,6 +401,7 @@ export class StryderActorSheet extends ActorSheet {
     context.professions = professions;
     context.bonds = bonds;
     context.passive = passive;
+    context.miscellaneous = miscellaneous;
     context.spells = spells;
   }
 

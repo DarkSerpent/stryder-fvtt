@@ -1,130 +1,171 @@
-<form class="{{cssClass}}" autocomplete="off">
-  <header class="sheet-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
-    <div class="header-fields">
-      <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
-      <div class="grid grid-2col">
-        <div class="resource">
-          <label class="resource-label">Parent Ability</label>
-          <input type="text" name="system.parent_ability" value="{{system.parent_ability}}" placeholder="Name of Feature" />
+<form class="{{cssClass}} fantasy-item-sheet" autocomplete="off">
+  <div class="parchment-background">
+    <header class="sheet-header">
+      <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+      <div class="header-fields fantasy-input-item">
+        <div>
+          <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+        </div>
+        <div class="item-type-label">
+          <span>Generic Attack</span>
+        </div>
+        <div class="resource" style="margin-top: 5px; padding: 0 10px;">
+          <label class="resource-label secondary-input">Parent Ability</label>
+          <input class="secondary-input" type="text" name="system.parent_ability" value="{{system.parent_ability}}" placeholder="Name of Feature" 
+            style="width: 100%; font-size: 16px; font-weight: normal;" />
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  {{!-- Sheet Tab Navigation --}}
-  <nav class="sheet-tabs tabs" data-group="primary">
-    <a class="item" data-tab="description">Description</a>
-    <a class="item" data-tab="attributes">Attributes</a>
-  </nav>
+    {{!-- Sheet Tab Navigation --}}
+    <nav class="sheet-tabs tabs" data-group="primary">
+      <a class="item" data-tab="description"><i class="fas fa-scroll"></i> Description</a>
+      <a class="item" data-tab="attributes"><i class="fas fa-tools"></i> Attributes</a>
+    </nav>
 
-  {{!-- Sheet Body --}}
-  <section class="sheet-body">
+    {{!-- Sheet Body --}}
+    <section class="sheet-body">
 
-    {{!-- Description Tab --}}
-    <div class="tab" data-group="primary" data-tab="description">
-      {{!-- To render inline rolls in a TinyMCE editor, you need to pass the parent actor's (if any) roll data to the
-      rollData prop. --}}
-      {{editor system.description target="system.description" rollData=rollData button=true owner=owner
-      editable=editable}}
-    </div>
-
-    {{!-- Attributes Tab --}}
-    <div class="tab attributes" data-group="primary" data-tab="attributes">
-      {{!-- As you add new fields, add them in here! --}}
-        <div class="field" style="padding-top: 10px;">
-          <label>Range:</label>
-          <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
-        </div>
-        <div class="field" style="padding-top: 10px;">
-          <label>Stamina:</label>
-          <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
-        </div>
-        <div class="field" style="padding-top: 10px;">
-          <label>Mana:</label>
-          <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
-        </div>
-        <div class="field" style="padding-top: 10px;">
-          <label>Other:</label>
-          <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
-        </div><br />
-      <div class="resource">
-        <label class="resource-label">Roll Formula:</label>
-		<span>{{calculateFormula system.roll.diceNum system.roll.diceSize system.roll.diceBonus}}</span>
-        <span>{{system.formula}}</span>
-		
-        <div class="grid grid-4col">
-          <div class="grid-span-1">
-            <label class="resource-label">Number of Dice</label>
-            <input type="text" name="system.roll.diceNum" value="{{system.roll.diceNum}}" data-dtype="Number" />
+      {{!-- Description Tab --}}
+      <div class="tab description-tab" data-group="primary" data-tab="description">
+        <div class="editor-container">
+          <div class="editor-header">
+            <i class="fas fa-quill"></i> Attack Description
           </div>
-          <div class="grid-span-1">
-            <label class="resource-label">Die Size</label>
-            <input type="text" name="system.roll.diceSize" value="{{system.roll.diceSize}}" data-dtype="Number" />
-          </div>
-          <div class="grid-span-2" style="margin-top: -11px;">
-            <label class="resource-label">Roll Modifier</label> <div style="font-size:70%"><i>(accepts talent names, ability names, and "mastery")</i></div>
-            <input type="text" name="system.roll.diceBonus" value="{{system.roll.diceBonus}}" />
-          </div>
-        </div>
-        <div class="grid grid-2col">
-          <div class="grid-span-1" style="width: 90%; display: flex; justify-content: center; align-items: center;">
-            <label class="resource-label">Base Damage Amp</label>
-            <input type="text" name="system.roll.baseDamageAmp" value="{{system.roll.baseDamageAmp}}" data-dtype="Number" />
-          </div>
-          <div class="grid-span-1" style="width: 90%; display: flex; justify-content: center; align-items: center;">
-            <label class="resource-label">Raw Damage Amp</label>
-            <input type="text" name="system.roll.rawDamageAmp" value="{{system.roll.rawDamageAmp}}" data-dtype="Number" />
-          </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" name="system.enableCustomDamage" {{checked system.enableCustomDamage}}>
-          Enable Custom Damage?
-        </label>
-      </div>
-
-      <!-- Additional Inputs for Custom Damage -->
-      <div class="custom-damage-inputs" style="{{#if system.enableCustomDamage}}display: block;{{else}}display: none;{{/if}}">
-        <div class="grid grid-3col">
-          <div>
-            <label class="resource-label">Poor</label>
-            <input type="number" name="system.customDamage.poor" value="{{system.customDamage.poor}}" data-dtype="Number" />
-          </div>
-          <div>
-            <label class="resource-label">Good</label>
-            <input type="number" name="system.customDamage.good" value="{{system.customDamage.good}}" data-dtype="Number" />
-          </div>
-          <div>
-            <label class="resource-label">Excellent</label>
-            <input type="number" name="system.customDamage.excellent" value="{{system.customDamage.excellent}}" data-dtype="Number" />
-          </div>
+          {{editor system.description target="system.description" rollData=rollData button=true owner=owner editable=editable}}
         </div>
       </div>
-    </div>
+
+      {{!-- Attributes Tab --}}
+      <div class="tab attributes" data-group="primary" data-tab="attributes">
+        {{!-- Restrictions Section --}}
+        <div class="section fantasy-section">
+          <div class="section-header">
+            <div class="header-decoration left"></div>
+            <h2>Restrictions</h2>
+            <div class="header-decoration right"></div>
+          </div>
+          <div class="section-content">
+            <div class="field fantasy-field">
+              <label>Range:</label>
+              <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
+            </div>
+            <div class="field fantasy-field">
+              <label>Stamina:</label>
+              <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
+            </div>
+            <div class="field fantasy-field">
+              <label>Mana:</label>
+              <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+            </div>
+            <div class="field fantasy-field">
+              <label>Other:</label>
+              <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+            </div>
+          </div>
+        </div>
+
+        {{!-- Roll Attributes Section --}}
+        <div class="section fantasy-section">
+          <div class="section-header">
+            <div class="header-decoration left"></div>
+            <h2>Roll Attributes</h2>
+            <div class="header-decoration right"></div>
+          </div>
+          <div class="section-content">
+            <div class="field fantasy-field formula-display">
+              <label>Roll Formula:</label>
+              <span class="formula-text">{{calculateFormula system.roll.diceNum system.roll.diceSize system.roll.diceBonus}}</span>
+            </div>
+            
+            <div class="grid grid-4col" style="margin-top: 15px;">
+              <div class="roll-attribute-field">
+                <label>No. of Dice</label>
+                <input type="text" name="system.roll.diceNum" value="{{system.roll.diceNum}}" data-dtype="Number" />
+              </div>
+              <div class="roll-attribute-field">
+                <label>Die Size</label>
+                <input type="text" name="system.roll.diceSize" value="{{system.roll.diceSize}}" data-dtype="Number" />
+              </div>
+              <div class="roll-attribute-field grid-span-2">
+                <label>Roll Modifier</label>
+                <input type="text" name="system.roll.diceBonus" value="{{system.roll.diceBonus}}" />
+              </div>
+            </div>
+
+            <div class="grid grid-2col" style="margin-top: 15px;">
+              <div class="damage-amp-field">
+                <label>Base Damage Amp</label>
+                <input type="text" name="system.roll.baseDamageAmp" value="{{system.roll.baseDamageAmp}}" data-dtype="Number" />
+              </div>
+              <div class="damage-amp-field">
+                <label>Raw Damage Amp</label>
+                <input type="text" name="system.roll.rawDamageAmp" value="{{system.roll.rawDamageAmp}}" data-dtype="Number" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{!-- Custom Damage Section --}}
+        <div class="section fantasy-section checkbox-section">
+          <div class="fantasy-checkbox">
+            <label>Enable Custom Damage?</label>
+            <div class="checkbox-slider">
+              <input type="checkbox" name="system.enableCustomDamage" {{checked system.enableCustomDamage}} data-dtype="Boolean" />
+              <span class="slider"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="custom-damage-section" style="{{#if system.enableCustomDamage}}display: block;{{else}}display: none;{{/if}}">
+          <div class="section fantasy-section">
+            <div class="section-header">
+              <div class="header-decoration left"></div>
+              <h2>Custom Damage Values</h2>
+              <div class="header-decoration right"></div>
+            </div>
+            <div class="section-content">
+              <div class="grid grid-3col" style="margin-top: 15px;">
+                <div class="roll-attribute-field">
+                  <label>Poor</label>
+                  <input type="number" name="system.customDamage.poor" value="{{system.customDamage.poor}}" data-dtype="Number" />
+                </div>
+                <div class="roll-attribute-field">
+                  <label>Good</label>
+                  <input type="number" name="system.customDamage.good" value="{{system.customDamage.good}}" data-dtype="Number" />
+                </div>
+                <div class="roll-attribute-field">
+                  <label>Excellent</label>
+                  <input type="number" name="system.customDamage.excellent" value="{{system.customDamage.excellent}}" data-dtype="Number" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</form>
 
 <script>
-	document.addEventListener("DOMContentLoaded", function() {
-	  const checkbox = document.querySelector("input[name='system.enableCustomDamage']");
-	  const customDamageInputs = document.querySelector(".custom-damage-inputs");
-	  
-	  function toggleCustomDamageInputs() {
-		if (checkbox.checked) {
-		  customDamageInputs.style.display = "block";
-		} else {
-		  customDamageInputs.style.display = "none";
-		}
-	  }
+  document.addEventListener("DOMContentLoaded", function() {
+    const checkbox = document.querySelector("input[name='system.enableCustomDamage']");
+    const customDamageSection = document.querySelector(".custom-damage-section");
+    
+    function toggleCustomDamageSection() {
+      if (checkbox.checked) {
+        customDamageSection.style.display = "block";
+      } else {
+        customDamageSection.style.display = "none";
+      }
+    }
 
-	  // Event listener for the checkbox
-	  checkbox.addEventListener("change", toggleCustomDamageInputs);
+    // Event listener for the checkbox
+    checkbox.addEventListener("change", toggleCustomDamageSection);
 
-	  // Call the function initially to set the correct display state on page load
-	  toggleCustomDamageInputs();
-	});
+    // Call the function initially to set the correct display state on page load
+    toggleCustomDamageSection();
+  });
 </script>
-        </div>
-  </section>
-</form>
 
 {{log system}}

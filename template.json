@@ -301,7 +301,7 @@
     }
   },
   "Item": {
-    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession", "bonds", "passive"],
+    "types": ["action", "armament", "generic", "aegiscore", "legacies", "head", "back", "arms", "legs", "gems", "loot", "component", "consumable", "gear", "fantasm", "hex", "skill", "feature", "racial", "statperk", "technique", "profession", "bonds", "passive", "miscellaneous"],
     "templates": {
       "base": {
         "description": "",
@@ -341,6 +341,13 @@
           "diceSize": 6
         }
     },
+    "racial": {
+        "templates": ["base"],
+        "charges": {
+          "max": 0,
+          "value": 0
+        }
+    },
     "hex": {
         "templates": ["base"],
         "hex": {
@@ -364,6 +371,10 @@
         "templates": ["base"],
         "grade": "G4",
         "sell_price": 0
+    },
+    "miscellaneous": {
+        "templates": ["base"],
+        "itemtype": "Other"
     },
     "consumable": {
         "templates": ["base"],

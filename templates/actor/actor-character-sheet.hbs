@@ -156,6 +156,7 @@
     {{!-- Default tab is specified in actor-sheet.mjs --}}
     <a class="item" data-tab="features">Battle</a>
     <a class="item" data-tab="battle">Features</a>
+    <a class="item" data-tab="life">Life</a>
     <a class="item" data-tab="items">Inventory</a>
     <a class="item" data-tab="description">Biography</a>
     <a class="item" data-tab="effects">Effects</a>
@@ -335,6 +336,7 @@
 	   </script>
 
 <div class="tab battle" data-group="primary" data-tab="battle">
+<h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/movement-speeds.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Movement Speeds"}}</strong><span class="header-decoration right"></span></h2>
     <div class="movement-container">
         <div class="movement flexcol">
             <!-- Running Speed -->
@@ -398,6 +400,11 @@
     {{> "systems/stryder/templates/actor/parts/actor-battle.hbs"}}
 </div>
 
+    {{!-- Life Tab --}}
+    <div class="tab items" data-group="primary" data-tab="life">
+       {{> "systems/stryder/templates/actor/parts/actor-life.hbs"}}
+    </div>
+
     {{!-- Biography Tab --}}
     <div class="tab biography" data-group="primary" data-tab="description">
       <div class="biography-header">
@@ -412,13 +419,13 @@
           <div class="birthplace detail-field">
             <label for="{{actor._id}}birthplace" class="resource-label fancy-label">{{localize "Birthplace"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}birthplace" type="text" name="system.details.birthplace" value="{{system.details.birthplace}}" placeholder="Location" data-dtype="String"/>
+              <input id="{{actor._id}}birthplace" type="text" name="system.details.birthplace" value="{{system.details.birthplace}}" data-dtype="String"/>
             </div>
           </div>
           <div class="nationality detail-field">
             <label for="{{actor._id}}nationality" class="resource-label fancy-label">{{localize "Nationality"}}</label>
             <div class="input-frame">
-              <input id="{{actor._id}}nationality" type="text" name="system.details.nationality" value="{{system.details.nationality}}" placeholder="Nation" data-dtype="String"/>
+              <input id="{{actor._id}}nationality" type="text" name="system.details.nationality" value="{{system.details.nationality}}" data-dtype="String"/>
             </div>
           </div>
         </div>
@@ -427,13 +434,13 @@
           <div class="age detail-field">
             <label for="{{actor._id}}age" class="resource-label fancy-label">{{localize "Age"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}age" type="number" name="system.details.age" value="{{system.details.age}}" placeholder="Age" data-dtype="Number"/>
+              <input id="{{actor._id}}age" type="number" name="system.details.age" value="{{system.details.age}}" data-dtype="Number"/>
             </div>
           </div>
           <div class="height detail-field">
             <label for="{{actor._id}}height" class="resource-label fancy-label">{{localize "Height"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}height" type="text" name="system.details.height" value="{{system.details.height}}" placeholder="Height" data-dtype="String"/>
+              <input id="{{actor._id}}height" type="text" name="system.details.height" value="{{system.details.height}}" data-dtype="String"/>
             </div>
           </div>
           <div class="weightclass detail-field">
@@ -447,49 +454,11 @@
         <div class="scroll-border bottom"></div>
       </div>
       
-      {{!-- Bonds Section --}}
-      <div class="bonds-container">
-        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/soul-bonds.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -20px;"><strong>{{localize "Soul Bonds"}}</strong><span class="header-decoration right"></span></h2>
-        <ol class='items-list parchment-background'>
-          <li class='item flexrow items-header'>
-            <div class='item-name bonds-header'>{{localize 'Bonds'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
-            <div class='item-armament-form bonds-header'>{{localize 'Level'}}</div>
-            <div class='item-controls'>
-              <a class='item-control item-create' title='Create item' data-type='bonds'>
-                <i class='fas fa-plus magical-icon'></i>
-                {{localize 'DOCUMENT.New' type=''}}
-              </a>
-            </div>
-          </li>
-          {{#each bonds as |item id|}}
-            <li class='item flexrow bond-item' data-item-id='{{item._id}}'>
-              <div class='item-name bond-name'>
-                <div class='item-image'>
-                  <a class='rollable magical-icon' data-roll-type='item'>
-                    <img src='{{item.img}}' title='{{item.name}}' width='24' height='24'/>
-                  </a>
-                </div>
-                <h4>{{item.name}}</h4>
-              </div>
-              <div class='item-bond-levels item-prop bond-level'>{{system.bond.level}}</div>
-              <div class='item-controls'>
-                <a class='item-control item-edit magical-icon' title='{{localize "DOCUMENT.Edit" type='bonds'}}'>
-                  <i class='fas fa-edit'></i>
-                </a>
-                <a class='item-control item-delete magical-icon' title='{{localize "DOCUMENT.Delete" type='bonds'}}'>
-                  <i class='fas fa-trash'></i>
-                </a>
-              </div>
-            </li>
-          {{/each}}
-        </ol>
-      </div><br />
-      
       {{!-- Appearance Section --}}
       <div class="appearance-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/visage.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Visage"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div style="height: 150px;">
+		<div class="editor-container">
 			{{editor system.appearance target="system.appearance" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
       
@@ -497,7 +466,7 @@
       <div class="backstory-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Legend"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div style="height: 150px;">
+		<div class="editor-container">
           {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
 
@@ -505,7 +474,7 @@
       <div class="personality-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div style="height: 150px;">
+		<div class="editor-container">
           {{editor system.personality target="system.personality" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
 	</div>
@@ -524,4 +493,3 @@
 </form>
 
 {{log system}}
-

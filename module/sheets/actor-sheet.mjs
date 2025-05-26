@@ -514,6 +514,33 @@ export class StryderActorSheet extends ActorSheet {
 	  }
 	});
 
+	// Life Skills functionality
+	html.on('click', '.life-skill-header', function(ev) {
+	  ev.stopPropagation();
+	  const header = ev.currentTarget;
+	  const description = header.nextElementSibling;
+	  
+	  html.find('.life-skill-description.expanded').not(description).removeClass('expanded');
+	  
+	  description.classList.toggle('expanded');
+	});
+
+	html.on('click', '.life-skill-btn', async (ev) => {
+	  ev.stopPropagation();
+	  const button = ev.currentTarget;
+	  const skill = button.dataset.skill;
+	  const isMinus = button.classList.contains('minus');
+	  
+	  const currentValue = parseInt(this.actor.system.life[skill]?.value || 0);
+	  let newValue = isMinus ? Math.max(0, currentValue - 1) : Math.min(5, currentValue + 1);
+	  
+	  if (newValue !== currentValue) {
+		await this.actor.update({
+		  [`system.life.${skill}.value`]: newValue
+		});
+	  }
+	});
+
 	// Talent dropdown changes
 	html.find('.talent-select').on('change', foundry.utils.debounce(async (ev) => {
 	  const dropdown = ev.currentTarget;

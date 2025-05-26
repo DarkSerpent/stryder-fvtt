@@ -11,6 +11,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/stryder/templates/actor/parts/actor-spells.hbs',
     'systems/stryder/templates/actor/parts/actor-effects.hbs',
     'systems/stryder/templates/actor/parts/actor-battle.hbs',
+    'systems/stryder/templates/actor/parts/actor-life.hbs',
     'systems/stryder/templates/actor/parts/monster-features.hbs',
     'systems/stryder/templates/actor/parts/monster-battle.hbs',
     // Item partials

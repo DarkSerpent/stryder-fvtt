@@ -53,6 +53,7 @@
   <nav class="sheet-tabs tabs" data-group="primary">
     {{!-- Default tab is specified in actor-sheet.mjs --}}
     <a class="item" data-tab="description">Information</a>
+    <a class="item" data-tab="life">Life</a>
     <a class="item" data-tab="items">Items</a>
     <a class="item" data-tab="effects">Effects</a>
   </nav>
@@ -74,13 +75,13 @@
           <div class="birthplace detail-field">
             <label for="{{actor._id}}birthplace" class="resource-label fancy-label">{{localize "Birthplace"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}birthplace" type="text" name="system.details.birthplace" value="{{system.details.birthplace}}" placeholder="Location" data-dtype="String"/>
+              <input id="{{actor._id}}birthplace" type="text" name="system.details.birthplace" value="{{system.details.birthplace}}" data-dtype="String"/>
             </div>
           </div>
           <div class="nationality detail-field">
             <label for="{{actor._id}}nationality" class="resource-label fancy-label">{{localize "Nationality"}}</label>
             <div class="input-frame">
-              <input id="{{actor._id}}nationality" type="text" name="system.details.nationality" value="{{system.details.nationality}}" placeholder="Nation" data-dtype="String"/>
+              <input id="{{actor._id}}nationality" type="text" name="system.details.nationality" value="{{system.details.nationality}}" data-dtype="String"/>
             </div>
           </div>
         </div>
@@ -89,13 +90,13 @@
           <div class="age detail-field">
             <label for="{{actor._id}}age" class="resource-label fancy-label">{{localize "Age"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}age" type="number" name="system.details.age" value="{{system.details.age}}" placeholder="Age" data-dtype="Number"/>
+              <input id="{{actor._id}}age" type="number" name="system.details.age" value="{{system.details.age}}" data-dtype="Number"/>
             </div>
           </div>
           <div class="height detail-field">
             <label for="{{actor._id}}height" class="resource-label fancy-label">{{localize "Height"}}</label> 
             <div class="input-frame">
-              <input id="{{actor._id}}height" type="text" name="system.details.height" value="{{system.details.height}}" placeholder="Height" data-dtype="String"/>
+              <input id="{{actor._id}}height" type="text" name="system.details.height" value="{{system.details.height}}" data-dtype="String"/>
             </div>
           </div>
           <div class="weightclass detail-field">
@@ -114,16 +115,16 @@
 
         {{!-- Backstory Section --}}
         <div class="backstory-container" style="flex: 1;">
-          <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Biography"}}</strong><span class="header-decoration right"></span></h2>
-          <div style="height: 200px;">
+          <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Biography"}}</strong><span class="header-decoration right"></span></h2>
+          <div class="editor-container" style="height: 200px;">
             {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
           </div>
         </div>
 
         {{!-- Personality Section --}}
         <div class="personality-container" style="flex: 1;">
-          <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
-          <div style="height: 200px;">
+          <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
+          <div class="editor-container" style="height: 200px;">
             {{editor system.personality target="system.personality" rollData=rollData button=true owner=owner editable=editable}}
           </div>
         </div>
@@ -131,11 +132,16 @@
 
       {{!-- Additional Details Section --}}
       <div class="additional-details-container">
-        <h2 class="section-header"><span class="header-decoration left"></span><img src="systems/stryder/assets/details.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Additional Details"}}</strong><span class="header-decoration right"></span></h2>
-        <div style="height: 300px;">
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/details.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Additional Details"}}</strong><span class="header-decoration right"></span></h2>
+        <div class="editor-container" style="height: 300px;">
           {{editor system.npcdetails target="system.npcdetails" rollData=rollData button=true owner=owner editable=editable}}
         </div>
       </div>
+    </div>
+
+    {{!-- Owned Items Tab --}}
+    <div class="tab items" data-group="primary" data-tab="life">
+       {{> "systems/stryder/templates/actor/parts/actor-life.hbs"}}
     </div>
 
     {{!-- Owned Items Tab --}}

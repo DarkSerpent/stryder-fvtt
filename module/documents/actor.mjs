@@ -56,6 +56,18 @@ export class StryderActor extends Actor {
 		"endurance", "nimbleness", "strength", "survival", "charm",
 		"wit", "wisdom", "deceit", "diplomacy", "intimacy", "threat"
 	  ];
+
+	  if (!actorData.system.life) {
+		actorData.system.life = {
+		  cooking: { value: 0 },
+		  elixirbrewing: { value: 0 },
+		  fishing: { value: 0 },
+		  hunting: { value: 0 },
+		  performing: { value: 0 },
+		  scavenging: { value: 0 },
+		  trading: { value: 0 }
+		};
+	  }
 	  
 	  talents.forEach(talent => {
 		if (!systemData.attributes.talent[talent]) {

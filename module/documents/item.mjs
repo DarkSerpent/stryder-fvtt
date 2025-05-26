@@ -138,7 +138,7 @@ export class StryderItem extends Item {
 				   item.type === "consumable"    ? "Consumable"      :
 				   item.type === "gear"          ? "Gear"            :
 				   item.type === "aegiscore"     ? "Aegis Core"      :
-				   item.type === "legacies"      ? "Legacy"          :
+				   item.type === "legacies"      ? "Soul Stone & Legacy" :
 				   item.type === "head"          ? "Head Item"       :
 				   item.type === "back"          ? "Back Item"       :
 				   item.type === "arms"          ? "Arms Item"       :
@@ -1017,7 +1017,7 @@ export class StryderItem extends Item {
 	  </div>
 	  
 	  <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #c0a070; font-size: 12px; color: #5c3a21; text-align: center;">
-		<i class="fas fa-scroll"></i> Legacy Item - Bound to Character's Soul
+		<i class="fas fa-scroll"></i> Soul Item - Bound to Character's Soul
 	  </div>
 	</div>
 	`;

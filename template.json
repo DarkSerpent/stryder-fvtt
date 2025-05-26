@@ -57,6 +57,29 @@
       "templates": ["base"],
       "grail": 0,
       "guild_tokens": 0,
+      "life": {
+        "cooking": {
+          "value": 0
+		},
+        "elixirbrewing": {
+          "value": 0
+		},
+        "fishing": {
+          "value": 0
+		},
+        "hunting": {
+          "value": 0
+		},
+        "performing": {
+          "value": 0
+		},
+        "scavenging": {
+          "value": 0
+		},
+        "trading": {
+          "value": 0
+		}
+	   },
       "attributes": {
         "mastery": 0,
         "weight_class": 4,

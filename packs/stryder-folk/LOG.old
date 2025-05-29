@@ -1,8 +1,15 @@
-2025/05/28-20:18:13.809 4210 Recovering log #36
-2025/05/28-20:18:13.938 4210 Delete type=0 #36
-2025/05/28-20:18:13.938 4210 Delete type=3 #34
-2025/05/28-20:19:03.432 81d8 Level-0 table #41: started
-2025/05/28-20:19:03.432 81d8 Level-0 table #41: 0 bytes OK
-2025/05/28-20:19:03.488 81d8 Delete type=0 #39
-2025/05/28-20:19:03.721 81d8 Manual compaction at level-0 from '!items!Aw1PE50zNcqBxcQ3' @ 72057594037927935 : 1 .. '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 0 : 0; will stop at (end)
-2025/05/28-20:19:03.721 81d8 Manual compaction at level-1 from '!items!Aw1PE50zNcqBxcQ3' @ 72057594037927935 : 1 .. '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 0 : 0; will stop at (end)
+2025/05/28-20:22:27.658 4210 Recovering log #44
+2025/05/28-20:22:27.787 4210 Delete type=0 #44
+2025/05/28-20:22:27.787 4210 Delete type=3 #42
+2025/05/28-20:44:06.326 81d8 Level-0 table #49: started
+2025/05/28-20:44:06.354 81d8 Level-0 table #49: 2143 bytes OK
+2025/05/28-20:44:06.403 81d8 Delete type=0 #47
+2025/05/28-20:44:06.404 81d8 Manual compaction at level-0 from '!items!Aw1PE50zNcqBxcQ3' @ 72057594037927935 : 1 .. '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 0 : 0; will stop at (end)
+2025/05/28-20:44:06.404 81d8 Manual compaction at level-1 from '!items!Aw1PE50zNcqBxcQ3' @ 72057594037927935 : 1 .. '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 0 : 0; will stop at '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 43 : 1
+2025/05/28-20:44:06.404 81d8 Compacting 1@1 + 1@2 files
+2025/05/28-20:44:06.509 81d8 Generated table #50@1: 24 keys, 15808 bytes
+2025/05/28-20:44:06.509 81d8 Compacted 1@1 + 1@2 files => 15808 bytes
+2025/05/28-20:44:06.559 81d8 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/05/28-20:44:06.559 81d8 Delete type=2 #33
+2025/05/28-20:44:06.559 81d8 Delete type=2 #49
+2025/05/28-20:44:06.826 81d8 Manual compaction at level-1 from '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 43 : 1 .. '!items.effects!xYErEPWq3n2uHBSN.RDrDVpQ7vCkkxmtc' @ 0 : 0; will stop at (end)

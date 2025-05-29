@@ -79,6 +79,166 @@ export class StryderActor extends Actor {
 	  for (let [key, ability] of Object.entries(systemData.abilities)) {
 		ability.mod = Math.floor((ability.value - 10) / 2);
 	  }
+
+	  // Calculate max HP
+	  this._calculateMaxHP(actorData);
+      this._calculateMaxMana(actorData);
+      this._calculateMaxStamina(actorData);
+      this._calculateMaxFocus(actorData);
+	}
+
+	/**
+	 * Calculate the character's max HP based on class and Grit ability
+	 * @param {Object} actorData The actor data to modify
+	 */
+	_calculateMaxHP(actorData) {
+	  const system = actorData.system;
+	  const level = system.attributes.level?.value || 1;
+	  const baseHP = system.class?.base_hp || 0;
+	  const hpPerLevel = system.class?.hp_per_level || 0;
+	  const gritValue = system.abilities?.Grit?.value || 0;
+      const hpMod = system.health?.max?.mod || 0;	
+
+	  // Calculate base max HP from class
+	  let maxHP = baseHP + (hpPerLevel * (level - 1)) + hpMod;
+
+	  // Add Grit bonuses at levels 1, 5, 10, and 15
+	  if (gritValue >= 1) {
+		if (level >= 1) maxHP += gritValue;
+		if (level >= 5) maxHP += gritValue;
+		if (level >= 10) maxHP += gritValue;
+		if (level >= 15) maxHP += gritValue;
+	  }
+
+	  // Ensure health exists
+	  if (!system.health) {
+		system.health = { 
+		  value: 0, 
+		  min: 0, 
+		  max: 0,
+		  max: {
+			mod: 0
+		  }
+		};
+	  }
+
+	  // Update max HP, preserving current HP value but clamping it to new max
+	  const currentHP = system.health.value || 0;
+	  system.health.max = maxHP;
+	  system.health.value = Math.min(currentHP, maxHP);
+	  system.health.min = 0;
+	}
+
+	/**
+	 * Calculate max Mana based on level and mod
+	 */
+	_calculateMaxMana(actorData) {
+	  const system = actorData.system;
+	  const level = system.attributes.level?.value || 0;
+	  const manaMod = system.mana?.max?.mod || 0;
+
+	  let baseMana = 0;
+	  if (level <= 0) baseMana = 0;
+	  else if (level <= 2) baseMana = 3;
+	  else if (level === 3) baseMana = 4;
+	  else if (level === 4) baseMana = 5;
+	  else if (level <= 6) baseMana = 6;
+	  else if (level <= 8) baseMana = 8;
+	  else if (level <= 10) baseMana = 10;
+	  else if (level <= 12) baseMana = 12;
+	  else if (level <= 14) baseMana = 15;
+	  else baseMana = 18; // level 15+
+
+	  const maxMana = baseMana + manaMod;
+
+	  // Ensure mana exists
+	  if (!system.mana) {
+		system.mana = { 
+		  value: 0, 
+		  min: 0, 
+		  max: 0,
+		  max: {
+			mod: 0
+		  }
+		};
+	  }
+
+	  // Update max mana, preserving current value but clamping it
+	  const currentMana = system.mana.value || 0;
+	  system.mana.max = maxMana;
+	  system.mana.value = Math.min(currentMana, maxMana);
+	  system.mana.min = 0;
+	}
+
+	/**
+	 * Calculate max Stamina based on level and mod
+	 */
+	_calculateMaxStamina(actorData) {
+	  const system = actorData.system;
+	  const level = system.attributes.level?.value || 0;
+	  const staminaMod = system.stamina?.max?.mod || 0;
+
+	  let baseStamina = 0;
+	  if (level <= 0) baseStamina = 0;
+	  else if (level <= 3) baseStamina = 2;
+	  else if (level <= 6) baseStamina = 3;
+	  else if (level <= 10) baseStamina = 4;
+	  else baseStamina = 5; // level 11-15
+
+	  const maxStamina = baseStamina + staminaMod;
+
+	  // Ensure stamina exists
+	  if (!system.stamina) {
+		system.stamina = { 
+		  value: 0, 
+		  min: 0, 
+		  max: 0,
+		  max: {
+			mod: 0
+		  }
+		};
+	  }
+
+	  // Update max stamina, preserving current value but clamping it
+	  const currentStamina = system.stamina.value || 0;
+	  system.stamina.max = maxStamina;
+	  system.stamina.value = Math.min(currentStamina, maxStamina);
+	  system.stamina.min = 0;
+	}
+
+	/**
+	 * Calculate max Focus based on level and mod
+	 */
+	_calculateMaxFocus(actorData) {
+	  const system = actorData.system;
+	  const level = system.attributes.level?.value || 0;
+	  const focusMod = system.focus?.max?.mod || 0;
+
+	  let baseFocus = 0;
+	  if (level <= 0) baseFocus = 0;
+	  else if (level <= 4) baseFocus = 3;
+	  else if (level <= 9) baseFocus = 4;
+	  else baseFocus = 5; // level 10-15
+
+	  const maxFocus = baseFocus + focusMod;
+
+	  // Ensure focus exists
+	  if (!system.focus) {
+		system.focus = { 
+		  value: 0, 
+		  min: 0, 
+		  max: 0,
+		  max: {
+			mod: 0
+		  }
+		};
+	  }
+
+	  // Update max focus, preserving current value but clamping it
+	  const currentFocus = system.focus.value || 0;
+	  system.focus.max = maxFocus;
+	  system.focus.value = Math.min(currentFocus, maxFocus);
+	  system.focus.min = 0;
 	}
 
   /**

@@ -76,7 +76,7 @@
       "armament": "Armament",
       "generic": "Generic Attack",
       "aegiscore": "Aegis Core",
-      "legacies": "Legacy",
+      "legacies": "Soul Stone& Legacy",
       "head": "Head Slot",
       "back": "Back Slot",
       "arms": "Arms Slot",
@@ -93,7 +93,12 @@
       "racial": "Folk Ability",
       "statperk": "Stat Perk",
       "technique": "Technique",
-      "profession": "Profession"
+      "profession": "Profession",
+      "passive": "Passive",
+      "miscellaneous": "Miscellaneous",
+      "class": "Class",
+      "folk": "Folk",
+      "bonds": "Bond"
     }
   }
 }

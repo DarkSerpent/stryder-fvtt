@@ -24,15 +24,27 @@
         <div class="character-details-secondary textalign-center flexrow">
           <div class="character-species">
             <label for="{{actor._id}}species" class="resource-label-info">{{localize "Species"}}</label> 
-            <input id="{{actor._id}}species" type="text" name="system.species" value="{{system.species}}" placeholder="Species" data-dtype="String"/>
+            <input id="{{actor._id}}species" type="text" name="system.species" value="{{system.species}}" placeholder="Species Name" data-dtype="String"/>
           </div>
-          <div class="character-nature">
-            <label for="{{actor._id}}nature" class="resource-label-info">{{localize "Nature"}}</label>
-            <input id="{{actor._id}}nature" type="text" name="system.attributes.nature" value="{{system.attributes.nature}}" placeholder="Nature" data-dtype="String"/>
+          <div class="character-habitat">
+            <label for="{{actor._id}}habitat" class="resource-label-info">{{localize "Habitat"}}</label>
+            <input id="{{actor._id}}habitat" type="text" name="system.attributes.habitat" value="{{system.attributes.habitat}}" placeholder="Forest, Mountains, etc." data-dtype="String"/>
           </div>
-          <div class="character-origin">
-            <label for="{{actor._id}}origin" class="resource-label-info">{{localize "Origin"}}</label>
-            <input id="{{actor._id}}origin" type="text" name="system.attributes.origin" value="{{system.attributes.origin}}" placeholder="Origin" data-dtype="String"/>
+          <div class="character-weightclass">
+            <label for="{{actor._id}}creature_size" class="resource-label-info">{{localize "Creature Size"}}</label>
+			<div class="dropdown-field">
+				<select class="secondary-input" name="system.attributes.creature_size" style="width: 100%; font-size: 16px; font-weight: normal;">
+				  {{#select system.attributes.creature_size}}
+				  <option value="0.25">Mini</option>
+				  <option value="0.5">Small</option>
+				  <option value="1">Normal</option>
+				  <option value="2">Huge</option>
+				  <option value="3">Massive</option>
+				  <option value="4">Colossal</option>
+				  <option value="5">Titanic</option>
+				  {{/select}}
+				</select>
+			</div>
           </div>
 		</div>
       <div class="resources grid grid-3col">

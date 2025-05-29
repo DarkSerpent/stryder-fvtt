@@ -252,6 +252,8 @@ export class StryderActorSheet extends ActorSheet {
     const bonds = [];
     const passive = [];
     const miscellaneous = [];
+    const classchoice = [];
+    const folk = [];
     const spells = {
       0: [],
       1: [],
@@ -368,6 +370,14 @@ export class StryderActorSheet extends ActorSheet {
       else if (i.type === 'miscellaneous') {
         miscellaneous.push(i);
       }
+      // Append to class.
+      else if (i.type === 'class') {
+        classchoice.push(i);
+      }
+      // Append to folk.
+      else if (i.type === 'folk') {
+        folk.push(i);
+      }
       // Append to spells.
       else if (i.type === 'spell') {
         if (i.system.spellLevel != undefined) {
@@ -402,6 +412,8 @@ export class StryderActorSheet extends ActorSheet {
     context.bonds = bonds;
     context.passive = passive;
     context.miscellaneous = miscellaneous;
+    context.classchoice = classchoice;
+    context.folk = folk;
     context.spells = spells;
   }
 
@@ -653,6 +665,28 @@ export class StryderActorSheet extends ActorSheet {
 			const legaciesItems = this.actor.items.filter(i => i.type === 'legacies');
 			if (legaciesItems.length >= 3) {
 				let message = game.i18n.localize('<b>Notice:</b> You cannot equip more than 3 Legacies!');
+				ChatMessage.create({
+					content: message,
+					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+					whisper: [game.user.id]
+				});
+				return;
+			}
+		} else if (type === 'class') {
+			const classItems = this.actor.items.filter(i => i.type === 'class');
+			if (classItems.length >= 1) {
+				let message = game.i18n.localize('<b>Notice:</b> You cannot have more than 1 Class!');
+				ChatMessage.create({
+					content: message,
+					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+					whisper: [game.user.id]
+				});
+				return;
+			}
+		} else if (type === 'folk') {
+			const folkItems = this.actor.items.filter(i => i.type === 'folk');
+			if (folkItems.length >= 1) {
+				let message = game.i18n.localize('<b>Notice:</b> You cannot be more than 1 type of Folk!');
 				ChatMessage.create({
 					content: message,
 					speaker: ChatMessage.getSpeaker({ actor: this.actor }),

@@ -49,17 +49,29 @@
       use both the "grid" and "grid-Ncol" class where "N" can be any number
       from 1 to 12 and will create that number of columns.  --}}
         <div class="character-details-secondary textalign-center flexrow" style="margin-bottom: 20px;">
-          <div class="character-race">
-            <label for="{{actor._id}}folk" class="resource-label-info">{{localize "Folk"}}</label> 
-            <input id="{{actor._id}}folk" type="text" name="system.folk" value="{{system.folk}}" placeholder="Folk" data-dtype="String"/>
-          </div>
-          <div class="character-class">
-            <label for="{{actor._id}}class" class="resource-label-info">{{localize "Class"}}</label>
-            <input id="{{actor._id}}class" type="text" name="system.attributes.class" value="{{system.attributes.class}}" placeholder="Class" data-dtype="String"/>
-          </div>
           <div class="character-gender">
             <label for="{{actor._id}}gender" class="resource-label-info">{{localize "Gender"}}</label>
             <input id="{{actor._id}}gender" type="text" name="system.attributes.gender" value="{{system.attributes.gender}}" placeholder="Gender" data-dtype="String"/>
+          </div>
+          <div class="character-pronouns">
+            <label for="{{actor._id}}pronouns" class="resource-label-info">{{localize "Pronouns"}}</label>
+            <input id="{{actor._id}}pronouns" type="text" name="system.attributes.pronouns" value="{{system.attributes.class}}" placeholder="He/She/They, etc." data-dtype="String"/>
+          </div>
+          <div class="character-weightclass">
+            <label for="{{actor._id}}creature_size" class="resource-label-info">{{localize "Creature Size"}}</label>
+			<div class="dropdown-field">
+				<select class="secondary-input" name="system.attributes.creature_size" style="width: 100%; font-size: 16px; font-weight: normal;">
+				  {{#select system.attributes.creature_size}}
+				  <option value="0.25">Mini</option>
+				  <option value="0.5">Small</option>
+				  <option value="1">Normal</option>
+				  <option value="2">Huge</option>
+				  <option value="3">Massive</option>
+				  <option value="4">Colossal</option>
+				  <option value="5">Titanic</option>
+				  {{/select}}
+				</select>
+			</div>
           </div>
 		</div>
       <div class="resources grid grid-3col">
@@ -78,7 +90,7 @@
           <div class="resource-content flexrow flex-center flex-between">
           <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
           <span> / </span>
-          <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number"/>
+          <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number" readonly/>
           </div>
         </div>
 
@@ -92,7 +104,7 @@
           <div class="resource-content flexrow flex-center flex-between">
           <input type="text" name="system.mana.value" value="{{system.mana.value}}" data-dtype="Number"/>
           <span> / </span>
-          <input type="text" name="system.mana.max" value="{{system.mana.max}}" data-dtype="Number"/>
+          <input type="text" name="system.mana.max" value="{{system.mana.max}}" data-dtype="Number" readonly/>
           </div>
         </div>
 
@@ -106,7 +118,7 @@
           <div class="resource-content flexrow flex-center flex-between">
             <input type="text" name="system.stamina.value" value="{{system.stamina.value}}" data-dtype="Number"/>
             <span> / </span>
-            <input type="text" name="system.stamina.max" value="{{system.stamina.max}}" data-dtype="Number"/>
+            <input type="text" name="system.stamina.max" value="{{system.stamina.max}}" data-dtype="Number" readonly/>
           </div>
         </div>
 
@@ -134,7 +146,7 @@
           <div class="resource-content flexrow flex-center flex-between">
             <input type="text" name="system.focus.value" value="{{system.focus.value}}" data-dtype="Number"/>
             <span> / </span>
-            <input type="text" name="system.focus.max" value="{{system.focus.max}}" data-dtype="Number"/>
+            <input type="text" name="system.focus.max" value="{{system.focus.max}}" data-dtype="Number" readonly/>
           </div>
         </div>
 
@@ -458,7 +470,7 @@
       <div class="appearance-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/visage.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Visage"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div class="editor-container">
+		<div class="editor-container biography">
 			{{editor system.appearance target="system.appearance" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
       
@@ -466,7 +478,7 @@
       <div class="backstory-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Legend"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div class="editor-container">
+		<div class="editor-container biography">
           {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
 
@@ -474,7 +486,7 @@
       <div class="personality-container">
         <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
       </div>
-		<div class="editor-container">
+		<div class="editor-container biography">
           {{editor system.personality target="system.personality" rollData=rollData button=true owner=owner editable=editable}}
 		</div>
 	</div>

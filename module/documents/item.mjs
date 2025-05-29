@@ -147,6 +147,8 @@ export class StryderItem extends Item {
 				   item.type === "bonds"         ? "Bond"            :
 				   item.type === "passive"       ? "Passive"         :
 				   item.type === "miscellaneous" ? "Miscellaneous"   :
+				   item.type === "class"         ? "Class"           :
+				   item.type === "folk"          ? "Folk"            :
 				   "";
 
 	let hexAspect = "";
@@ -218,7 +220,7 @@ export class StryderItem extends Item {
 		rarity = `Uncommon`;
 	} else if (item.system.rarity === "rare") {
 		rarity = `Rare`;
-	} else if (item.system.rarity === "legendary") {
+	} else if (item.system.rarity === "mythic") {
 		rarity = `Legendary`;
 	} else if (item.system.rarity === "one of a kind") {
 		rarity = `One of a Kind`;
@@ -816,6 +818,22 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	let contentHTMLclassandfolk = `
+	<div class="chat-message-card">
+	  <div class="chat-message-header">
+		<div style="text-align: center; margin-bottom: 10px;">
+		  <img src="${item.img}" style="width: 50px; height: 50px; border: 2px solid #8b5a2b; border-radius: 50%; object-fit: cover; background: rgba(255, 248, 220, 0.8);">
+		</div>
+		<div class="chat-message-title">${item.name}</div>
+		<div class="chat-message-subtitle">${itemType}</div>
+	  </div>
+	  
+	  <div class="chat-message-content">
+		${item.system.description ?? ''}
+	  </div>
+	</div>
+	`;
+
 	let contentHTMLloot = `
 	<div class="chat-message-card">
 	  <div class="chat-message-header">
@@ -985,8 +1003,8 @@ export class StryderItem extends Item {
 		common: '#7a7a7a',
 		uncommon: '#2e8b57',
 		rare: '#4169e1',
-		legendary: '#daa520',
-		'one of a kind': '#ff4500'
+		legendary: '#d4af37',
+		'one of a kind': '#008080'
 	  };
 	  return colors[rarity.toLowerCase()] || '#5c2b0a';
 	}
@@ -1219,6 +1237,13 @@ export class StryderItem extends Item {
 			speaker: speaker,
 			rollMode: rollMode,
 			flavor: contentHTMLmiscellaneous
+		  });
+		}
+		else if (item.type === "class" || item.type === "folk") {
+		  ChatMessage.create({
+			speaker: speaker,
+			rollMode: rollMode,
+			flavor: contentHTMLclassandfolk
 		  });
 		}
 		else if (item.type === "racial") {

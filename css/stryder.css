@@ -1489,7 +1489,7 @@ progress.resource2-bar::-moz-progress-bar {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 300px;
+  min-height: 240px;
 }
 
 .editor-header {
@@ -1658,10 +1658,6 @@ progress.resource2-bar::-moz-progress-bar {
 /* Effects Tab */
 .tab.effects {
   padding: 10px;
-}
-
-.editor-container {
-  min-height: 200px;
 }
 
 .tox-tinymce {
@@ -2130,7 +2126,7 @@ progress.resource2-bar::-moz-progress-bar {
   padding-bottom: 5px;
 }
 
-.editor-container {
+.editor-container.biography {
     position: relative;
     border: 0px;
     margin-top: 10px;
@@ -2179,18 +2175,6 @@ progress.resource2-bar::-moz-progress-bar {
     min-width: 0;
 }
 
-.scroll-wrapper {
-    position: relative;
-}
-.scroll-wrapper:after {
-    content: '→';
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.5;
-    animation: pulse 2s infinite;
-}
 @keyframes pulse {
     0% { opacity: 0.2; }
     50% { opacity: 0.8; }

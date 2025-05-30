@@ -589,8 +589,8 @@ export class StryderActorSheet extends ActorSheet {
 		
 		// Apply Unbound Leap multiplier if enabled
 		if (actor.system.booleans?.usingUnboundLeap) {
-			verticalDistance *= actor.system.attributes.talent.strength.value;
-			horizontalDistance *= actor.system.attributes.talent.strength.value;
+			verticalDistance += actor.system.attributes.talent.strength.value;
+			horizontalDistance += actor.system.attributes.talent.strength.value;
 		}
 		
 		const distance = jumpType === 'vertical' ? verticalDistance : horizontalDistance;

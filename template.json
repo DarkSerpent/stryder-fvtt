@@ -67,6 +67,11 @@
     },
     "character": {
       "templates": ["base"],
+      "booleans": {
+        "hasPracticedForm": false,
+        "usingUnboundLeap": false,
+        "hasFantastic": false
+	  },
       "grail": 0,
       "guild_tokens": 0,
       "class": {

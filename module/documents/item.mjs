@@ -719,7 +719,7 @@ export class StryderItem extends Item {
 	`;
 
 	let fantasmActionType = "Focused";
-	if (item.name.includes("Hyper Sense") || this.actor?.system?.booleans?.hasFantastic) {
+	if (item.name.includes("Hyper Sense") || item.name.includes("Unbound Leap") || this.actor?.system?.booleans?.hasFantastic) {
 	  fantasmActionType = "Swift";
 	}
 

@@ -84,6 +84,67 @@ Hooks.once('init', function() {
     });
 });
 
+async function handleUnboundLeapEffect(event) {
+  event.preventDefault();
+  console.log("Unbound Leap button clicked");
+  
+  const button = event.currentTarget;
+  const controlledTokens = canvas.tokens.controlled;
+  console.log("Controlled tokens:", controlledTokens);
+  
+  if (controlledTokens.length === 0) {
+	console.log("No tokens selected");
+	ui.notifications.warn("No character selected! Please select a token first.");
+	return;
+  }
+
+  const token = controlledTokens[0];
+  const actor = token.actor;
+  console.log("Selected actor:", actor);
+  
+  if (!actor) {
+	console.log("No actor found for token");
+	ui.notifications.error("Selected token has no associated actor!");
+	return;
+  }
+
+  // Create the active effect
+  const effectData = {
+	label: "Strength: Unbound Leap",
+	icon: "icons/skills/movement/arrow-upward-yellow.webp",
+	duration: {
+	  rounds: 1,
+	  seconds: 6,
+	  startRound: game.combat?.round || 0
+	},
+	changes: [{
+	  key: "system.booleans.usingUnboundLeap",
+	  value: true,
+	  mode: CONST.ACTIVE_EFFECT_MODES.OVERRIDE,
+	  priority: 20
+	}],
+	flags: {
+	  core: {
+		statusId: "unboundLeap"
+	  }
+	}
+  };
+
+  console.log("Attempting to create effect with data:", effectData);
+  
+  // Apply the effect
+  actor.createEmbeddedDocuments("ActiveEffect", [effectData])
+	.then((createdEffects) => {
+	  console.log("Effect created successfully:", createdEffects);
+	  ui.notifications.info(`Applied Unbound Leap effect to ${actor.name}!`);
+	  button.disabled = true;
+	  button.textContent = "Effect Applied";
+	})
+	.catch(err => {
+	  console.error("Error applying Unbound Leap effect:", err);
+	  ui.notifications.error("Failed to apply Unbound Leap effect!");
+	});
+}
 /* -------------------------------------------- */
 /*  Ready Hook                                  */
 /* -------------------------------------------- */
@@ -93,6 +154,7 @@ Hooks.once('ready', function () {
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
 
   $(document).off("click", ".ability-dodge-evade-mod");
+  $(document).on("click", ".unbound-leap-button", handleUnboundLeapEffect);
 
   $(document).on("click", ".ability-dodge-evade-mod", async function(event) {
     event.preventDefault();

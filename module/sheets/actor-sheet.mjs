@@ -103,6 +103,23 @@ export class StryderActorSheet extends ActorSheet {
     // Use a safe clone of the actor data for further operations.
     const actorData = context.data;
 
+	// Calculate jump distances
+	const talent = actorData.system.attributes?.talent;
+	context.verticalJumpDistance = talent?.strength?.value ? Math.floor(talent.strength.value / 2) : 0;
+	context.horizontalJumpDistance = talent?.nimbleness?.value ?? 0;
+
+	// Apply Practiced Form bonuses if enabled
+	if (actorData.system.booleans?.hasPracticedForm && talent) {
+	  context.verticalJumpDistance += talent.nimbleness?.value ?? 0;
+	  context.horizontalJumpDistance += talent.strength?.value ?? 0;
+	}
+
+	// Apply Unbound Leap multiplier if enabled
+	if (actorData.system.booleans?.usingUnboundLeap && talent) {
+	  context.verticalJumpDistance *= talent.strength?.value ?? 1;
+	  context.horizontalJumpDistance *= talent.strength?.value ?? 1;
+	}
+
     // Add the actor's data to context.data for easier access, as well as flags.
     context.system = actorData.system;
     context.flags = actorData.flags;
@@ -551,6 +568,75 @@ export class StryderActorSheet extends ActorSheet {
 		  [`system.life.${skill}.value`]: newValue
 		});
 	  }
+	});
+
+	// Jump distance click handler
+	html.on('click', '.jump-item.rollable', async (ev) => {
+		ev.preventDefault();
+		const jumpItem = ev.currentTarget;
+		const jumpType = jumpItem.dataset.jumpType;
+		const actor = this.actor;
+		
+		// Calculate distances
+		let verticalDistance = Math.floor(actor.system.attributes.talent.strength.value / 2);
+		let horizontalDistance = actor.system.attributes.talent.nimbleness.value;
+		
+		// Apply Practiced Form bonuses if enabled
+		if (actor.system.booleans?.hasPracticedForm) {
+			verticalDistance += actor.system.attributes.talent.nimbleness.value;
+			horizontalDistance += actor.system.attributes.talent.strength.value;
+		}
+		
+		// Apply Unbound Leap multiplier if enabled
+		if (actor.system.booleans?.usingUnboundLeap) {
+			verticalDistance *= actor.system.attributes.talent.strength.value;
+			horizontalDistance *= actor.system.attributes.talent.strength.value;
+		}
+		
+		const distance = jumpType === 'vertical' ? verticalDistance : horizontalDistance;
+		const direction = jumpType === 'vertical' ? 'vertically' : 'horizontally';
+		
+		// Deduct stamina unless using Unbound Leap
+		if (!actor.system.booleans?.usingUnboundLeap) {
+			const currentStamina = actor.system.stamina.value;
+			if (currentStamina < 1) {
+				return ui.notifications.warn(`${actor.name} doesn't have enough Stamina to leap!`);
+			}
+			await actor.update({"system.stamina.value": currentStamina - 1});
+		}
+		
+		// Create chat message
+		const staminaText = actor.system.booleans?.usingUnboundLeap ? 
+			"No Stamina was spent (Unbound Leap)." : 
+			"1 Stamina was spent (Swift Action).";
+		
+		const message = `
+		<div class="chat-message-card-jump">
+			<div class="chat-message-header">
+				<img src="systems/stryder/assets/${jumpType}-jump-icon.svg" class="chat-message-icon-jump">
+				<h3 class="chat-message-title-jump">${actor.name} Leaps ${direction}</h3>
+			</div>
+			
+			<div class="chat-message-details-jump">
+				<div class="chat-message-detail-row-jump">
+					<span class="chat-message-detail-label-jump">Distance:</span>
+					<span class="chat-distance-box-jump">${distance} spaces</span>
+				</div>
+			</div>
+			
+			<div class="chat-message-footer-jump">
+				<div class="stamina-cost-jump">
+					<img src="systems/stryder/assets/stamina-icon.svg" style="border: 0px;" width="20" height="20">
+					<span>${staminaText}</span>
+				</div>
+			</div>
+		</div>
+		`;
+		
+		await ChatMessage.create({
+			content: message,
+			speaker: ChatMessage.getSpeaker({actor: actor})
+		});
 	});
 
 	// Talent dropdown changes

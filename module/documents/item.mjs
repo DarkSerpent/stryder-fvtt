@@ -453,29 +453,61 @@ export class StryderItem extends Item {
 	}
 
 	function createResourceSpendButton(item) {
-	  const hasStaminaCost = item.system.stamina_cost > 0;
-	  const hasManaCost = item.system.mana_cost > 0;
+	  console.log("Creating resource button for item type:", item.type);
 	  
-	  if (!hasStaminaCost && !hasManaCost) return '';
-
-	  let buttonText = 'Spend Resources';
-	  if (hasStaminaCost && hasManaCost) {
-		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span> and <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
-	  } else if (hasStaminaCost) {
-		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span>`;
-	  } else if (hasManaCost) {
-		buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
-	  }
-
-	  return `
+	  let buttonsHTML = '';
+	  
+	  // Handle fantasm items
+	  if (item.type === "fantasm" || item.type === "ITEM.TypeFantasm") {
+		buttonsHTML += `
 		<div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
 		  <button class="resource-spend-button" 
-				  data-stamina-cost="${item.system.stamina_cost || 0}"
-				  data-mana-cost="${item.system.mana_cost || 0}">
-			${buttonText}
+				  data-focus-cost="1">
+			Spend <span style="font-family: 'Varela Round';">1</span> <span style="color: #d4af37; font-weight: bold;">Focus</span>
 		  </button>
 		</div>
-	  `;
+		`;
+	  }
+	  // Handle mana and stamina costs
+	  else {
+		const hasStaminaCost = item.system.stamina_cost > 0;
+		const hasManaCost = item.system.mana_cost > 0;
+		
+		if (hasStaminaCost || hasManaCost) {
+		  let buttonText = 'Spend Resources';
+		  if (hasStaminaCost && hasManaCost) {
+			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span> and <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
+		  } else if (hasStaminaCost) {
+			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span>`;
+		  } else if (hasManaCost) {
+			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
+		  }
+
+		  buttonsHTML += `
+		  <div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
+			<button class="resource-spend-button" 
+					data-stamina-cost="${item.system.stamina_cost || 0}"
+					data-mana-cost="${item.system.mana_cost || 0}">
+			  ${buttonText}
+			</button>
+		  </div>
+		  `;
+		}
+	  }
+
+	  // Add Unbound Leap effect button if item name contains "Unbound Leap"
+	  if (item.name.includes("Unbound Leap")) {
+		buttonsHTML += `
+		<div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
+		  <button class="unbound-leap-button" 
+				  style="background: linear-gradient(to bottom, #8b5a2b, #5c3a21); color: white; border: none; border-radius: 20px; padding: 8px 15px; font-family: 'Cinzel Decorative', cursive; font-size: 14px; cursor: pointer; margin: 10px auto; display: block; text-align: center; transition: all 0.3s ease;">
+			Apply Effect
+		  </button>
+		</div>
+		`;
+	  }
+
+	  return buttonsHTML;
 	}
 
 	function handleResourceSpend(event) {
@@ -483,6 +515,7 @@ export class StryderItem extends Item {
 	  const button = event.currentTarget;
 	  const staminaCost = parseInt(button.dataset.staminaCost) || 0;
 	  const manaCost = parseInt(button.dataset.manaCost) || 0;
+	  const focusCost = parseInt(button.dataset.focusCost) || 0;
 
 	  // Get the currently controlled tokens
 	  const controlledTokens = canvas.tokens.controlled;
@@ -527,6 +560,18 @@ export class StryderItem extends Item {
 		}
 	  }
 
+	  if (focusCost > 0) {
+		if (actor.system.focus?.value === undefined) {
+		  ui.notifications.warn("Selected character doesn't have focus to spend!");
+		  return;
+		}
+		if (actor.system.focus.value < focusCost) {
+		  canAfford = false;
+		  if (warningMessage) warningMessage += " and ";
+		  warningMessage += `Not enough Focus (${actor.system.focus.value}/${focusCost})`;
+		}
+	  }
+
 	  if (!canAfford) {
 		ui.notifications.warn(`Not enough resources to spend! ${warningMessage}`);
 		return;
@@ -546,58 +591,65 @@ export class StryderItem extends Item {
 		hasResources = true;
 	  }
 
+	  if (focusCost > 0 && actor.system.focus?.value !== undefined) {
+		updates['system.focus.value'] = Math.max(0, actor.system.focus.value - focusCost);
+		hasResources = true;
+	  }
+
 	  // Apply updates if there are any
-		if (hasResources && Object.keys(updates).length > 0) {
-		  actor.update(updates).then(() => {
-			ui.notifications.info(`Resources spent for ${actor.name}!`);
-			// Disable the button after clicking
-			button.disabled = true;
-			button.textContent = "Resources Spent";
-			
-			// Create chat message content
-			let messageContent;
-			if (staminaCost > 0 && manaCost > 0) {
-			  messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana.`;
-			} else if (staminaCost > 0) {
-			  messageContent = `${actor.name} spent ${staminaCost} Stamina.`;
-			} else if (manaCost > 0) {
-			  messageContent = `${actor.name} spent ${manaCost} Mana.`;
-			} else {
-			  messageContent = `${actor.name} spent resources.`;
-			}
-			
-			// Create chat message
-			const chatData = {
-			  user: game.user.id,
-			  speaker: ChatMessage.getSpeaker({ actor: actor }),
-			  content: messageContent,
-			  type: CONST.CHAT_MESSAGE_TYPES.OTHER,
-			  sound: CONFIG.sounds.notification,
-			  flags: {
-				core: {
-				  canPopout: true
-				}
+	  if (hasResources && Object.keys(updates).length > 0) {
+		actor.update(updates).then(() => {
+		  ui.notifications.info(`Resources spent for ${actor.name}!`);
+		  // Disable the button after clicking
+		  button.disabled = true;
+		  button.textContent = "Resources Spent";
+		  
+		  // Create chat message content
+		  let messageContent;
+		  if (staminaCost > 0 && manaCost > 0) {
+			messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana.`;
+		  } else if (staminaCost > 0) {
+			messageContent = `${actor.name} spent ${staminaCost} Stamina.`;
+		  } else if (manaCost > 0) {
+			messageContent = `${actor.name} spent ${manaCost} Mana.`;
+		  } else if (focusCost > 0) {
+			messageContent = `${actor.name} spent ${focusCost} Focus.`;
+		  } else {
+			messageContent = `${actor.name} spent resources.`;
+		  }
+		  
+		  // Create chat message
+		  const chatData = {
+			user: game.user.id,
+			speaker: ChatMessage.getSpeaker({ actor: actor }),
+			content: messageContent,
+			type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+			sound: CONFIG.sounds.notification,
+			flags: {
+			  core: {
+				canPopout: true
 			  }
-			};
-			
-			chatData.content = `
-			  <div style="background: url('systems/stryder/assets/parchment.jpg'); 
-						  background-size: cover; 
-						  padding: 15px; 
-						  border: 1px solid #c9a66b; 
-						  border-radius: 3px;">
-				<h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Resource Expenditure</strong></h3>
-				<p>${messageContent}</p>
-			  </div>
-			`;
-			
-			ChatMessage.create(chatData);
-			
-		  }).catch(err => {
-			console.error("Error spending resources:", err);
-			ui.notifications.error("Failed to spend resources!");
-		  });
-		}
+			}
+		  };
+		  
+		  chatData.content = `
+			<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+						background-size: cover; 
+						padding: 15px; 
+						border: 1px solid #c9a66b; 
+						border-radius: 3px;">
+			  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Resource Expenditure</strong></h3>
+			  <p>${messageContent}</p>
+			</div>
+		  `;
+		  
+		  ChatMessage.create(chatData);
+		  
+		}).catch(err => {
+		  console.error("Error spending resources:", err);
+		  ui.notifications.error("Failed to spend resources!");
+		});
+	  }
 	}
 
 	Hooks.once('renderChatMessage', (message, html, data) => {
@@ -666,6 +718,11 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
+	let fantasmActionType = "Focused";
+	if (item.name.includes("Hyper Sense") || this.actor?.system?.booleans?.hasFantastic) {
+	  fantasmActionType = "Swift";
+	}
+
 	let contentHTMLfantasm = `
 	<div class="chat-message-card">
 	  <div class="chat-message-header">
@@ -677,6 +734,10 @@ export class StryderItem extends Item {
 	  </div>
 	  
 	  <div class="chat-message-details">
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${fantasmActionType}</span>
+		</div>
 		<div class="chat-message-detail-row">
 		  <span class="chat-message-detail-label">Cost:</span>
 		  <span>1 Focus</span>
@@ -1277,10 +1338,12 @@ export class StryderItem extends Item {
 		  });
 		}
 		else if (item.type === "fantasm") {
+		  const resourceButton = createResourceSpendButton(item);
+		  
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTMLfantasm
+			content: contentHTMLfantasm + resourceButton
 		  });
 		}
 		else if (item.type === "loot") {

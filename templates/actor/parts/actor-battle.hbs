@@ -1,3 +1,22 @@
+<h2 class="section-header" style="border-bottom: 0px;">
+    <span class="header-decoration left"></span>
+    <img src="systems/stryder/assets/jump-icon.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;">
+    <strong>{{localize "Jump Distances"}}</strong>
+    <span class="header-decoration right"></span>
+</h2>
+<div class="jump-container">
+    <div class="jump-item vertical-jump rollable" data-jump-type="vertical">
+        <img src="systems/stryder/assets/vertical-jump-icon.svg" alt="Vertical Jump" class="jump-icon" style="border:0px">
+        <span class="jump-label">{{localize "Vertical"}}</span>
+        <input type="text" name="system.jump.vertical" value="{{verticalJumpDistance}}" readonly data-dtype="Number">
+    </div>
+    <div class="jump-item horizontal-jump rollable" data-jump-type="horizontal">
+        <img src="systems/stryder/assets/horizontal-jump-icon.svg" alt="Horizontal Jump" class="jump-icon" style="border:0px">
+        <span class="jump-label">{{localize "Horizontal"}}</span>
+        <input type="text" name="system.jump.horizontal" value="{{horizontalJumpDistance}}" readonly data-dtype="Number">
+    </div>
+</div>
+<br />
 <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/senses.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Senses"}}</strong><span class="header-decoration right"></span></h2>
 <div class="skills-container">
     <div class="skills-grid senses">

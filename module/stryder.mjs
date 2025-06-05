@@ -4,6 +4,11 @@ import { StryderItem } from './documents/item.mjs';
 // Import sheet classes.
 import { StryderActorSheet } from './sheets/actor-sheet.mjs';
 import { StryderItemSheet } from './sheets/item-sheet.mjs';
+// Import combat classes.
+import { StryderCombat, ALLIED, ENEMY } from './combat/combat.mjs';
+import { StryderCombatant } from './combat/combatant.mjs';
+import { StryderCombatTracker } from './combat/combat-tracker.mjs';
+import { SYSTEM_ID } from './helpers/constants.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { STRYDER } from './helpers/config.mjs';
@@ -20,9 +25,145 @@ Hooks.once('init', function () {
     StryderItem,
     rollItemMacro,
   };
+  
+  // Register application
+  Actors.unregisterSheet('core', CombatTracker);
+  Actors.registerSheet('stryder', StryderCombatTracker, {
+    makeDefault: true,
+    label: 'STRYDER.SheetLabels.CombatTracker'
+  });
 
   // Add custom constants for configuration.
   CONFIG.STRYDER = STRYDER;
+  CONFIG.statusEffects = [];
+
+	CONFIG.statusEffects = [
+		{
+		  id: "dead",
+		  label: "Dead",
+		  icon: "systems/stryder/assets/status/dead.svg"
+		},
+		{
+		  id: "unconscious",
+		  label: "Unconscious",
+		  icon: "systems/stryder/assets/status/unconscious.svg"
+		},
+		{
+		  id: "bleeding-wound",
+		  label: "Bleeding Wound",
+		  icon: "systems/stryder/assets/status/bleeding-wound.svg"
+		},
+		{
+		  id: "burning",
+		  label: "Burning",
+		  icon: "systems/stryder/assets/status/burning.svg"
+		},
+		{
+		  id: "poisoned",
+		  label: "Poisoned",
+		  icon: "systems/stryder/assets/status/poisoned.svg"
+		},
+		{
+		  id: "energized",
+		  label: "Energized",
+		  icon: "systems/stryder/assets/status/energized.svg"
+		},
+		{
+		  id: "hovering",
+		  label: "Hovering",
+		  icon: "systems/stryder/assets/status/hovering.svg"
+		},
+		{
+		  id: "invisible",
+		  label: "Invisible",
+		  icon: "systems/stryder/assets/status/invisible.svg"
+		},
+		{
+		  id: "hidden",
+		  label: "Hidden",
+		  icon: "systems/stryder/assets/status/hidden.svg"
+		},
+		{
+		  id: "Last Breath",
+		  label: "Last Breaths",
+		  icon: "systems/stryder/assets/status/last-breath.svg"
+		},
+		{
+		  id: "blinded",
+		  label: "Blinded",
+		  icon: "systems/stryder/assets/status/blinded.svg"
+		},
+		{
+		  id: "confused",
+		  label: "Confused",
+		  icon: "systems/stryder/assets/status/confused.svg"
+		},
+		{
+		  id: "dropped",
+		  label: "Dropped",
+		  icon: "systems/stryder/assets/status/dropped.svg"
+		},
+		{
+		  id: "frozen",
+		  label: "Frozen",
+		  icon: "systems/stryder/assets/status/frozen.svg"
+		},
+		{
+		  id: "grappled",
+		  label: "Grappled",
+		  icon: "systems/stryder/assets/status/grappled.svg"
+		},
+		{
+		  id: "mute",
+		  label: "Mute",
+		  icon: "systems/stryder/assets/status/mute.svg"
+		},
+		{
+		  id: "panicked",
+		  label: "Panicked",
+		  icon: "systems/stryder/assets/status/panicked.svg"
+		},
+		{
+		  id: "senseless",
+		  label: "Senseless",
+		  icon: "systems/stryder/assets/status/senseless.svg"
+		},
+		{
+		  id: "shocked",
+		  label: "Shocked",
+		  icon: "systems/stryder/assets/status/shocked.svg"
+		},
+		{
+		  id: "soaked",
+		  label: "Soaked",
+		  icon: "systems/stryder/assets/status/soaked.svg"
+		},
+		{
+		  id: "staggered",
+		  label: "Staggered",
+		  icon: "systems/stryder/assets/status/staggered.svg"
+		},
+		{
+		  id: "stunned",
+		  label: "Stunned",
+		  icon: "systems/stryder/assets/status/stunned.svg"
+		},
+		{
+		  id: "suffocating",
+		  label: "Suffocating",
+		  icon: "systems/stryder/assets/status/suffocating.svg"
+		},
+		{
+		  id: "taunted",
+		  label: "Taunted",
+		  icon: "systems/stryder/assets/status/taunted.svg"
+		},
+		{
+		  id: "trapped",
+		  label: "Trapped",
+		  icon: "systems/stryder/assets/status/trapped.svg"
+		}
+	];
 
   /**
    * Set an initiative formula for the system
@@ -32,6 +173,16 @@ Hooks.once('init', function () {
     formula: '2d6 + @abilities.Agility.value + @abilities.speed.value + @initiative.bonus',
     decimals: 0,
   };
+
+	// Set combat tracker
+	console.log(`Initializing combat tracker`);
+	CONFIG.Combat.documentClass = StryderCombat;
+	CONFIG.Combatant.documentClass = StryderCombatant;
+	CONFIG.Combat.initiative = {
+		formula: '1',
+		decimals: 0,
+	};
+	CONFIG.ui.combat = StryderCombatTracker;
 
   // Define custom Document classes
   CONFIG.Actor.documentClass = StryderActor;
@@ -65,6 +216,11 @@ Hooks.once('init', function () {
 // If you need to add Handlebars helpers, here is a useful example:
 Handlebars.registerHelper('toLowerCase', function (str) {
   return str.toLowerCase();
+});
+
+Handlebars.registerHelper('capitalize', function(str) {
+	if (typeof str !== 'string') return '';
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 });
 
 Handlebars.registerHelper('range', function (from, to, inclusive, block) {
@@ -219,6 +375,20 @@ Hooks.on('renderChatMessage', (message, html, data) => {
     content.slideToggle(200);
     $(this).find('i').toggleClass('fa-caret-down fa-caret-up');
   });
+});
+
+/* -------------------------------------------- */
+/*  Monk's Little Details Compatibility         */
+/* -------------------------------------------- */
+
+Hooks.once('ready', function() {
+  // Check if Monk's Little Details is enabled
+  if (game.modules.get('monks-little-details')?.active) {
+    // Ensure our status effects have proper labels
+    CONFIG.statusEffects.forEach(effect => {
+      if (!effect.name) effect.name = effect.label;
+    });
+  }
 });
 
 /* -------------------------------------------- */

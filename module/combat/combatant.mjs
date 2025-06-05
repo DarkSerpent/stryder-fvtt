@@ -1,0 +1,91 @@
+import { ALLIED, ENEMY } from './combat.mjs';
+
+/**
+ * Simplified Combatant class for Stryder system
+ * @extends Combatant
+ */
+export class StryderCombatant extends Combatant {
+    /**
+     * Get the faction of this combatant (ALLIED or ENEMY)
+     * @returns {string}
+     */
+    get faction() {
+        const actorType = this.actor?.type;
+        // Characters and NPCs are Allies
+        if (actorType === 'character' || actorType === 'npc') return ALLIED;
+        // Monsters are Enemies
+        if (actorType === 'monster') return ENEMY;
+        // Default fallback
+        return ENEMY;
+    }
+
+    /**
+     * Each combatant gets exactly 1 turn per round
+     * @returns {number}
+     */
+    get totalTurns() {
+        return 1;
+    }
+
+    /**
+     * Check if this combatant can take a turn
+     * @returns {boolean}
+     */
+	get canTakeTurn() {
+	  if (this.isDefeated) return false;
+	  if (!this.visible) return false;
+	  if (!this.actor) return false;
+	  return true;
+	}
+
+	async toggleDefeated() {
+	  const defeated = !this.isDefeated;
+	  await this.update({ defeated });
+	  
+	  // If this combatant was active, end their turn
+	  if (defeated && this.isActive) {
+		await this.combat.endTurn(this);
+	  }
+	}
+
+    get isActive() {
+        return this.combat?.combatant?.id === this.id;
+    }
+
+    /**
+     * @override
+     * Custom combatant sorting
+     */
+    _sortCombatants(a, b) {
+        // Sort by faction
+        if (a.faction !== b.faction) {
+            return a.faction === ALLIED ? -1 : 1;
+        }
+        
+        // Then alphabetically by name
+        return a.name.localeCompare(b.name);
+    }
+
+    /**
+     * @override
+     * Custom update handling
+     */
+    async _onUpdate(changed, options, userId) {
+        await super._onUpdate(changed, options, userId);
+        
+        // Update combat tracker if this combatant changed
+        if (ui.combat?.viewed === this.parent) {
+            ui.combat.render();
+        }
+    }
+}
+
+/**
+ * Helper to find combatant by actor UUID
+ * @param {string} uuid 
+ * @returns {StryderCombatant|null}
+ */
+export function getCombatantByActorUuid(uuid) {
+    if (!game.combat) return null;
+    return game.combat.combatants.find(c => c.actor?.uuid === uuid);
+}

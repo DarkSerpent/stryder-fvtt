@@ -16,5 +16,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/stryder/templates/actor/parts/monster-battle.hbs',
     // Item partials
     'systems/stryder/templates/item/parts/item-effects.hbs',
+	// UI Components
+	'systems/stryder/templates/combat/combat-tracker.hbs',
   ]);
 };

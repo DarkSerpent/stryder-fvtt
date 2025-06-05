@@ -2345,3 +2345,140 @@ progress.resource2-bar::-moz-progress-bar {
   transform: none;
   box-shadow: none;
 }
+
+/* Active combatant highlight effect */
+.combatant.started-turn {
+    position: relative;
+    animation: pulseGlow 2s infinite;
+    border-left: 3px solid #ffeb3b;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+}
+
+.combatant.started-turn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(255,235,59,0.1) 0%, rgba(255,235,59,0) 100%);
+    pointer-events: none;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 235, 59, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 235, 59, 0.5);
+    }
+}
+
+/* Active combatant highlight effect */
+#combat-tracker .combatant.started-turn {
+    position: relative;
+    animation: pulseGlow 2s infinite;
+    border-left: 3px solid #ffeb3b;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    z-index: 1;
+    transform: scale(1.02);
+    transition: transform 0.3s ease;
+}
+
+#combat-tracker .combatant.started-turn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(255,235,59,0.1) 0%, rgba(255,235,59,0) 100%);
+    pointer-events: none;
+    border-radius: 3px;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 235, 59, 0.5);
+        transform: scale(1.02);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+        transform: scale(1.03);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 235, 59, 0.5);
+        transform: scale(1.02);
+    }
+}
+
+/* Faction-specific colors */
+#combat-tracker .combatant.started-turn.allied {
+    border-left-color: #4caf50;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    animation-name: pulseGlowAllied;
+}
+
+#combat-tracker .combatant.started-turn.enemy {
+    border-left-color: #f44336;
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+    animation-name: pulseGlowEnemy;
+}
+
+@keyframes pulseGlowAllied {
+    0% {
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+}
+
+@keyframes pulseGlowEnemy {
+    0% {
+        box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(244, 67, 54, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+    }
+}
+
+/* Defeated combatant styling */
+#combat-tracker .combatant.defeated {
+    opacity: 0.7;
+    filter: grayscale(80%);
+}
+
+#combat-tracker .combatant.defeated .token-name h4 {
+    color: #ff3d3d;
+    text-decoration: line-through;
+    position: relative;
+}
+
+#combat-tracker .combatant.defeated .token-name h4::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 2px;
+    background: #ff3d3d;
+    transform: translateY(-50%);
+}
+
+#combat-tracker .combatant.defeated .token-image {
+    filter: grayscale(100%) brightness(0.8);
+}
+
+#combat-tracker .combatant.defeated .combatant-controls i.fa-skull {
+    color: #ff3d3d;
+}

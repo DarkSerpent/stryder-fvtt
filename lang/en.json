@@ -1,5 +1,18 @@
 {
   "STRYDER": {
+	"SheetLabels": {
+		"CombatTracker": "Combat Tracker"
+	},
+	"Combat": {
+		"TurnStart": "Start Turn",
+		"TurnEnd": "End Turn",
+		"CurrentTurn": "Current Turn: {turn}",
+		"CombatFactionAllied": "Ally Phase",
+		"CombatFactionEnemy": "Enemy Phase",
+		"DialogFirstTurnTitle": "Select Starting Faction",
+		"DialogFirstTurnFaction": "First Turn Faction",
+		"CombatEnded": "Combat ended after {round} rounds"
+	},
     "Ability": {
       "power": { "long": "Power", "abbr": "POW" },
       "agility": { "long": "Agility", "abbr": "AGI" },

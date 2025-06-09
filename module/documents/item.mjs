@@ -1,3 +1,14 @@
+import { SYSTEM_ID } from '../helpers/constants.mjs';
+import { handleBlindedRollIntercept } from '../conditions/blinded.mjs';
+import { handleConfusedApplication, handleConfusedRollIntercept, confusedState } from '../conditions/confused.mjs';
+
+export function getFantasmActionType(item) {
+  if (item.name.includes("Hyper Sense") || item.name.includes("Unbound Leap") || item.actor?.system?.booleans?.hasFantastic) {
+    return "Swift";
+  }
+  return "Focused";
+}
+
 /**
  * Extend the basic Item with some very simple modifications.
  * @extends {Item}
@@ -42,6 +53,44 @@ export class StryderItem extends Item {
     const speaker = ChatMessage.getSpeaker({ actor: this.actor });
     const rollMode = game.settings.get('core', 'rollMode');
     const label = `${item.name}`;
+
+	if (this.actor) {
+	const blindedEffect = this.actor.effects.find(e => 
+	  e.label === "Blinded" && e.flags[SYSTEM_ID]?.isBlinded
+	);
+
+	if (blindedEffect) {
+	  const isWaiting = this.actor.getFlag(SYSTEM_ID, 'blindedWaitingForResponse');
+	  if (!isWaiting) {
+			const messageId = await handleBlindedRollIntercept(this, this.actor);
+			if (messageId) return; // Only return if we're waiting for response
+		  }
+		}
+	}
+
+	if (this.actor) {
+	  const confusedEffect = this.actor.effects.find(e => 
+		e.label === "Confused" && e.flags[SYSTEM_ID]?.isConfused
+	  );
+
+	  if (confusedEffect) {
+		// Check if this is a focused action, armament, or fantasm with "Action: Focused"
+		const isFocusedAction = item.system.action_type === "focused";
+		const isArmament = item.type === "armament";
+		let isFantasmFocused = false;
+		
+		if (item.type === "fantasm") {
+		  // Generate the content to check (similar to confused.js)
+		  const content = await getFantasmActionType(item);
+		  isFantasmFocused = content.includes("Focused");
+		}
+		
+		if (isFocusedAction || isArmament || isFantasmFocused) {
+		  const messageId = await handleConfusedRollIntercept(this, this.actor);
+		  if (messageId) return; // Only return if we're waiting for response
+		}
+	  }
+	}
 
 	let actionType = "";
 	if (item.system.action_type === "focused" || item.system.action_type === undefined) {
@@ -718,10 +767,7 @@ export class StryderItem extends Item {
 	</div>
 	`;
 
-	let fantasmActionType = "Focused";
-	if (item.name.includes("Hyper Sense") || item.name.includes("Unbound Leap") || this.actor?.system?.booleans?.hasFantastic) {
-	  fantasmActionType = "Swift";
-	}
+	let fantasmActionType = getFantasmActionType(item);
 
 	let contentHTMLfantasm = `
 	<div class="chat-message-card">

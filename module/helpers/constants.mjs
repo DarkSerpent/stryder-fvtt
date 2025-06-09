@@ -6,6 +6,7 @@ export const STRYDER = {
         CombatantId: "combatantId",
         CombatantsTurnTaken: "combatantsTurnTaken",
         CurrentTurn: "currentTurn",
-        FirstTurn: "firstTurn"
+        FirstTurn: "firstTurn",
+		ActiveTurns: 'activeTurns'
     }
 };

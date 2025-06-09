@@ -120,22 +120,26 @@
                         </div>
                     {{/if}}
 
-					<div class="token-initiative">
-					  {{#if this._canTakeTurn}}
-						<a class="combatant-control turn-control" data-action="startTurn"
-						   data-tooltip="{{localize 'STRYDER.Combat.TurnStart'}}"
-						   aria-label="{{localize 'STRYDER.Combat.TurnStart'}}" role="button">
-						  <i class="fas fa-play"></i>
-						</a>
-					  {{/if}}
-					  {{#if this._isActive}}
-						<a class="combatant-control turn-control" data-action="endTurn"
-						   data-tooltip="{{localize 'STRYDER.Combat.TurnEnd'}}"
-						   aria-label="{{localize 'STRYDER.Combat.TurnEnd'}}" role="button">
-						  <i class="fas fa-stop"></i>
-						</a>
-					  {{/if}}
-					</div>
+				<div class="token-initiative">
+				  {{#if this._canTakeTurn}}
+					{{#if this._canControl}}
+					  <a class="combatant-control turn-control" data-action="startTurn"
+						 data-tooltip="{{localize 'STRYDER.Combat.TurnStart'}}"
+						 aria-label="{{localize 'STRYDER.Combat.TurnStart'}}" role="button">
+						<i class="fas fa-play"></i>
+					  </a>
+					{{/if}}
+				  {{/if}}
+				  {{#if this._isActive}}
+					{{#if this._canControl}}
+					  <a class="combatant-control turn-control" data-action="endTurn"
+						 data-tooltip="{{localize 'STRYDER.Combat.TurnEnd'}}"
+						 aria-label="{{localize 'STRYDER.Combat.TurnEnd'}}" role="button">
+						<i class="fas fa-stop"></i>
+					  </a>
+					{{/if}}
+				  {{/if}}
+				</div>
                 </li>
             {{/each}}
         {{/each}}

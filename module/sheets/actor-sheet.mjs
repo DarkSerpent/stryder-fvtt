@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from '../helpers/constants.mjs';
+
 import {
   onManageActiveEffect,
   prepareActiveEffectCategories,
@@ -116,8 +118,8 @@ export class StryderActorSheet extends ActorSheet {
 
 	// Apply Unbound Leap multiplier if enabled
 	if (actorData.system.booleans?.usingUnboundLeap && talent) {
-	  context.verticalJumpDistance *= talent.strength?.value ?? 1;
-	  context.horizontalJumpDistance *= talent.strength?.value ?? 1;
+	  context.verticalJumpDistance += talent.strength?.value ?? 1;
+	  context.horizontalJumpDistance += talent.strength?.value ?? 1;
 	}
 
     // Add the actor's data to context.data for easier access, as well as flags.
@@ -498,49 +500,83 @@ export class StryderActorSheet extends ActorSheet {
 		  break;
 		  
 		case 'springOfLife':
-		  updates['system.health.value'] = this.actor.system.health.max;
+		  // Get current burning health reduction
+		  const burningReduction = this.actor.getFlag(SYSTEM_ID, "burningHealthReduction") || 0;
+		  
+		  // Calculate how much health to restore (current max + reduction)
+		  const newMax = this.actor.system.health.max + burningReduction;
+		  
+		  updates['system.health.value'] = newMax;
 		  updates['system.mana.value'] = this.actor.system.mana.max;
 		  updates['system.aegis.value'] = this.actor.system.aegis.max;
 		  updates['system.focus.value'] = this.actor.system.focus.max;
 		  updates['system.stamina.value'] = 0;
+		  
+		  // Remove burning health reduction flag
+		  updates[`flags.${SYSTEM_ID}.burningHealthReduction`] = null;
 		  break;
 	  }
 	  
-	  try {
-		await this.actor.update(updates);
-		
-		// Create a chat message to notify players
-		let message = '';
-		switch(action) {
-		  case 'turnStart':
-			message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
-			break;
-		  case 'resting':
-			message = `${this.actor.name} has rested, regaining all Stamina, Mana, and Focus.`;
-			break;
-		  case 'springOfLife':
-			message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, Aegis, and Focus but setting Stamina to 0.`;
-			break;
+		try {
+		  let updates = {};
+		  let message = '';
+
+		  switch (action) {
+			case 'turnStart':
+			  message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
+			  updates['system.stamina.value'] = this.actor.system.stamina.max;
+			  break;
+
+			case 'resting':
+			  message = `${this.actor.name} has rested, regaining all Stamina, Mana, and Focus.`;
+			  updates['system.stamina.value'] = this.actor.system.stamina.max;
+			  updates['system.mana.value'] = this.actor.system.mana.max;
+			  updates['system.focus.value'] = this.actor.system.focus.max;
+			  break;
+
+			case 'springOfLife':
+			  const burningReduction = this.actor.getFlag(SYSTEM_ID, "burningHealthReduction") || 0;
+			  const newMax = this.actor.system.health.max + burningReduction;
+
+			  updates = {
+				'system.health.value': newMax,
+				'system.mana.value': this.actor.system.mana.max,
+				'system.aegis.value': this.actor.system.aegis.max,
+				'system.focus.value': this.actor.system.focus.max,
+				'system.stamina.value': 0,
+				[`flags.${SYSTEM_ID}.burningHealthReduction`]: null
+			  };
+
+			  message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, Aegis, and Focus but setting Stamina to 0.`;
+
+			  if (burningReduction > 0) {
+				message += `<br><br>In addition, the Spring of Life has healed burns that ${this.actor.name} sustained, restoring their Max Health by ${burningReduction}.`;
+			  }
+			  break;
+		  }
+
+		  await this.actor.update(updates);
+
+		  if (message) {
+			ChatMessage.create({
+			  content: `
+				<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+							background-size: cover; 
+							padding: 15px; 
+							border: 1px solid #c9a66b; 
+							border-radius: 3px;">
+				  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${button.textContent.trim()}</strong></h3>
+				  <p style="margin-bottom: 0;">${message}</p>
+				</div>
+			  `,
+			  speaker: ChatMessage.getSpeaker({actor: this.actor})
+			});
+		  }
+
+		} catch (err) {
+		  console.error("Error in resource-button handler:", err);
+		  ui.notifications.error("Failed to update resources!");
 		}
-		
-		ChatMessage.create({
-		  content: `
-			<div style="background: url('systems/stryder/assets/parchment.jpg'); 
-						background-size: cover; 
-						padding: 15px; 
-						border: 1px solid #c9a66b; 
-						border-radius: 3px;">
-			  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${button.textContent.trim()}</strong></h3>
-			  <p style="margin-bottom: 0;">${message}</p>
-			</div>
-		  `,
-		  speaker: ChatMessage.getSpeaker({actor: this.actor})
-		});
-		
-	  } catch(err) {
-		console.error("Error updating actor resources:", err);
-		ui.notifications.error("Failed to update resources!");
-	  }
 	});
 
 	// Life Skills functionality

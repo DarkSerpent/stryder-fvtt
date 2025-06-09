@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from '../helpers/constants.mjs';
+
 /**
  * Extend the base Actor document by defining a custom roll data structure which is ideal for the Simple system.
  * @extends {Actor}
@@ -17,6 +19,45 @@ export class StryderActor extends Actor {
     // Data modifications in this step occur before processing embedded
     // documents or derived data.
   }
+
+	/** @override */
+	static async create(data, options = {}) {
+	  // Initialize default data for npcs
+	  if (data.type === 'npc') {
+		data = foundry.utils.mergeObject({
+		  system: {
+			health: { value: 8, max: 8 }
+		  },
+		  prototypeToken: {
+			actorLink: true
+		  }
+		}, data);
+	  }
+	  // Initialize default data for monsters
+	  if (data.type === 'monster') {
+		data = foundry.utils.mergeObject({
+		  system: {
+			health: { value: 8, max: 8 },
+			mana: { value: 3, max: 3 },
+			stamina: { value: 2, max: 2 },
+			armor: { value: 0, max: 0 }
+		  },
+		  prototypeToken: {
+			actorLink: false
+		  }
+		}, data);
+	  }
+	  // For character type
+	  if (data.type === 'character') {
+		data = foundry.utils.mergeObject({
+		  prototypeToken: {
+			actorLink: true
+		  }
+		}, data);
+	  }
+	  
+	  return super.create(data, options);
+	}
 
   /**
    * @override
@@ -91,16 +132,20 @@ export class StryderActor extends Actor {
 	 * Calculate the character's max HP based on class and Grit ability
 	 * @param {Object} actorData The actor data to modify
 	 */
+	// Add this to the _calculateMaxHP method in actor.js
 	_calculateMaxHP(actorData) {
 	  const system = actorData.system;
 	  const level = system.attributes.level?.value || 1;
 	  const baseHP = system.class?.base_hp || 0;
 	  const hpPerLevel = system.class?.hp_per_level || 0;
 	  const gritValue = system.abilities?.Grit?.value || 0;
-      const hpMod = system.health?.max?.mod || 0;	
+	  const hpMod = system.health?.max?.mod || 0;
+	  
+	  // Get burning health reduction from flags
+	  const burningReduction = actorData.flags[SYSTEM_ID]?.burningHealthReduction || 0;
 
 	  // Calculate base max HP from class
-	  let maxHP = baseHP + (hpPerLevel * (level - 1)) + hpMod;
+	  let maxHP = baseHP + (hpPerLevel * (level - 1)) + hpMod - burningReduction;
 
 	  // Add Grit bonuses at levels 1, 5, 10, and 15
 	  if (gritValue >= 1) {
@@ -124,8 +169,8 @@ export class StryderActor extends Actor {
 
 	  // Update max HP, preserving current HP value but clamping it to new max
 	  const currentHP = system.health.value || 0;
-	  system.health.max = maxHP;
-	  system.health.value = Math.min(currentHP, maxHP);
+	  system.health.max = Math.max(0, maxHP); // Ensure max HP doesn't go below 0
+	  system.health.value = Math.min(currentHP, system.health.max);
 	  system.health.min = 0;
 	}
 
@@ -185,7 +230,13 @@ export class StryderActor extends Actor {
 	  else if (level <= 10) baseStamina = 4;
 	  else baseStamina = 5; // level 11-15
 
-	  const maxStamina = baseStamina + staminaMod;
+	  // Get poison reduction from flags (stage 3+)
+	  const poisonReduction = actorData.effects.find(e => 
+		e.name.startsWith("Poisoned") && 
+		(e.flags[SYSTEM_ID]?.poisonStage || 1) >= 3
+	  ) ? 1 : 0;
+
+	  const maxStamina = baseStamina + staminaMod - poisonReduction;
 
 	  // Ensure stamina exists
 	  if (!system.stamina) {

@@ -27,19 +27,6 @@
 				"mod": 0
 			}
         },
-        "aegis": {
-          "value": 20,
-          "min": 0,
-          "max": 20
-        },
-        "focus": {
-          "value": 3,
-          "min": 0,
-          "max": 3,
-			"max": {
-				"mod": 0
-			}
-        },
         "resource1": {
           "value": 0,
           "min": 0,
@@ -67,6 +54,19 @@
     },
     "character": {
       "templates": ["base"],
+	  "aegis": {
+	    "value": 20,
+	    "min": 0,
+	   "max": 20
+	  },
+	  "focus": {
+	    "value": 3,
+	    "min": 0,
+	    "max": 3,
+		  "max": {
+		  	"mod": 0
+		  }
+	  },
       "booleans": {
         "hasPracticedForm": false,
         "usingUnboundLeap": false,
@@ -347,6 +347,11 @@
     },
     "npc": {
       "templates": ["base"],
+	  "aegis": {
+	    "value": 20,
+	    "min": 0,
+	   "max": 20
+	  },
       "level": 0
     }
   },

@@ -897,7 +897,6 @@ progress.resource2-bar::-moz-progress-bar {
   font-family: 'EB Garamond', serif;
   color: #3a3123;
   padding: 15px;
-  background: url('ui/parchment-texture.jpg') repeat;
   background-size: 200px;
 }
 
@@ -2481,4 +2480,168 @@ progress.resource2-bar::-moz-progress-bar {
 
 #combat-tracker .combatant.defeated .combatant-controls i.fa-skull {
     color: #ff3d3d;
+}
+
+#combat-tracker .combatant.active-turn {
+    border-left: 3px solid #2196f3;
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+    animation-name: pulseGlowActive;
+}
+
+@keyframes pulseGlowActive {
+    0% {
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+    }
+}
+
+.combatant-control.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.combatant-control:not(.disabled) {
+  cursor: pointer;
+}
+
+/* Turn Notification */
+.turn-notification {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-family: "Modesto Condensed", "Palatino Linotype", serif;
+    font-size: 24px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid goldenrod;
+    opacity: 0;
+    animation: slideIn 0.5s forwards, fadeOut 0.5s 2.5s forwards;
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        top: 15%;
+    }
+    to { 
+        opacity: 1;
+        top: 20%;
+    }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Effect Expiration Message */
+.effect-expiration {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 3px;
+}
+
+.effect-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.effect-icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+}
+
+.effect-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.effect-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.effect-button.yes {
+    background: rgba(50, 200, 50, 0.2);
+    border: 1px solid rgba(50, 200, 50, 0.5);
+}
+
+.effect-button.no {
+    background: rgba(200, 50, 50, 0.2);
+    border: 1px solid rgba(200, 50, 50, 0.5);
+}
+
+.effect-button:hover {
+    filter: brightness(1.1);
+}
+
+/* Condition Effects */
+.bleeding-wound-dialog {
+  padding: 10px;
+}
+
+.stage-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.stage-button {
+  padding: 8px;
+  border: 1px solid #ff6b6b;
+  border-radius: 3px;
+  background: rgba(255, 107, 107, 0.1);
+  cursor: pointer;
+}
+
+.stage-button:hover {
+  background: rgba(255, 107, 107, 0.2);
+}
+
+/* Bleeding Message Styles */
+.bleeding-message {
+  padding: 10px;
+  background: rgba(255, 0, 0, 0.05);
+  border-left: 3px solid #ff6b6b;
+}
+
+.bleeding-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bleeding-undo {
+  color: #ff6b6b;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.bleeding-undo:hover {
+  color: #ff0000;
+  transform: scale(1.1);
 }

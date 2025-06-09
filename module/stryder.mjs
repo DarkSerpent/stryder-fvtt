@@ -9,6 +9,13 @@ import { StryderCombat, ALLIED, ENEMY } from './combat/combat.mjs';
 import { StryderCombatant } from './combat/combatant.mjs';
 import { StryderCombatTracker } from './combat/combat-tracker.mjs';
 import { SYSTEM_ID } from './helpers/constants.mjs';
+// Import status automation.
+import { handleBleedingWoundApplication, handleBleedingWoundDamage } from './conditions/bleeding-wounds.mjs';
+import { handleBurningApplication, handleBurningDamage, handleBurningMaxHealthReduction } from './conditions/burning.mjs';
+import { handlePoisonApplication, handlePoisonStage1Roll, handlePoisonStage2Damage, handlePoisonStage4Unconscious } from './conditions/poison.mjs';
+import { handleEnergizedApplication } from './conditions/energized.mjs';
+import { handleBlindedApplication } from './conditions/blinded.mjs';
+import { handleConfusedApplication, handleConfusedRollIntercept, confusedState } from './conditions/confused.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { STRYDER } from './helpers/config.mjs';
@@ -16,6 +23,11 @@ import { STRYDER } from './helpers/config.mjs';
 /* -------------------------------------------- */
 /*  Init Hook                                   */
 /* -------------------------------------------- */
+
+export const blindedState = {
+  nextRollShouldBeModified: false,
+  waitingForBlindResponse: false
+};
 
 Hooks.once('init', function () {
   // Add utility classes to the global game object so that they're more easily
@@ -25,6 +37,52 @@ Hooks.once('init', function () {
     StryderItem,
     rollItemMacro,
   };
+
+	libWrapper.register(SYSTEM_ID, "Roll.prototype._evaluate", async function (wrapped, ...args) {
+	  // Check for poison first
+	  let actor = this.options?.speaker?.actor ? game.actors.get(this.options.speaker.actor) : null;
+	  if (!actor && canvas.tokens.controlled.length === 1) {
+		actor = canvas.tokens.controlled[0]?.actor;
+	  }
+
+	  if (actor) {
+		// Poison handling
+		const poisoned = actor.effects.find(e =>
+		  e.label.startsWith("Poisoned") && 
+		  (e.flags[SYSTEM_ID]?.poisonStage || 1) >= 1
+		);
+		
+		if (poisoned && this.formula.includes('2d6')) {
+		  this._formula = `${this._formula} - 1`;
+		  this.terms = Roll.parse(this._formula);
+		}
+		
+		// Blinded handling - updated to use blindedState
+		const blinded = actor.effects.find(e => 
+		  e.label === "Blinded" && e.flags[SYSTEM_ID]?.isBlinded
+		);
+		
+		if (blinded && blindedState.nextRollShouldBeModified) {
+		  this._formula = `${this._formula} - 3`;
+		  this.terms = Roll.parse(this._formula);
+		  blindedState.nextRollShouldBeModified = false;
+		}
+
+		// Confused handling
+		const confused = actor.effects.find(e => 
+		e.label === "Confused" && e.flags[SYSTEM_ID]?.isConfused
+		);
+
+		if (confused && confusedState.nextRollShouldBeBlocked) {
+		confusedState.nextRollShouldBeBlocked = false;
+		return null; // Block the roll
+		}
+	  }
+
+	  return wrapped.call(this, ...args);
+	}, "MIXED");
+
+  CONFIG.time.roundTime = 8;
   
   // Register application
   Actors.unregisterSheet('core', CombatTracker);
@@ -270,7 +328,7 @@ async function handleUnboundLeapEffect(event) {
 	icon: "icons/skills/movement/arrow-upward-yellow.webp",
 	duration: {
 	  rounds: 1,
-	  seconds: 6,
+	  seconds: 8,
 	  startRound: game.combat?.round || 0
 	},
 	changes: [{
@@ -301,6 +359,50 @@ async function handleUnboundLeapEffect(event) {
 	  ui.notifications.error("Failed to apply Unbound Leap effect!");
 	});
 }
+
+/* -------------------------------------------- */
+/*  Conditions Automation                       */
+/* -------------------------------------------- */
+
+Hooks.on('createActiveEffect', async (effect, options, userId) => {
+  if (effect.label === "Bleeding Wound" && game.user.id === userId) {
+    await handleBleedingWoundApplication(effect);
+  }
+
+  if (effect.label === "Burning" && game.user.id === userId) {
+    await handleBurningApplication(effect);
+  }
+
+  if (effect.label === "Poisoned" && game.user.id === userId) {
+    await handlePoisonApplication(effect);
+  }
+
+  if (effect.label === "Energized" && game.user.id === userId) {
+    await handleEnergizedApplication(effect);
+  }
+
+  if (effect.label === "Blinded" && game.user.id === userId) {
+    await handleBlindedApplication(effect);
+  }
+
+  if (effect.label === "Confused" && game.user.id === userId) {
+    await handleConfusedApplication(effect);
+  }
+});
+
+Hooks.on('stryderCombatEvent', async (event) => {
+  if (event.type === 'startOfTurn' && event.combatant) {
+    await handleBleedingWoundDamage(event.combatant);
+    await handleBurningDamage(event.combatant);
+    await handlePoisonStage2Damage(event.combatant);
+  }
+  
+  if (event.type === 'endOfTurn' && event.combatant) {
+    await handleBurningMaxHealthReduction(event.combatant);
+    await handlePoisonStage4Unconscious(event.combatant);
+  }
+});
+
 /* -------------------------------------------- */
 /*  Ready Hook                                  */
 /* -------------------------------------------- */
@@ -308,6 +410,29 @@ async function handleUnboundLeapEffect(event) {
 Hooks.once('ready', function () {
   // Hotbar macros
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+
+	// Handle socket communications for combat updates
+    game.socket.on(`system.${SYSTEM_ID}`, async (data) => {
+        if (!game.user.isGM) return;
+        
+        const combat = game.combats.get(data.combatId);
+        if (!combat) return;
+        
+        const combatant = combat.combatants.get(data.combatantId);
+        if (!combatant) return;
+
+        switch (data.type) {
+            case "startCombatantTurn":
+                await combat.startTurn(combatant);
+                break;
+            case "endCombatantTurn":
+                await combat.endTurn(combatant);
+                break;
+            case "updateCombatFlag":
+                await combat.setFlag(SYSTEM_ID, data.flag, data.value);
+                break;
+        }
+    });
 
   $(document).off("click", ".ability-dodge-evade-mod");
   $(document).on("click", ".unbound-leap-button", handleUnboundLeapEffect);
@@ -369,12 +494,46 @@ Hooks.once('ready', function () {
 /* -------------------------------------------- */
 
 Hooks.on('renderChatMessage', (message, html, data) => {
+
   // Handle collapsible sections
   html.on('click', '.collapsible-toggle', function() {
     const content = $(this).next('.collapsible-content');
     content.slideToggle(200);
     $(this).find('i').toggleClass('fa-caret-down fa-caret-up');
   });
+
+    // Handle effect expiration buttons
+    html.find('.effect-button').click(async (event) => {
+        event.preventDefault();
+        const action = event.currentTarget.dataset.action;
+        
+        if (message.getFlag(SYSTEM_ID, 'effectExpiration')) {
+            const effectId = message.getFlag(SYSTEM_ID, 'effectId');
+            const actorId = message.getFlag(SYSTEM_ID, 'actorId');
+            const actor = game.actors.get(actorId);
+            
+            const buttons = {
+                yes: {
+                    callback: async () => {
+                        if (actor) {
+                            await actor.deleteEmbeddedDocuments('ActiveEffect', [effectId]);
+                        }
+                        await message.delete();
+                    }
+                },
+                no: {
+                    callback: async () => {
+                        await message.delete();
+                    }
+                }
+            };
+            
+            if (buttons[action]?.callback) {
+                await buttons[action].callback();
+            }
+        }
+    });
+
 });
 
 /* -------------------------------------------- */

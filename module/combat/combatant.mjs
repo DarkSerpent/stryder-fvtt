@@ -1,4 +1,5 @@
 import { ALLIED, ENEMY } from './combat.mjs';
+import { SYSTEM_ID, STRYDER } from '../helpers/constants.mjs';
 
 /**
  * Simplified Combatant class for Stryder system
@@ -16,7 +17,7 @@ export class StryderCombatant extends Combatant {
         // Monsters are Enemies
         if (actorType === 'monster') return ENEMY;
         // Default fallback
-        return ENEMY;
+        return ALLIED;
     }
 
     /**
@@ -51,6 +52,30 @@ export class StryderCombatant extends Combatant {
     get isActive() {
         return this.combat?.combatant?.id === this.id;
     }
+
+	get isActiveTurn() {
+		return this.combat?.getFlag(SYSTEM_ID, STRYDER.flags.ActiveTurns)?.includes(this.id) && 
+			   !this.combat.currentRoundTurnsTaken.includes(this.id);
+	}
+
+	async setActiveTurn(isActive) {
+		const activeTurns = this.combat?.getFlag(SYSTEM_ID, STRYDER.flags.ActiveTurns) || [];
+		const newActiveTurns = isActive 
+			? [...new Set([...activeTurns, this.id])]
+			: activeTurns.filter(id => id !== this.id);
+		
+		if (!game.user.isGM) {
+			// For non-GMs, request the GM to make the update
+			return game.socket.emit(`system.${SYSTEM_ID}`, {
+				type: "updateCombatFlag",
+				combatId: this.combat.id,
+				flag: STRYDER.flags.ActiveTurns,
+				value: newActiveTurns
+			});
+		}
+		
+		return this.combat?.setFlag(SYSTEM_ID, STRYDER.flags.ActiveTurns, newActiveTurns);
+	}
 
     /**
      * @override

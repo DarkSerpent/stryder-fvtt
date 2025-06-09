@@ -32,6 +32,11 @@ export class StryderCombatTracker extends CombatTracker {
 		const turnsTaken = data.combat.currentRoundTurnsTaken || [];
 		const activeCombatant = data.combat.combatant;
 		
+		// Get all combatants who have started but not finished their turns
+		const activeTurnCombatants = data.combat.combatants.filter(c => 
+		  c.isActiveTurn && c.id !== activeCombatant?.id
+		);
+		
 		combatants.forEach(combatant => {
 		  if (combatant.faction) {
 			combatant._canTakeTurn = combatant.faction === currentTurn && 
@@ -39,8 +44,24 @@ export class StryderCombatTracker extends CombatTracker {
 									combatant.canTakeTurn;
 									
 			combatant._isActive = activeCombatant?.id === combatant.id;
-			combatant.css = activeCombatant?.id === combatant.id ? 'started-turn' : '';
-			combatant.css += combatant.isDefeated ? ' defeated' : '';
+			combatant._isActiveTurn = activeTurnCombatants.some(c => c.id === combatant.id);
+			
+			// Check if user can control this combatant
+			const isGM = game.user.isGM;
+			const isOwner = combatant.actor?.testUserPermission(game.user, "OWNER") ?? false;
+			combatant._canControl = isGM || isOwner;
+			
+			// Set CSS classes
+			combatant.css = '';
+			if (combatant._isActive) {
+			  combatant.css += 'started-turn';
+			} 
+			if (combatant._isActiveTurn) {
+			  combatant.css += ' active-turn';
+			}
+			if (combatant.isDefeated) {
+			  combatant.css += ' defeated';
+			}
 			
 			data.factions[combatant.faction].push(combatant);
 		  }

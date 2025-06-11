@@ -132,6 +132,15 @@ export class StryderActorSheet extends ActorSheet {
       this._prepareCharacterData(context);
     }
 
+    if (actorData.type == 'lordling') {
+      this._prepareItems(context);
+      this._prepareCharacterData(context);
+		context.characters = game.actors.filter(a => a.type === 'character').map(a => ({
+			id: a.id,
+			name: a.name
+		}));
+    }
+
     // Prepare NPC data and items.
     if (actorData.type == 'npc') {
       this._prepareItems(context);
@@ -492,6 +501,10 @@ export class StryderActorSheet extends ActorSheet {
 		case 'turnStart':
 		  updates['system.stamina.value'] = this.actor.system.stamina.max;
 		  break;
+
+		case 'tacticsReset':
+		  updates['system.tactics.value'] = this.actor.system.tactics.max;
+		  break;
 		  
 		case 'resting':
 		  updates['system.stamina.value'] = this.actor.system.stamina.max;
@@ -525,6 +538,11 @@ export class StryderActorSheet extends ActorSheet {
 			case 'turnStart':
 			  message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
 			  updates['system.stamina.value'] = this.actor.system.stamina.max;
+			  break;
+
+			case 'tacticsReset':
+			  message = `${this.actor.name} has regained all their Tactics Points at the start of a new Engagement.`;
+			  updates['system.tactics.value'] = this.actor.system.tactics.max;
 			  break;
 
 			case 'resting':
@@ -632,8 +650,36 @@ export class StryderActorSheet extends ActorSheet {
 		const distance = jumpType === 'vertical' ? verticalDistance : horizontalDistance;
 		const direction = jumpType === 'vertical' ? 'vertically' : 'horizontally';
 		
-		// Deduct stamina unless using Unbound Leap
-		if (!actor.system.booleans?.usingUnboundLeap) {
+		// Initialize linkedActor variable for potential use in message
+		let linkedActor = null;
+		let staminaText = actor.system.booleans?.usingUnboundLeap ? 
+			"No Stamina was spent (Unbound Leap)." : 
+			"1 Stamina was spent (Swift Action).";
+		
+		// Lordling-specific logic
+		if (actor.type === 'lordling') {
+			const linkedCharacterId = actor.system.linkedCharacterId;
+			if (!linkedCharacterId) {
+				return ui.notifications.warn(`Lordling has no Linked Actor, so a Leap could not be performed!`);
+			}
+			
+			linkedActor = game.actors.get(linkedCharacterId);
+			if (!linkedActor) {
+				return ui.notifications.warn(`Linked Actor not found!`);
+			}
+			
+			// Check stamina on linked actor instead of lordling
+			if (!actor.system.booleans?.usingUnboundLeap) {
+				const currentStamina = linkedActor.system.stamina.value;
+				if (currentStamina < 1) {
+					return ui.notifications.warn(`${linkedActor.name} doesn't have enough Stamina to leap!`);
+				}
+				await linkedActor.update({"system.stamina.value": currentStamina - 1});
+				staminaText = `1 Stamina was spent by ${linkedActor.name} (Linked Actor).`;
+			}
+		} 
+		// Normal character logic
+		else if (!actor.system.booleans?.usingUnboundLeap) {
 			const currentStamina = actor.system.stamina.value;
 			if (currentStamina < 1) {
 				return ui.notifications.warn(`${actor.name} doesn't have enough Stamina to leap!`);
@@ -642,10 +688,6 @@ export class StryderActorSheet extends ActorSheet {
 		}
 		
 		// Create chat message
-		const staminaText = actor.system.booleans?.usingUnboundLeap ? 
-			"No Stamina was spent (Unbound Leap)." : 
-			"1 Stamina was spent (Swift Action).";
-		
 		const message = `
 		<div class="chat-message-card-jump">
 			<div class="chat-message-header">

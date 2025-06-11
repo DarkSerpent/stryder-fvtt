@@ -81,6 +81,7 @@
   "TYPES": {
     "Actor": {
       "character": "Character",
+      "lordling": "Lordling",
       "npc": "NPC",
       "monster": "Monster"
     },

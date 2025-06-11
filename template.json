@@ -1,6 +1,6 @@
 {
   "Actor": {
-    "types": ["character", "npc", "monster"],
+    "types": ["character", "npc", "monster", "lordling"],
     "templates": {
       "base": {
         "health": {
@@ -224,7 +224,7 @@
         "Magykal": {
           "mod": 0
         }
-	}
+	  }
     },
     "monster": {
       "templates": ["base"],
@@ -344,6 +344,91 @@
           "value": 0
         }
       }
+    },
+    "lordling": {
+      "templates": ["base"],
+      "linkedCharacterId": "",
+	  "tactics": {
+	    "value": 6,
+	    "min": 0,
+	   "max": 6
+	  },
+      "attributes": {
+        "mastery": "0",
+        "creature_size": "1",
+        "weight_class": 4,
+        "physical_potency": {
+          "mod": 0
+        },
+        "magykal_potency": {
+          "mod": 0
+        },
+        "move": {
+          "running": {
+            "value": 7,
+            "expertise": false
+          },
+          "climbing": {
+            "value": 3,
+            "expertise": false
+          },
+          "crawling": {
+            "value": 2,
+            "expertise": false
+          },
+          "marching": {
+            "value": 4,
+            "expertise": false
+          },
+          "swimming": {
+            "value": 4,
+            "expertise": false
+          },
+          "max": 7
+        },
+        "talent": {
+          "endurance": {
+            "value": 0
+          },
+          "nimbleness": {
+            "value": 0
+          },
+          "finesse": {
+            "value": 0
+          },
+          "strength": {
+            "value": 0
+          },
+          "survival": {
+            "value": 0
+          },
+          "threat": {
+            "value": 0
+          }
+        }
+      },
+      "abilities": {
+        "Spirit": {
+          "value": 0
+        },
+        "Agility": {
+          "value": 0
+        },
+        "Grit": {
+          "value": 0
+        },
+        "Will": {
+          "value": 0
+        }
+      },
+      "checks": {
+        "Physical": {
+          "mod": 0
+        },
+        "Magykal": {
+          "mod": 0
+        }
+	  }
     },
     "npc": {
       "templates": ["base"],

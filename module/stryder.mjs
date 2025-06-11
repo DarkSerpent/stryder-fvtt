@@ -38,6 +38,58 @@ Hooks.once('init', function () {
     rollItemMacro,
   };
 
+	Hooks.on('updateActor', async (actor, updateData, options, userId) => {
+	  // Check if this is a character whose health.max was updated
+	  if (actor.type === 'character' && 
+		  (updateData.system?.health?.max !== undefined || 
+		   updateData.system?.attributes?.mastery !== undefined)) {
+		// Find all lordlings linked to this character
+		const lordlings = game.actors.filter(a => 
+		  a.type === 'lordling' && 
+		  a.system?.linkedCharacterId === actor.id
+		);
+		
+		// Prepare updates
+		const updates = lordlings.map(lordling => {
+		  const update = {
+			_id: lordling.id,
+			system: {}
+		  };
+
+		  // Update health if changed
+		  if (updateData.system?.health?.max !== undefined) {
+			update.system.health = {
+			  max: updateData.system.health.max,
+			  value: Math.min(lordling.system?.health?.value || 0, updateData.system.health.max)
+			};
+		  }
+
+		  // Update mastery if changed
+		  if (updateData.system?.attributes?.mastery !== undefined) {
+			update.system.attributes = {
+			  mastery: updateData.system.attributes.mastery
+			};
+		  }
+
+		  return update;
+		});
+
+		if (updates.length > 0) {
+		  await Actor.updateDocuments(updates);
+		}
+	  }
+	});
+
+	// Register with Automated Animations
+		if (game.modules.get('automated-animations')?.active) {
+		Hooks.on('createChatMessage', (msg) => {
+		  // Let AA handle the message if it's one of our system messages
+		  if (msg.flags.stryder?.itemId) {
+			return;
+		  }
+		});
+	}
+
 	libWrapper.register(SYSTEM_ID, "Roll.prototype._evaluate", async function (wrapped, ...args) {
 	  // Check for poison first
 	  let actor = this.options?.speaker?.actor ? game.actors.get(this.options.speaker.actor) : null;
@@ -437,57 +489,76 @@ Hooks.once('ready', function () {
   $(document).off("click", ".ability-dodge-evade-mod");
   $(document).on("click", ".unbound-leap-button", handleUnboundLeapEffect);
 
-  $(document).on("click", ".ability-dodge-evade-mod", async function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+	$(document).on("click", ".ability-dodge-evade-mod", async function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			event.stopImmediatePropagation();
 
-    const appId = this.closest(".app")?.dataset.appid;
-    const app = ui.windows[appId];
-    const actor = app?.actor || app?.object?.actor || app?.object;
-    
-    if (!actor) return ui.notifications.error("No character selected!");
+			const appId = this.closest(".app")?.dataset.appid;
+			const app = ui.windows[appId];
+			const actor = app?.actor || app?.object?.actor || app?.object;
+			
+			if (!actor) return ui.notifications.error("No character selected!");
 
-    const currentStamina = actor.system.stamina?.value;
-    if (currentStamina === undefined) return;
-    if (currentStamina < 1) {
-      return ui.notifications.warn(`${actor.name} doesn't have enough Stamina!`);
-    }
+			// Lordling-specific logic
+			let staminaActor = actor; // Default to using the current actor's stamina
+			if (actor.type === 'lordling') {
+				const linkedCharacterId = actor.system.linkedCharacterId;
+				if (!linkedCharacterId) {
+					return ui.notifications.warn("Lordling has no Linked Actor, so this action could not be performed!");
+				}
+				
+				const linkedActor = game.actors.get(linkedCharacterId);
+				if (!linkedActor) {
+					return ui.notifications.warn("Linked Actor not found!");
+				}
+				staminaActor = linkedActor; // Use linked actor's stamina instead
+			}
 
-    try {
-      const rollFormula = this.dataset.customRoll;
-      const flavor = this.dataset.label;
-      const roll = new Roll(rollFormula, actor.system);
-      
-      await roll.evaluate({async: true});
+			const currentStamina = staminaActor.system.stamina?.value;
+			if (currentStamina === undefined) return;
+			if (currentStamina < 1) {
+				return ui.notifications.warn(`${staminaActor.name} doesn't have enough Stamina!`);
+			}
 
-      await actor.update({"system.stamina.value": currentStamina - 1});
-      const rollResult = await roll.render();
+			try {
+				const rollFormula = this.dataset.customRoll;
+				const flavor = this.dataset.label;
+				const roll = new Roll(rollFormula, actor.system);
+				
+				await roll.evaluate({async: true});
 
-      await ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker({actor: actor}),
-        content: `
-        <div style="background: url('systems/stryder/assets/parchment.jpg'); 
-                    background-size: cover; 
-                    padding: 15px; 
-                    border: 1px solid #c9a66b; 
-                    border-radius: 3px;">
-          <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${flavor}</strong></h3>
-          ${rollResult}
-          <p style="margin-bottom: 0; border-top: 1px solid #c9a66b; padding-top: 5px;">${actor.name} spent 1 Stamina.</p>
-        </div>
-        `,
-        type: CONST.CHAT_MESSAGE_TYPES.ROLL,
-        sound: CONFIG.sounds.dice
-      });
+				await staminaActor.update({"system.stamina.value": currentStamina - 1});
+				const rollResult = await roll.render();
 
-    } catch (err) {
-      console.error("Roll error:", err);
-      ui.notifications.error("Failed to process roll!");
-    }
-  });
-});
+				await ChatMessage.create({
+					user: game.user.id,
+					speaker: ChatMessage.getSpeaker({actor: actor}),
+					content: `
+					<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+								background-size: cover; 
+								padding: 15px; 
+								border: 1px solid #c9a66b; 
+								border-radius: 3px;">
+					  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>${flavor}</strong></h3>
+					  ${rollResult}
+					  <p style="margin-bottom: 0; border-top: 1px solid #c9a66b; padding-top: 5px;">
+						${actor.type === 'lordling' ? 
+						  `${staminaActor.name} (Linked Actor) spent 1 Stamina.` : 
+						  `${actor.name} spent 1 Stamina.`}
+					  </p>
+					</div>
+					`,
+					type: CONST.CHAT_MESSAGE_TYPES.ROLL,
+					sound: CONFIG.sounds.dice
+				});
+
+			} catch (err) {
+				console.error("Roll error:", err);
+				ui.notifications.error("Failed to process roll!");
+			}
+		});
+	});
 
 /* -------------------------------------------- */
 /*  Chat Message Enhancements                   */

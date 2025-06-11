@@ -47,6 +47,17 @@ export class StryderActor extends Actor {
 		  }
 		}, data);
 	  }
+	  // Initialize default data for lordlings
+	  if (data.type === 'lordling') {
+		data = foundry.utils.mergeObject({
+		  system: {
+			health: { value: 0, max: 0 }
+		  },
+		  prototypeToken: {
+			actorLink: true
+		  }
+		}, data);
+	  }
 	  // For character type
 	  if (data.type === 'character') {
 		data = foundry.utils.mergeObject({
@@ -83,9 +94,38 @@ export class StryderActor extends Actor {
    * Prepare Character type specific data
    */
 	_prepareCharacterData(actorData) {
-	  if (actorData.type !== 'character') return;
+	  if (actorData.type !== 'character' && actorData.type !== 'lordling') return;
 
 	  const systemData = actorData.system;
+
+	  if (actorData.type === 'lordling') {
+		const linkedCharacterId = systemData.linkedCharacterId;
+		if (linkedCharacterId) {
+		  const linkedCharacter = game.actors.get(linkedCharacterId);
+		  if (linkedCharacter) {
+			// Ensure health object exists
+			if (!systemData.health) {
+			  systemData.health = { value: 0, max: 0 };
+			}
+			
+			// Get linked character's max health safely
+			const linkedMaxHealth = linkedCharacter.system?.health?.max || 0;
+			
+			// Update lordling's health
+			systemData.health.max = linkedMaxHealth;
+			
+			// Ensure current health doesn't exceed new max
+			if (systemData.health.value > linkedMaxHealth) {
+			  systemData.health.value = linkedMaxHealth;
+			}
+
+			// Sync mastery from linked character
+			const linkedMastery = linkedCharacter.system?.attributes?.mastery || 0;
+			systemData.attributes.mastery = linkedMastery;
+		  }
+		}
+		return;
+	  }
 
 	  // Initialize talent values if they don't exist
 	  if (!systemData.attributes.talent) {

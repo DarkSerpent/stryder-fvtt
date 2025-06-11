@@ -575,11 +575,41 @@ export class StryderItem extends Item {
 	  }
 
 	  const token = controlledTokens[0];
-	  const actor = token.actor;
+	  let actor = token.actor;
 	  
 	  if (!actor) {
 		ui.notifications.error("Selected token has no associated actor!");
 		return;
+	  }
+
+	  // Handle Lordling case
+	  if (actor.type === 'lordling') {
+		const linkedCharacterId = actor.system.linkedCharacterId;
+		if (!linkedCharacterId) {
+		  let resourceMessage = "";
+		  if (staminaCost > 0) resourceMessage += "stamina";
+		  if (manaCost > 0) {
+			if (resourceMessage) resourceMessage += "/";
+			resourceMessage += "mana";
+		  }
+		  if (focusCost > 0) {
+			if (resourceMessage) resourceMessage += "/";
+			resourceMessage += "focus";
+		  }
+		  
+		  ui.notifications.error(`Lordling has no Linked Actor, so ${resourceMessage} could not be subtracted!`);
+		  return;
+		}
+		
+		// Get the linked actor
+		const linkedActor = game.actors.get(linkedCharacterId);
+		if (!linkedActor) {
+		  ui.notifications.error("Linked Actor not found!");
+		  return;
+		}
+		
+		// Use the linked actor instead
+		actor = linkedActor;
 	  }
 
 	  // Check if the actor has enough resources
@@ -1211,7 +1241,11 @@ export class StryderItem extends Item {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			flavor: contentHTML + resourceButton
+			flavor: contentHTML + resourceButton,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 		  });
 		}
 		// Handle the case where item.type is "hex"
@@ -1241,7 +1275,11 @@ export class StryderItem extends Item {
 			roll.toMessage({
 				speaker: speaker,
 				flavor: contentHTMLhex + resourceButton,
-				rollMode: rollMode
+				rollMode: rollMode,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'attack'
+				}
 			});
 
 			// If rollsDamage is true, proceed with additional chat messages.
@@ -1336,7 +1374,11 @@ export class StryderItem extends Item {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			flavor: contentHTMLpassive
+			flavor: contentHTMLpassive,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 		  });
 		}
 		else if (item.type === "miscellaneous") {
@@ -1359,7 +1401,11 @@ export class StryderItem extends Item {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			flavor: contentHTMLracial + resourceButton
+			flavor: contentHTMLracial + resourceButton,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 		  });
 		}
 		else if (item.type === "statperk") {
@@ -1389,7 +1435,11 @@ export class StryderItem extends Item {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTMLfantasm + resourceButton
+			content: contentHTMLfantasm + resourceButton,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 		  });
 		}
 		else if (item.type === "loot") {
@@ -1410,7 +1460,11 @@ export class StryderItem extends Item {
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTMLconsumable
+			content: contentHTMLconsumable,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 		  });
 		}
 		else if (item.type === "gear") {
@@ -1456,7 +1510,11 @@ export class StryderItem extends Item {
 			ChatMessage.create({
 			  speaker: speaker,
 			  rollMode: rollMode,
-			  content: cleanedContent + resourceButton
+			  content: cleanedContent + resourceButton,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'utility'
+				}
 			});
 			return;
 		  }
@@ -1520,6 +1578,14 @@ export class StryderItem extends Item {
 			const baseDamageAmp = item.system.roll.baseDamageAmp || 0;
 			const rawDamageAmp = item.system.roll.rawDamageAmp || 0;
 
+			const actor = item.actor || game.actors.get(speaker.actor) || null;
+			if (!actor) {
+				console.error("No actor found for armament:", item);
+				return;
+			}
+
+			const token = actor.token || canvas.tokens.get(speaker.token) || null;
+
 			// Construct the roll formula.
 			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
 
@@ -1531,7 +1597,11 @@ export class StryderItem extends Item {
 			roll.toMessage({
 				speaker: speaker,
 				flavor: contentHTMLarmament,
-				rollMode: rollMode
+				rollMode: rollMode,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'attack'
+				}
 			});
 
 			// Determine the quality of the roll based on the total, unless alwaysRollsExcellent is true
@@ -1641,7 +1711,11 @@ export class StryderItem extends Item {
 			roll.toMessage({
 				speaker: speaker,
 				flavor: contentHTMLgeneric + resourceButton,
-				rollMode: rollMode
+				rollMode: rollMode,
+				flags: {
+					'stryder.itemId': item.id,
+					'stryder.rollType': 'attack'
+				}
 			});
 
 			let result = roll.total;

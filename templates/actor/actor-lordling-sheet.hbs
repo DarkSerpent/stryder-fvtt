@@ -1,0 +1,319 @@
+<link href="https://fonts.googleapis.com/css2?family=Tangerine&display=swap" rel="stylesheet">
+<form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
+
+<div class="unique-logo-container">
+    <img class="logo" src="systems/stryder/assets/stryderfvtt_title.png" width="125" height="125">
+</div>
+  {{!-- Sheet Header --}}
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" style="margin-top: 50px;"/>
+    <div class="header-fields">
+		<div class="fantasy-input">
+				<input name="name" type="text" value="{{actor.name}}" placeholder="Name"/>
+		</div><br />
+      {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
+      use both the "grid" and "grid-Ncol" class where "N" can be any number
+      from 1 to 12 and will create that number of columns.  --}}
+        <div class="character-details-secondary textalign-center flexrow" style="margin-bottom: 20px;">
+          <div class="character-gender">
+            <label for="{{actor._id}}gender" class="resource-label-info">{{localize "Gender"}}</label>
+            <input id="{{actor._id}}gender" type="text" name="system.attributes.gender" value="{{system.attributes.gender}}" placeholder="Gender" data-dtype="String"/>
+          </div>
+          <div class="character-pronouns">
+            <label for="{{actor._id}}pronouns" class="resource-label-info">{{localize "Pronouns"}}</label>
+            <input id="{{actor._id}}pronouns" type="text" name="system.attributes.pronouns" value="{{system.attributes.pronouns}}" placeholder="He/She/They, etc." data-dtype="String"/>
+          </div>
+          <div class="character-weightclass">
+            <label for="{{actor._id}}creature_size" class="resource-label-info">{{localize "Creature Size"}}</label>
+			<div class="dropdown-field">
+				<select class="secondary-input" name="system.attributes.creature_size" style="width: 100%; font-size: 16px; font-weight: normal;">
+				  {{#select system.attributes.creature_size}}
+				  <option value="0.25">Mini</option>
+				  <option value="0.5">Small</option>
+				  <option value="1">Normal</option>
+				  <option value="2">Huge</option>
+				  <option value="3">Massive</option>
+				  <option value="4">Colossal</option>
+				  <option value="5">Titanic</option>
+				  {{/select}}
+				</select>
+			</div>
+          </div>
+		</div>
+      <div class="resources grid grid-2col" style="margin-left: 40px; width: 80%;">
+
+        {{!-- "flex-group-center" is also defined in the _grid.scss file
+        and it will add a small amount of padding, a border, and will
+        center all of its child elements content and text. --}}
+
+        <div class="resource flex-group-center">
+          <label for="system.health.value" class="resource-label"><img style="width: 15px; height: 15px; border: 0px; position: relative; top: 2px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/health-symbol.svg">Health</label>
+		  <div class="hpbar">
+			<div class="hp-progress-bar">
+			  <progress class="hp-bar grid-span-3" value="{{system.health.value}}" max="{{system.health.max}}"></progress>
+			</div>
+		  </div>
+          <div class="resource-content flexrow flex-center flex-between">
+          <input type="text" name="system.health.value" value="{{system.health.value}}" data-dtype="Number"/>
+          <span> / </span>
+          <input type="text" name="system.health.max" value="{{system.health.max}}" data-dtype="Number" readonly/>
+          </div>
+        </div>
+
+        <div class="resource flex-group-center">
+          <label for="system.aegis.value" class="resource-label"><img style="width: 20px; height: 20px; border: 0px; position: relative; top: -2px; margin-bottom: -6px; left: -5px; margin-left: -15px;" src="systems/stryder/assets/focus-symbol.svg">Tactics</label>
+		  <div class="resource1bar">
+			<div class="resource1-progress-bar">
+			  <progress class="resource1-bar grid-span-3" value="{{system.tactics.value}}" max="{{system.tactics.max}}"></progress>
+			</div>
+		  </div>
+          <div class="resource-content flexrow flex-center flex-between">
+            <input type="text" name="system.tactics.value" value="{{system.tactics.value}}" data-dtype="Number"/>
+            <span> / </span>
+            <input type="text" name="system.tactics.max" value="{{system.tactics.max}}" data-dtype="Number"/>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  {{!-- Sheet Tab Navigation --}}
+  <nav class="sheet-tabs tabs" data-group="primary">
+    {{!-- Default tab is specified in actor-sheet.mjs --}}
+    <a class="item" data-tab="features">Battle</a>
+    <a class="item" data-tab="battle">Features</a>
+    <a class="item" data-tab="description">Biography</a>
+    <a class="item" data-tab="effects">Effects</a>
+  </nav>
+
+  {{!-- Sheet Body --}}
+  <section class="sheet-body">
+
+    {{!-- Owned Features Tab --}}
+    <div class="tab features" data-group="primary" data-tab="features">
+      <section class="grid grid-3col">
+        <aside class="sidebar">
+
+          {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
+          use both the "grid" and "grid-Ncol" class where "N" can be any number
+          from 1 to 12 and will create that number of columns.  --}}
+          <div class="abilities flexcol">
+            {{#each system.abilities as |ability key|}}
+            <div class="ability flexrow flex-group-center stat-font">
+              <label><b>{{ability.label}}&nbsp;&nbsp;</b></label>
+              <input type="text" name="system.abilities.{{key}}.value" value="{{ability.value}}" data-dtype="Number"/>
+              <span class="ability-mod rollable" data-roll="2d6+@abilities.{{key}}.value" data-label="{{ability.label}}"><img src="systems/stryder/assets/d6.svg" width=25px height=25px style='border:0px'></span>
+            </div>
+            {{/each}}
+          </div>
+			<br />
+		<div class="ability flexcol flex-group-center">
+		  <!-- Potency Row -->
+		  <div class="flexrow flex-group-center">
+			<!-- Physical Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="2*@abilities.Spirit.value+@attributes.mastery+@attributes.physical_potency.mod" data-label="Physical Potency DC">
+			  <img src="systems/stryder/assets/physical_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Physical Potency</b></label>
+			</span>
+
+			<!-- Magykal Potency -->
+			<span class="ability-resistance-mod rollable" data-roll="2*@abilities.Spirit.value+@attributes.mastery+@attributes.magykal_potency.mod" data-label="Magykal Potency DC">
+			  <img src="systems/stryder/assets/magykal_potency.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Magykal Potency</b></label>
+			</span>
+		  </div>
+
+		  <!-- Resistance Row -->
+		  <div class="flexrow flex-group-center" style="margin-top: -5px;">
+			<!-- Physical Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Grit.value+@checks.Physical.mod" data-label="Physical Resistance Check">
+			  <img src="systems/stryder/assets/physical_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
+			</span>
+
+			<!-- Magykal Resistance -->
+			<span class="ability-resistance-mod rollable" data-roll="2d6+@abilities.Will.value+@checks.Magykal.mod" data-label="Magykal Resistance Check">
+			  <img src="systems/stryder/assets/magykal_resistance.svg" width="20px" height="20px" style="border:0px; position: relative; top: 5px;">
+			  <label style="font-family: 'Yatra One', cursive; font-size: 12px; position: relative; left: -10px;">Resist</label>
+			</span>
+		  </div> <br />
+
+		  <!-- Dodge & Evade Row -->
+		  <div class="flexrow flex-group-center">
+			<!-- Dodge Roll -->
+			<span class="ability-dodge-evade-mod rollable" data-custom-roll="1d6+@abilities.Agility.value+@dodge.bonus" data-label="Dodge Roll">
+			  <img src="systems/stryder/assets/dodge.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Dodge</b></label>
+			</span>
+
+			<!-- Evade Roll -->
+			<span class="ability-dodge-evade-mod rollable" data-custom-roll="2d6+@abilities.Agility.value+@evade.bonus" data-label="Evade Roll">
+			  <img src="systems/stryder/assets/evade.svg" width="25px" height="25px" style="border:0px; position: relative; top: 7px;">
+			  <label><b>Evade</b></label>
+			</span>
+		  </div>
+
+		</div>
+		<br />
+        </aside>
+        {{!-- For the main features list, span the right two columns --}}
+        <section class="main grid-span-2">
+          {{!-- This is a Handlebars partial. They're stored in the `/parts` folder next to this sheet, and defined in module/helpers/templates.mjs --}}
+          {{> "systems/stryder/templates/actor/parts/lordling-features.hbs"}}
+        </section>
+
+      </section>
+    </div>
+
+<!-- Battle Tab -->
+
+<div class="tab battle" data-group="primary" data-tab="battle">
+<h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/movement-speeds.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Movement Speeds"}}</strong><span class="header-decoration right"></span></h2>
+    <div class="movement-container">
+        <div class="movement flexcol">
+            <!-- Running Speed -->
+            <div class="flexrow flex-group-center-speed">
+                <img src="systems/stryder/assets/run.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Running Speed</b></label>
+            </div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.running.value" value="{{system.attributes.move.running.value}}" data-dtype="Number">
+			</span>
+
+            <!-- Crawling Speed -->
+            <div class="flexrow flex-group-center-speed">
+                <img src="systems/stryder/assets/crawl.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Crawling Speed</b></label>
+            </div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.crawling.value" value="{{system.attributes.move.crawling.value}}" data-dtype="Number">
+			</span>
+
+            <!-- Swimming Speed -->
+            <div class="flexrow flex-group-center-speed">
+                <img src="systems/stryder/assets/swim.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Swimming Speed</b></label>
+            </div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.swimming.value" value="{{system.attributes.move.swimming.value}}" data-dtype="Number">
+			</span>
+        </div>
+
+        <div class="movement flexcol">
+            <!-- Climbing Speed -->	
+            <div class="flexrow flex-group-center-speed">
+                <img src="systems/stryder/assets/climb.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Climbing Speed</b></label>
+            </div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.climbing.value" value="{{system.attributes.move.climbing.value}}" data-dtype="Number">
+			</span>
+
+            <!-- Marching Speed -->
+            <div class="flexrow flex-group-center-speed">
+                <img src="systems/stryder/assets/march.svg" width="30px" height="30px" style="border:0px;">
+                <label><b>Marching Speed</b></label>
+            </div>
+			<span class="speed-input-box">
+				<input type="text" name="system.attributes.move.marching.value" value="{{system.attributes.move.marching.value}}" data-dtype="Number">
+			</span>
+
+			<!-- Maximum Movement -->
+			<div class="flexrow flex-group-center-speed">
+				<img src="systems/stryder/assets/move.svg" width="30px" height="30px" style="border:0px;">
+				<label for="running-speed"><b>Maximum Movement</b></label>
+			</div>
+			<span class="speed-input-box">
+				<input type="text" id="running-speed" readonly>
+			</span>
+        </div>
+    </div><br />
+
+
+    {{> "systems/stryder/templates/actor/parts/lordling-battle.hbs"}}
+</div>
+
+    {{!-- Biography Tab --}}
+    <div class="tab biography" data-group="primary" data-tab="description">
+      <div class="biography-header">
+        <h1 class="parchment-title">{{localize "Character Chronicle"}}</h1>
+      </div>
+      
+      {{!-- Character Details Section --}}
+      <div class="character-details-container">
+        <div class="scroll-border top"></div>
+        
+        <div class="character-details-secondary textalign-center flexrow">
+          <div class="birthplace detail-field">
+            <label for="{{actor._id}}birthplace" class="resource-label fancy-label">{{localize "Birthplace"}}</label> 
+            <div class="input-frame">
+              <input id="{{actor._id}}birthplace" type="text" name="system.details.birthplace" value="{{system.details.birthplace}}" data-dtype="String"/>
+            </div>
+          </div>
+          <div class="nationality detail-field">
+            <label for="{{actor._id}}nationality" class="resource-label fancy-label">{{localize "Nationality"}}</label>
+            <div class="input-frame">
+              <input id="{{actor._id}}nationality" type="text" name="system.details.nationality" value="{{system.details.nationality}}" data-dtype="String"/>
+            </div>
+          </div>
+        </div>
+        
+        <div class="character-details-secondary textalign-center flexrow">
+          <div class="age detail-field">
+            <label for="{{actor._id}}age" class="resource-label fancy-label">{{localize "Age"}}</label> 
+            <div class="input-frame">
+              <input id="{{actor._id}}age" type="number" name="system.details.age" value="{{system.details.age}}" data-dtype="Number"/>
+            </div>
+          </div>
+          <div class="height detail-field">
+            <label for="{{actor._id}}height" class="resource-label fancy-label">{{localize "Height"}}</label> 
+            <div class="input-frame">
+              <input id="{{actor._id}}height" type="text" name="system.details.height" value="{{system.details.height}}" data-dtype="String"/>
+            </div>
+          </div>
+          <div class="weightclass detail-field">
+            <label for="{{actor._id}}weight_class" class="resource-label fancy-label">{{localize "Weight Class"}}</label> 
+            <div class="input-frame">
+              <input id="{{actor._id}}weight_class" type="text" name="system.attributes.weight_class" value="{{system.attributes.weight_class}}" placeholder="4" data-dtype="Number"/>
+            </div>
+          </div>
+        </div>
+        
+        <div class="scroll-border bottom"></div>
+      </div>
+      
+      {{!-- Appearance Section --}}
+      <div class="appearance-container">
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/visage.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Visage"}}</strong><span class="header-decoration right"></span></h2>
+      </div>
+		<div class="editor-container biography">
+			{{editor system.appearance target="system.appearance" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+      
+      {{!-- Backstory Section --}}
+      <div class="backstory-container">
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/legend.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Legend"}}</strong><span class="header-decoration right"></span></h2>
+      </div>
+		<div class="editor-container biography">
+          {{editor system.biography target="system.biography" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+
+      {{!-- Personality Section --}}
+      <div class="personality-container">
+        <h2 class="section-header" style="border-bottom: 0px;"><span class="header-decoration left"></span><img src="systems/stryder/assets/personality.svg" width="25px" height="25px" style="border:0px; position: relative; top: 0px; left: -10px;"><strong>{{localize "Personality"}}</strong><span class="header-decoration right"></span></h2>
+      </div>
+		<div class="editor-container biography">
+          {{editor system.personality target="system.personality" rollData=rollData button=true owner=owner editable=editable}}
+		</div>
+	</div>
+
+    {{!-- Active Effects Tab --}}
+    <div class="tab effects flexcol" data-group="primary" data-tab="effects">
+      {{> "systems/stryder/templates/actor/parts/actor-effects.hbs"}}
+    </div>
+
+  </section>
+</form>
+
+{{log system}}

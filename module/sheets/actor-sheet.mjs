@@ -595,7 +595,11 @@ export class StryderActorSheet extends ActorSheet {
 	  
 	  switch(action) {
 		case 'turnStart':
-		  updates['system.stamina.value'] = this.actor.system.stamina.max;
+		  // Check if Spring of Life is active - if so, don't restore stamina
+		  const springOfLifeActive = this.actor.getFlag(SYSTEM_ID, "springOfLifeActive");
+		  if (!springOfLifeActive) {
+		    updates['system.stamina.value'] = this.actor.system.stamina.max;
+		  }
 		  break;
 
 		case 'tacticsReset':
@@ -606,6 +610,8 @@ export class StryderActorSheet extends ActorSheet {
 		  updates['system.stamina.value'] = this.actor.system.stamina.max;
 		  updates['system.mana.value'] = this.actor.system.mana.max;
 		  updates['system.focus.value'] = this.actor.system.focus.max;
+		  // Clear Spring of Life flag to restore normal stamina functionality
+		  updates[`flags.${SYSTEM_ID}.springOfLifeActive`] = null;
 		  // Remove exhaustion effects
 		  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
 		  await removeExhaustionEffects(this.actor);
@@ -623,7 +629,10 @@ export class StryderActorSheet extends ActorSheet {
 		  updates['system.health.value'] = newMax;
 		  updates['system.mana.value'] = this.actor.system.mana.max;
 		  updates['system.focus.value'] = this.actor.system.focus.max;
-		  updates['system.stamina.value'] = 0;
+		  // Preserve current stamina instead of setting to 0
+		  
+		  // Set flag to indicate Spring of Life has been used
+		  updates[`flags.${SYSTEM_ID}.springOfLifeActive`] = true;
 		  
 		  // Remove burning and bloodloss health reduction flags
 		  updates[`flags.${SYSTEM_ID}.burningHealthReduction`] = null;
@@ -637,8 +646,14 @@ export class StryderActorSheet extends ActorSheet {
 
 		  switch (action) {
 			case 'turnStart':
-			  message = `${this.actor.name} has regained all Stamina at the  of their turn.`;
-			  updates['system.stamina.value'] = this.actor.system.stamina.max;
+			  // Check if Spring of Life is active - if so, don't restore stamina
+			  const springOfLifeActive = this.actor.getFlag(SYSTEM_ID, "springOfLifeActive");
+			  if (springOfLifeActive) {
+			    message = `${this.actor.name} begins their turn. No Stamina was restored due to having utilized Spring of Life recently.`;
+			  } else {
+			    message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
+			    updates['system.stamina.value'] = this.actor.system.stamina.max;
+			  }
 			  break;
 
 			case 'tacticsReset':
@@ -651,6 +666,8 @@ export class StryderActorSheet extends ActorSheet {
 			  updates['system.stamina.value'] = this.actor.system.stamina.max;
 			  updates['system.mana.value'] = this.actor.system.mana.max;
 			  updates['system.focus.value'] = this.actor.system.focus.max;
+			  // Clear Spring of Life flag to restore normal stamina functionality
+			  updates[`flags.${SYSTEM_ID}.springOfLifeActive`] = null;
 			  // Remove exhaustion effects
 			  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
 			  await removeExhaustionEffects(this.actor);
@@ -677,12 +694,13 @@ export class StryderActorSheet extends ActorSheet {
 				'system.health.value': newMax,
 				'system.mana.value': this.actor.system.mana.max,
 				'system.focus.value': this.actor.system.focus.max,
-				'system.stamina.value': 0,
+				// Preserve current stamina instead of setting to 0
+				[`flags.${SYSTEM_ID}.springOfLifeActive`]: true,
 				[`flags.${SYSTEM_ID}.burningHealthReduction`]: null,
 				[`flags.${SYSTEM_ID}.bloodlossHealthReduction`]: null
 			  };
 
-			  message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, and Focus but setting Stamina to 0.`;
+			  message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, and Focus. Stamina cannot be restored until the next Rest.`;
 
 			  if (totalReduction > 0) {
 				let restorationMessage = `<br><br>In addition, the Spring of Life has healed wounds that ${this.actor.name} sustained, restoring their Max Health by ${totalReduction}.`;

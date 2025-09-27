@@ -209,7 +209,7 @@
 			</div>
 		  </div>
           <div class="resource-content flexrow flex-center flex-between">
-            <input type="text" name="system.stamina.value" value="{{system.stamina.value}}" data-dtype="Number"/>
+            <input type="text" name="system.stamina.value" value="{{system.stamina.value}}" data-dtype="Number"{{#if flags.stryder.springOfLifeActive}} readonly{{/if}}/>
             <span> / </span>
             <input type="text" name="system.stamina.max" value="{{system.stamina.max}}" data-dtype="Number" readonly/>
           </div>

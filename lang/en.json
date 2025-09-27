@@ -242,7 +242,7 @@
   "Resting": "Resting",
   "Resting Description": "Resting: Regain all your Stamina, Mana, and Focus.",
   "Spring of Life": "Spring of Life",
-  "Spring of Life Description": "Spring of Life: Regain all your Health, Mana, Aegis, and Focus. Your Stamina becomes 0, and you cannot regain Stamina until the end of your next Rest.",
+  "Spring of Life Description": "Spring of Life: Regain all your Health, Mana, and Focus. Your current Stamina is preserved but cannot be restored until your next Rest.",
   "Cooking": "Cooking",
   "Cooking Description": "The art of preparing and cooking meals to nourish and restore.",
   "Elixir Brewing": "Elixir Brewing",

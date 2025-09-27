@@ -234,7 +234,7 @@
   "Resting": "休息",
   "Resting Description": "休息：すべてのスタミナ、マナ、フォーカスを回復します。",
   "Spring of Life": "生命の泉",
-  "Spring of Life Description": "生命の泉：すべての体力、マナ、エイジス、フォーカスを回復します。スタミナは0になり、次の休息の終了までスタミナを回復することはできません。",
+  "Spring of Life Description": "生命の泉：すべての体力、マナ、フォーカスを回復します。現在のスタミナは保持されますが、次の休息までスタミナを回復することはできません。",
   "Cooking": "料理",
   "Cooking Description": "栄養と回復のために食事を準備し調理する技術。",
   "Elixir Brewing": "エリクサー醸造",

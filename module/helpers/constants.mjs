@@ -7,6 +7,7 @@ export const STRYDER = {
         CombatantsTurnTaken: "combatantsTurnTaken",
         CurrentTurn: "currentTurn",
         FirstTurn: "firstTurn",
-		ActiveTurns: 'activeTurns'
+		ActiveTurns: 'activeTurns',
+        StartedTurns: 'startedTurns'
     }
 };

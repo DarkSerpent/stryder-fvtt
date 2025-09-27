@@ -12,6 +12,7 @@ export async function handleConfusedApplication(effect) {
   
   // Update the effect to include the Confused penalties
   await effect.update({
+    name: "Confused",
     label: "Confused",
     changes: [],
     flags: {
@@ -36,8 +37,7 @@ export async function handleConfusedRollIntercept(item, actor) {
   
   // Case 1: Focused action type
   if (item.system.action_type === "focused") {
-    shouldIntercept = tru
-e;
+    shouldIntercept = true;
   }
   // Case 2: Armament item type
   else if (item.type === "armament") {
@@ -87,102 +87,165 @@ e;
 }
 
 export async function processConfusedRoll(actor, dc, messageId) {
-  // Roll Magykal Resist Check
-  const rollFormula = "2d6 + @abilities.Will.value + @checks.Magykal.mod";
-  const rollData = actor.getRollData();
-  const roll = new Roll(rollFormula, rollData);
-  await roll.evaluate({async: true});
-
-  const success = roll.total >= dc;
-  
-  // Remove Confused effect if successful
-  if (success) {
-    const confusedEffect = actor.effects.find(e => 
-      e.label === "Confused" && e.flags[SYSTEM_ID]?.isConfused
-    );
-    if (confusedEffect) {
-      await confusedEffect.delete();
-    }
-  }
-  
-  // Create result message
-  let resultContent = `
-  <div class="chat-message-card">
-    <div class="chat-message-header">
-      <h3 class="chat-message-title">${actor.name} is <strong>Confused</strong></h3>
-    </div>
-    <div class="chat-message-details">
-      <div class="chat-message-detail-row">
-        <span class="chat-message-detail-label">DC:</span>
-        <span>${dc}</span>
+  // Create a simple dialog asking if the resistance check succeeded
+  const dialogContent = `
+    <div class="chat-message-card">
+      <div class="chat-message-header">
+        <h3 class="chat-message-title">${actor.name} is <strong>Confused</strong></h3>
       </div>
-      <div class="chat-message-detail-row">
-        <span class="chat-message-detail-label">Roll Result:</span>
-        <span>${roll.total}</span>
+      <div class="chat-message-content">
+        <p>DC: ${dc}</p>
+        <p>Did ${actor.name} succeed on their Magykal Resist check?</p>
+      </div>
+      <div class="effect-buttons">
+        <button class="effect-button yes" data-action="succeeded">
+          <i class="fas fa-check"></i> Succeeded
+        </button>
+        <button class="effect-button no" data-action="failed">
+          <i class="fas fa-times"></i> Failed
+        </button>
       </div>
     </div>
-    <div class="chat-message-content">
-      ${success ? 
-        `${actor.name} snapped out of Confusion and is no longer affected!` : 
-        `${actor.name} was Confused, and could not snap out of it in time! Their Focused Action has been wasted.`}
-    </div>
-    ${await roll.render()}
-  </div>
   `;
 
-  await ChatMessage.create({
+  const resultMessage = await ChatMessage.create({
     user: game.user.id,
     speaker: ChatMessage.getSpeaker({actor}),
-    content: resultContent,
-    type: CONST.CHAT_MESSAGE_TYPES.OTHER
+    content: dialogContent,
+    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    flags: {
+      [SYSTEM_ID]: {
+        confusedResult: true,
+        actorId: actor.id,
+        messageId: messageId,
+        dc: dc
+      }
+    }
   });
-
-  // If successful, create the original item's message
-  if (success && confusedState.pendingMessageData) {
-    const { item, speaker, rollMode } = confusedState.pendingMessageData;
-    
-    // Create a temporary item instance to generate the proper chat message
-    const tempItem = new CONFIG.Item.documentClass(item, { parent: actor });
-    await tempItem.roll();
-  }
-
-  // Clean up
-  confusedState.waitingForConfusedResponse = false;
-  confusedState.nextRollShouldBeBlocked = false;
-  confusedState.pendingMessageData = null;
 
   // Delete the original dialog message
   const message = game.messages.get(messageId);
   if (message) await message.delete();
 }
 
-// Handle the response to the confused check
-Hooks.on('renderChatMessage', (message, html, data) => {
+// Handle the response to the confused check - V13 compatible
+Hooks.on('renderChatMessageHTML', (message, html, data) => {
   const confusedCheck = message.getFlag(SYSTEM_ID, 'confusedCheck');
-  if (!confusedCheck) return;
+  const confusedResult = message.getFlag(SYSTEM_ID, 'confusedResult');
+  const processed = message.getFlag(SYSTEM_ID, 'processed');
+  
+  // Handle the initial DC input dialog
+  if (confusedCheck && !processed) {
+    const rollButton = html.querySelector('.confused-roll-button');
+    if (rollButton) {
+      rollButton.addEventListener('click', async (event) => {
+        if (rollButton.disabled) return;
+        rollButton.disabled = true;
+        
+        const dcInput = html.querySelector('.confused-dc-input');
+        const dc = parseInt(dcInput.value);
+        
+        if (isNaN(dc)) {
+          ui.notifications.error("Please enter a valid number for the DC!");
+          rollButton.disabled = false;
+          return;
+        }
 
-  html.find('.confused-roll-button').click(async (event) => {
-    const dcInput = html.find('.confused-dc-input')[0];
-    const dc = parseInt(dcInput.value);
-    
-    if (isNaN(dc)) {
-      ui.notifications.error("Please enter a valid number for the DC!");
-      return;
+        const actorId = message.getFlag(SYSTEM_ID, 'actorId');
+        const actor = game.actors.get(actorId);
+        const messageId = message.id;
+
+        if (actor) {
+          // Mark message as processed
+          await message.setFlag(SYSTEM_ID, 'processed', true);
+          await processConfusedRoll(actor, dc, messageId);
+        }
+      });
     }
-
-    const actorId = message.getFlag(SYSTEM_ID, 'actorId');
-    const actor = game.actors.get(actorId);
-    const messageId = message.id;
-
-    if (actor) {
-      await processConfusedRoll(actor, dc, messageId);
-    }
-  });
+  }
+  
+  // Handle the succeeded/failed result dialog
+  if (confusedResult && !processed) {
+    const buttons = html.querySelectorAll('.effect-button');
+    buttons.forEach(button => {
+      button.addEventListener('click', async (event) => {
+        if (button.disabled) return;
+        button.disabled = true;
+        
+        const action = event.currentTarget.dataset.action;
+        const actorId = message.getFlag(SYSTEM_ID, 'actorId');
+        const actor = game.actors.get(actorId);
+        
+        if (!actor) return;
+        
+        // Mark message as processed
+        await message.setFlag(SYSTEM_ID, 'processed', true);
+        
+        if (action === "succeeded") {
+          // Remove Confused effect
+          const confusedEffect = actor.effects.find(e => 
+            e.label === "Confused" || e.name === "Confused"
+          );
+          if (confusedEffect) {
+            await confusedEffect.delete();
+          }
+          
+          // Update message to show success
+          const successContent = `
+            <div class="chat-message-card">
+              <div class="chat-message-header">
+                <h3 class="chat-message-title">${actor.name} is <strong>Confused</strong></h3>
+              </div>
+              <div class="chat-message-content">
+                <p><strong>${actor.name} succeeded!</strong> They snapped out of Confusion and are no longer affected!</p>
+              </div>
+            </div>
+          `;
+          await message.update({ content: successContent });
+          
+          // Execute the original message
+          if (confusedState.pendingMessageData) {
+            const { originalData } = confusedState.pendingMessageData;
+            
+            if (originalData) {
+              // This was a focused action intercepted at message level
+              await ChatMessage.create(originalData);
+            }
+          }
+        } else if (action === "failed") {
+          // Update message to show failure
+          const failureContent = `
+            <div class="chat-message-card">
+              <div class="chat-message-header">
+                <h3 class="chat-message-title">${actor.name} is <strong>Confused</strong></h3>
+              </div>
+              <div class="chat-message-content">
+                <p><strong>Focused Action failed to activate due to Confusion, but ${actor.name} did not expend any resources.</strong></p>
+              </div>
+            </div>
+          `;
+          await message.update({ content: failureContent });
+        }
+        
+        // Clean up
+        confusedState.waitingForConfusedResponse = false;
+        confusedState.nextRollShouldBeBlocked = false;
+        confusedState.pendingMessageData = null;
+      });
+    });
+  }
 });
 
 // Register the hook to handle Confused effect application
 Hooks.on('createActiveEffect', async (effect, options, userId) => {
-  if (effect.label === "Confused" && game.user.id === userId) {
+  if ((effect.label === "Confused" || effect.name === "Confused") && game.user.id === userId) {
+    await handleConfusedApplication(effect);
+  }
+});
+
+// Add updateActiveEffect hook as fallback
+Hooks.on('updateActiveEffect', async (effect, changes, options, userId) => {
+  if ((effect.label === "Confused" || effect.name === "Confused") && game.user.id === userId) {
     await handleConfusedApplication(effect);
   }
 });

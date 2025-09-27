@@ -3,6 +3,8 @@ import { SYSTEM_ID } from '../helpers/constants.mjs';
 export async function handleBleedingWoundApplication(effect) {
   const actor = effect.parent;
   
+  console.log("Bleeding Wound effect being configured:", effect);
+  
   // Check for Aegis/Ward protection
   if (actor.system.aegis?.value > 0 ) {
     ui.notifications.error(`${actor.name} cannot receive Bleeding Wounds because they have positive Aegis!`);
@@ -38,6 +40,7 @@ export async function handleBleedingWoundApplication(effect) {
 	  const stage = parseInt(event.currentTarget.dataset.stage);
 	  console.log(`Applying Bleeding Wound Stage ${stage} to ${actor.name}`);
 	  await effect.update({
+		name: `Bleeding Wound (Stage ${stage})`,
 		label: `Bleeding Wound (Stage ${stage})`,
 		changes: [],
 		flags: {
@@ -55,12 +58,30 @@ export async function handleBleedingWoundDamage(combatant) {
   const actor = combatant.actor;
   if (!actor) return;
 
+  console.log("handleBleedingWoundDamage called for:", actor.name);
+
   // Check if bleeding damage has already been applied this turn
   const hasTakenBleedingDamage = combatant.getFlag(SYSTEM_ID, "hasTakenBleedingDamage");
-  if (hasTakenBleedingDamage) return;
+  console.log("Has taken bleeding damage this turn:", hasTakenBleedingDamage);
+  
+  // TEMPORARY: Clear the flag if it exists (for debugging)
+  if (hasTakenBleedingDamage) {
+    console.log("Clearing bleeding damage flag manually");
+    await combatant.unsetFlag(SYSTEM_ID, "hasTakenBleedingDamage");
+    // Don't return - continue with damage processing
+  }
 
   // Find all bleeding wound effects and process the highest stage
-  const bleedingEffects = actor.effects.filter(e => e.label.startsWith("Bleeding Wound"));
+  const bleedingEffects = actor.effects.filter(e => {
+    const hasLabel = e.label && e.label.startsWith("Bleeding Wound");
+    const hasName = e.name && e.name.includes("Bleeding Wound");
+    const isBleedingEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.bleedingStage;
+    return isBleedingEffect;
+  });
+  
+  console.log("Found bleeding effects:", bleedingEffects.length);
+  console.log("Actor health:", actor.system.health.value);
+  
   if (!bleedingEffects.length || actor.system.health.value <= 0) return;
 
   // Get the highest stage effect
@@ -88,6 +109,7 @@ export async function handleBleedingWoundDamage(combatant) {
   // Check for unconsciousness
   if (actor.system.health.value <= 0 && !actor.effects.find(e => e.label === "Unconscious")) {
     await actor.createEmbeddedDocuments('ActiveEffect', [{
+      name: "Unconscious",
       label: "Unconscious",
       icon: "systems/stryder/assets/status/unconscious.svg",
       disabled: false
@@ -130,6 +152,77 @@ export async function handleBleedingWoundDamage(combatant) {
     });
   }
 }
+
+// Register the hook to handle Bleeding Wound effect application
+Hooks.on('createActiveEffect', async (effect, options, userId) => {
+  // Check if this is a Bleeding Wound effect that needs configuration
+  if ((effect.label === "Bleeding Wound" || effect.name === "Bleeding Wound" || 
+       effect.label?.includes("Bleeding Wound") || effect.name?.includes("Bleeding Wound")) && game.user.id === userId) {
+    console.log("createActiveEffect hook triggered for Bleeding Wound");
+    await handleBleedingWoundApplication(effect);
+  }
+});
+
+// Alternative hook in case the first one doesn't catch it
+Hooks.on('updateActiveEffect', async (effect, changes, options, userId) => {
+  if ((effect.label === "Bleeding Wound" || effect.name === "Bleeding Wound" || 
+       effect.label?.includes("Bleeding Wound") || effect.name?.includes("Bleeding Wound")) && game.user.id === userId) {
+    // Check if the effect doesn't have the proper flags yet
+    if (!effect.flags[SYSTEM_ID]?.bleedingStage) {
+      console.log("updateActiveEffect hook triggered for Bleeding Wound - adding missing data");
+      await handleBleedingWoundApplication(effect);
+    }
+  }
+});
+
+// Hook to handle bleeding wound effects during combat turns
+Hooks.on('updateCombat', async (combat, updateData, options, userId) => {
+  console.log("updateCombat hook triggered for bleeding:", updateData);
+  // Only process on turn change for the current user
+  if (updateData.turn !== undefined && game.user.id === userId) {
+    console.log("Turn change detected, processing bleeding effects");
+    
+    // Clear bleeding damage flags for all combatants at the start of each turn
+    for (const combatant of combat.combatants) {
+      await combatant.unsetFlag(SYSTEM_ID, "hasTakenBleedingDamage");
+    }
+    
+    const combatant = combat.combatants.get(combat.current.combatantId);
+    console.log("Current combatant:", combatant?.actor?.name);
+    if (combatant) {
+      await handleBleedingWoundDamage(combatant);
+    }
+  }
+});
+
+// Alternative hook using socket communication for turn changes
+Hooks.once('ready', () => {
+  if (game.socket) {
+    game.socket.on(`system.stryder`, async (data) => {
+      console.log("Socket message received for bleeding:", data);
+      if (data.type === "turnChangeNotification") {
+        console.log("Socket turn change notification received, processing bleeding effects");
+        
+        const combat = game.combat;
+        if (!combat) return;
+        
+        // Clear bleeding damage flags for all combatants at the start of each turn
+        for (const combatant of combat.combatants) {
+          console.log(`Clearing bleeding flag for ${combatant.actor?.name}`);
+          await combatant.unsetFlag(SYSTEM_ID, "hasTakenBleedingDamage");
+        }
+        
+        const combatant = combat.combatants.get(combat.current.combatantId);
+        console.log("Current combatant from socket:", combatant?.actor?.name);
+        if (combatant) {
+          await handleBleedingWoundDamage(combatant);
+        }
+      }
+    });
+  } else {
+    console.log("Game socket not available for bleeding");
+  }
+});
 
 // Handle undo button
 Hooks.on('renderChatMessage', (message, html, data) => {

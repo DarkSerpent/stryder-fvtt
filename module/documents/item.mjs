@@ -1,6 +1,6 @@
 import { SYSTEM_ID } from '../helpers/constants.mjs';
-import { handleBlindedRollIntercept } from '../conditions/blinded.mjs';
 import { handleConfusedApplication, handleConfusedRollIntercept, confusedState } from '../conditions/confused.mjs';
+import { isActorPanicked, getPanickedRollQuality } from '../conditions/panicked.mjs';
 
 export function getFantasmActionType(item) {
   if (item.name.includes("Hyper Sense") || item.name.includes("Unbound Leap") || item.actor?.system?.booleans?.hasFantastic) {
@@ -21,6 +21,41 @@ export class StryderItem extends Item {
     // As with the actor class, items are documents that can have their data
     // preparation methods overridden (such as prepareBaseData()).
     super.prepareData();
+  }
+
+  /** @override */
+  prepareBaseData() {
+    super.prepareBaseData();
+    
+    // Set default damage_type if not already set
+    if (!this.system.damage_type) {
+      if (this.type === 'armament') {
+        this.system.damage_type = 'physical';
+      } else if (this.type === 'generic') {
+        this.system.damage_type = 'ahl';
+      } else if (this.type === 'hex') {
+        this.system.damage_type = 'magykal';
+      }
+    }
+  }
+
+  /** @override */
+  static async create(data, options = {}) {
+    // Initialize default damage_type based on item type
+    const defaultData = {};
+    
+    if (data.type === 'armament') {
+      defaultData.system = { damage_type: 'physical' };
+    } else if (data.type === 'generic') {
+      defaultData.system = { damage_type: 'ahl' };
+    } else if (data.type === 'hex') {
+      defaultData.system = { damage_type: 'magykal' };
+    }
+    
+    // Merge with insertKeys: false to ensure our values take precedence
+    data = foundry.utils.mergeObject(defaultData, data, { insertKeys: false });
+    
+    return super.create(data, options);
   }
 
   /**
@@ -54,43 +89,9 @@ export class StryderItem extends Item {
     const rollMode = game.settings.get('core', 'rollMode');
     const label = `${item.name}`;
 
-	if (this.actor) {
-	const blindedEffect = this.actor.effects.find(e => 
-	  e.label === "Blinded" && e.flags[SYSTEM_ID]?.isBlinded
-	);
+	// Blinded handling now done in stryder.mjs
 
-	if (blindedEffect) {
-	  const isWaiting = this.actor.getFlag(SYSTEM_ID, 'blindedWaitingForResponse');
-	  if (!isWaiting) {
-			const messageId = await handleBlindedRollIntercept(this, this.actor);
-			if (messageId) return; // Only return if we're waiting for response
-		  }
-		}
-	}
-
-	if (this.actor) {
-	  const confusedEffect = this.actor.effects.find(e => 
-		e.label === "Confused" && e.flags[SYSTEM_ID]?.isConfused
-	  );
-
-	  if (confusedEffect) {
-		// Check if this is a focused action, armament, or fantasm with "Action: Focused"
-		const isFocusedAction = item.system.action_type === "focused";
-		const isArmament = item.type === "armament";
-		let isFantasmFocused = false;
-		
-		if (item.type === "fantasm") {
-		  // Generate the content to check (similar to confused.js)
-		  const content = await getFantasmActionType(item);
-		  isFantasmFocused = content.includes("Focused");
-		}
-		
-		if (isFocusedAction || isArmament || isFantasmFocused) {
-		  const messageId = await handleConfusedRollIntercept(this, this.actor);
-		  if (messageId) return; // Only return if we're waiting for response
-		}
-	  }
-	}
+	// Confused handling now done in stryder.mjs at message level
 
 	let actionType = "";
 	if (item.system.action_type === "focused" || item.system.action_type === undefined) {
@@ -521,6 +522,7 @@ export class StryderItem extends Item {
 	  else {
 		const hasStaminaCost = item.system.stamina_cost > 0;
 		const hasManaCost = item.system.mana_cost > 0;
+		const canOverflow = item.type === "hex" && item.system.hex?.canOverflow;
 		
 		if (hasStaminaCost || hasManaCost) {
 		  let buttonText = 'Spend Resources';
@@ -536,7 +538,9 @@ export class StryderItem extends Item {
 		  <div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
 			<button class="resource-spend-button" 
 					data-stamina-cost="${item.system.stamina_cost || 0}"
-					data-mana-cost="${item.system.mana_cost || 0}">
+					data-mana-cost="${item.system.mana_cost || 0}"
+					data-can-overflow="${canOverflow}"
+					data-item-id="${item.id}">
 			  ${buttonText}
 			</button>
 		  </div>
@@ -559,12 +563,81 @@ export class StryderItem extends Item {
 	  return buttonsHTML;
 	}
 
-	function handleResourceSpend(event) {
+	function createDamageButton(damage, damageType = 'ahl') {
+	  return `
+	  <div class="damage-apply-container" style="margin: 5px 0; text-align: center;">
+		<button class="damage-apply-button" 
+				data-damage="${damage}"
+				data-damage-type="${damageType}">
+		  Apply <span style="color: #dc3545; font-weight: bold;">${damage}</span> Damage
+		</button>
+	  </div>
+	  `;
+	}
+
+	function createBloodlossSpendButton(item) {
+	  console.log("Creating bloodloss button for item:", item.name);
+	  
+	  const hasBloodlossCost = item.system.blood_cost > 0;
+	  
+	  if (!hasBloodlossCost) {
+		return '';
+	  }
+	  
+	  const buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.blood_cost}</span> <span style="color: #8b0000; font-weight: bold;">Bloodloss</span>`;
+	  
+	  return `
+		<div class="resource-spend-container" style="margin: 5px 0; text-align: center;">
+		  <button class="bloodloss-spend-button" 
+				  data-bloodloss-cost="${item.system.blood_cost}"
+				  data-item-id="${item.id}">
+			${buttonText}
+		  </button>
+		</div>
+	  `;
+	}
+
+	async function showOverflowDialog() {
+	  const content = await renderTemplate('systems/stryder/templates/item/hex-overflow-dialog.hbs');
+	  
+	  return new Promise((resolve) => {
+		const dialog = new Dialog({
+		  title: "Hex Overflow",
+		  content: content,
+		  buttons: {
+			confirm: {
+			  label: "Confirm",
+			  callback: (html) => {
+				const inputValue = html.find('.overflow-mana-input').val();
+				const overflowAmount = parseInt(inputValue) || 0;
+				resolve(overflowAmount);
+			  }
+			},
+			cancel: {
+			  label: "Cancel",
+			  callback: () => {
+				resolve(null);
+			  }
+			}
+		  },
+		  default: "cancel",
+		  close: () => {
+			resolve(null);
+		  }
+		});
+		
+		dialog.render(true);
+	  });
+	}
+
+	async function handleResourceSpend(event) {
 	  event.preventDefault();
 	  const button = event.currentTarget;
 	  const staminaCost = parseInt(button.dataset.staminaCost) || 0;
 	  const manaCost = parseInt(button.dataset.manaCost) || 0;
 	  const focusCost = parseInt(button.dataset.focusCost) || 0;
+	  const canOverflow = button.dataset.canOverflow === "true";
+	  const itemId = button.dataset.itemId;
 
 	  // Get the currently controlled tokens
 	  const controlledTokens = canvas.tokens.controlled;
@@ -621,9 +694,20 @@ export class StryderItem extends Item {
 		  ui.notifications.warn("Selected character doesn't have stamina to spend!");
 		  return;
 		}
-		if (actor.system.stamina.value < staminaCost) {
+		
+		// Check for Stunned condition
+		const { handleStunnedStaminaSpend } = await import('../conditions/stunned.mjs');
+		const stunnedResult = await handleStunnedStaminaSpend(actor, staminaCost, 'resource');
+		if (!stunnedResult.shouldProceed) {
+		  return; // Error message already shown
+		}
+		
+		// Use the stunned-adjusted cost for the rest of the function
+		const adjustedStaminaCost = stunnedResult.cost;
+		
+		if (actor.system.stamina.value < adjustedStaminaCost) {
 		  canAfford = false;
-		  warningMessage += `Not enough Stamina (${actor.system.stamina.value}/${staminaCost})`;
+		  warningMessage += `Not enough Stamina (${actor.system.stamina.value}/${adjustedStaminaCost})`;
 		}
 	  }
 
@@ -656,12 +740,107 @@ export class StryderItem extends Item {
 		return;
 	  }
 
+	  // Handle overflow dialog for hexes
+	  if (canOverflow && manaCost > 0) {
+		const overflowAmount = await showOverflowDialog();
+		
+		if (overflowAmount === null) {
+		  // User cancelled
+		  return;
+		}
+		
+		// If overflow amount is 0, undefined, or null, proceed with normal behavior
+		if (overflowAmount > 0) {
+		  // Check if actor has enough mana for overflow
+		  if (actor.system.mana.value < manaCost + overflowAmount) {
+			ui.notifications.warn(`Not enough Mana for overflow! Need ${manaCost + overflowAmount}, have ${actor.system.mana.value}`);
+			return;
+		  }
+		  
+		  // Spend resources with overflow
+		  const updates = {};
+		  updates['system.mana.value'] = Math.max(0, actor.system.mana.value - manaCost - overflowAmount);
+		  
+		  let stunnedAdditionalCost = 0;
+		  if (staminaCost > 0 && actor.system.stamina?.value !== undefined) {
+			// Use the stunned-adjusted cost if we calculated it earlier
+			const finalStaminaCost = adjustedStaminaCost || staminaCost;
+			stunnedAdditionalCost = finalStaminaCost - staminaCost;
+			
+			updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - finalStaminaCost);
+		  }
+		  
+		  if (focusCost > 0 && actor.system.focus?.value !== undefined) {
+			updates['system.focus.value'] = Math.max(0, actor.system.focus.value - focusCost);
+		  }
+		  
+		  actor.update(updates).then(async () => {
+			ui.notifications.info(`Resources spent with overflow for ${actor.name}!`);
+			button.disabled = true;
+			button.textContent = "Resources Spent";
+			
+			// Remove stunned effect if additional stamina was spent
+			if (stunnedAdditionalCost > 0) {
+			  const { removeStunnedEffect } = await import('../conditions/stunned.mjs');
+			  await removeStunnedEffect(actor, stunnedAdditionalCost);
+			}
+			
+			// Create overflow chat message
+			let messageContent;
+			if (staminaCost > 0 && manaCost > 0) {
+			  messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana and ${overflowAmount} Overflow Mana.`;
+			} else if (manaCost > 0) {
+			  messageContent = `${actor.name} spent ${manaCost} Mana and ${overflowAmount} Overflow Mana.`;
+			} else {
+			  messageContent = `${actor.name} spent ${overflowAmount} Overflow Mana.`;
+			}
+			
+			const chatData = {
+			  user: game.user.id,
+			  speaker: ChatMessage.getSpeaker({ actor: actor }),
+			  content: messageContent,
+			  type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+			  sound: CONFIG.sounds.notification,
+			  flags: {
+				core: {
+				  canPopout: true
+				}
+			  }
+			};
+			
+			chatData.content = `
+			  <div style="background: url('systems/stryder/assets/parchment.jpg'); 
+						  background-size: cover; 
+						  padding: 15px; 
+						  border: 1px solid #c9a66b; 
+						  border-radius: 3px;">
+				<h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Resource Expenditure</strong></h3>
+				<p>${messageContent}</p>
+			  </div>
+			`;
+			
+			ChatMessage.create(chatData);
+			
+		  }).catch(err => {
+			console.error("Error spending resources with overflow:", err);
+			ui.notifications.error("Failed to spend resources with overflow!");
+		  });
+		  
+		  return;
+		}
+	  }
+
 	  // Prepare updates
 	  const updates = {};
 	  let hasResources = false;
+	  let stunnedAdditionalCost = 0;
 
 	  if (staminaCost > 0 && actor.system.stamina?.value !== undefined) {
-		updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - staminaCost);
+		// Use the stunned-adjusted cost if we calculated it earlier
+		const finalStaminaCost = adjustedStaminaCost || staminaCost;
+		stunnedAdditionalCost = finalStaminaCost - staminaCost;
+		
+		updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - finalStaminaCost);
 		hasResources = true;
 	  }
 
@@ -677,11 +856,17 @@ export class StryderItem extends Item {
 
 	  // Apply updates if there are any
 	  if (hasResources && Object.keys(updates).length > 0) {
-		actor.update(updates).then(() => {
+		actor.update(updates).then(async () => {
 		  ui.notifications.info(`Resources spent for ${actor.name}!`);
 		  // Disable the button after clicking
 		  button.disabled = true;
 		  button.textContent = "Resources Spent";
+		  
+		  // Remove stunned effect if additional stamina was spent
+		  if (stunnedAdditionalCost > 0) {
+			const { removeStunnedEffect } = await import('../conditions/stunned.mjs');
+			await removeStunnedEffect(actor, stunnedAdditionalCost);
+		  }
 		  
 		  // Create chat message content
 		  let messageContent;
@@ -731,8 +916,103 @@ export class StryderItem extends Item {
 	  }
 	}
 
+
+	async function handleBloodlossSpend(event) {
+	  event.preventDefault();
+	  const button = event.currentTarget;
+	  const bloodlossCost = parseInt(button.dataset.bloodlossCost) || 0;
+	  const itemId = button.dataset.itemId;
+	  
+	  if (!itemId) {
+		console.error("No item ID found for bloodloss button");
+		return;
+	  }
+	  
+	  // Get the currently controlled tokens
+	  const controlledTokens = canvas.tokens.controlled;
+	  
+	  if (controlledTokens.length === 0) {
+		ui.notifications.warn("No character selected! Please select a token first.");
+		return;
+	  }
+
+	  const token = controlledTokens[0];
+	  let actor = token.actor;
+	  
+	  if (!actor) {
+		ui.notifications.error("Selected token has no associated actor!");
+		return;
+	  }
+
+	  // Handle Lordling case
+	  if (actor.type === 'lordling') {
+		const linkedCharacterId = actor.system.linkedCharacterId;
+		if (!linkedCharacterId) {
+		  ui.notifications.warn("Lordling has no Linked Actor, so this action could not be performed!");
+		  return;
+		}
+		
+		const linkedActor = game.actors.get(linkedCharacterId);
+		if (!linkedActor) {
+		  ui.notifications.warn("Linked Actor not found!");
+		  return;
+		}
+		actor = linkedActor; // Use linked actor instead
+	  }
+	  
+	  // Get current bloodloss reduction
+	  const currentBloodlossReduction = actor.getFlag(SYSTEM_ID, "bloodlossHealthReduction") || 0;
+	  const newBloodlossReduction = currentBloodlossReduction + bloodlossCost;
+	  
+	  // Calculate what the new max HP would be
+	  const currentMaxHP = actor.system.health.max;
+	  const newMaxHP = currentMaxHP - bloodlossCost;
+	  
+	  if (newMaxHP <= 0) {
+		ui.notifications.error(`${actor.name} cannot pay the bloodloss cost - it would reduce their maximum HP to ${newMaxHP} or below!`);
+		return;
+	  }
+	  
+	  // Update actor's bloodloss flag (the _calculateMaxHP function will handle the HP calculation)
+	  await actor.update({
+		[`flags.${SYSTEM_ID}.bloodlossHealthReduction`]: newBloodlossReduction
+	  });
+	  
+	  // Send notification
+	  const messageContent = `
+	  <div class="chat-message-card">
+		<div class="chat-message-header">
+		  <h3 class="chat-message-title">${actor.name} paid <strong>${bloodlossCost}</strong> Bloodloss cost</h3>
+		</div>
+		
+		<div class="chat-message-details">
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Maximum HP Lost:</span>
+			<span class="chat-health-box">${bloodlossCost}</span>
+		  </div>
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">New Maximum HP:</span>
+			<span class="chat-health-box">${newMaxHP}</span>
+		  </div>
+		  <div class="chat-message-detail-row">
+			<span class="chat-message-detail-label">Total Bloodloss Reduction:</span>
+			<span class="chat-health-box">${newBloodlossReduction}</span>
+		  </div>
+		</div>
+	  </div>
+	  `;
+
+	  await ChatMessage.create({
+		user: game.user.id,
+		speaker: ChatMessage.getSpeaker({actor}),
+		content: messageContent,
+		type: CONST.CHAT_MESSAGE_TYPES.OTHER
+	  });
+	}
+
 	Hooks.once('renderChatMessage', (message, html, data) => {
 	  html.find('.resource-spend-button').click(handleResourceSpend);
+	  html.find('.bloodloss-spend-button').click(handleBloodlossSpend);
 	});
 
 	let section1 = await createCollapsibleSection("Level 1 - Novice", item.system.novice);
@@ -1237,11 +1517,12 @@ export class StryderItem extends Item {
     // If there's no roll data, send a chat message.
 		if (item.type === "feature" || item.type === "skill" || item.type === "technique") {
 		  const resourceButton = createResourceSpendButton(item);
+		  const bloodlossButton = createBloodlossSpendButton(item);
 
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			flavor: contentHTML + resourceButton,
+			flavor: contentHTML + resourceButton + bloodlossButton,
 				flags: {
 					'stryder.itemId': item.id,
 					'stryder.rollType': 'utility'
@@ -1263,18 +1544,37 @@ export class StryderItem extends Item {
 			const diceBonus = item.system.roll.diceBonus;
 
 			const resourceButton = createResourceSpendButton(item);
+			const bloodlossButton = createBloodlossSpendButton(item);
 
-			// Construct the roll formula.
-			const formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
-
-			// Create the roll using the constructed formula.
-			const roll = new Roll(formula);
-			await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
+			// Check if alwaysRolls12 is enabled and modify formula accordingly
+			let formula;
+			let roll;
+			
+			if (item.system.hex.alwaysRollsTwelve) {
+				// Force the roll to always be 12 (6+6 for 2d6)
+				formula = "2d6";
+				roll = new Roll(formula);
+				
+				// Manually set the dice results to show 6, 6 for visual consistency
+				roll.terms = [new Die({number: 2, faces: 6, results: [
+					{result: 6, active: true},
+					{result: 6, active: true}
+				]})];
+				
+				// Recalculate the total after setting the dice results
+				roll._total = 12;
+				roll._evaluated = true;
+			} else {
+				// Construct the roll formula normally.
+				formula = `${diceNum}d${diceSize}` + (diceBonus ? `+${diceBonus}` : '');
+				roll = new Roll(formula);
+				await roll.evaluate({async: true}); // Evaluate the roll asynchronously.
+			}
 
 			// Send the result of the roll to the chat.
 			roll.toMessage({
 				speaker: speaker,
-				flavor: contentHTMLhex + resourceButton,
+				flavor: contentHTMLhex + resourceButton + bloodlossButton,
 				rollMode: rollMode,
 				flags: {
 					'stryder.itemId': item.id,
@@ -1286,6 +1586,53 @@ export class StryderItem extends Item {
 			if (item.system.hex.rollsDamage) {
 				let result = roll.total;
 				let quality, damageMultiplier;
+				
+				// Check if alwaysRollsTwelve is true and create special message
+				if (item.system.hex.alwaysRollsTwelve) {
+					quality = "Excellent";
+					damageMultiplier = 1.5;
+					
+					if (!item.actor || !item.actor.system.abilities.Arcana) {
+						console.error("Actor or Arcana ability not found for this item.");
+						return;
+					}
+
+					let arcanaValue = item.actor.system.abilities.Arcana.value;
+					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+					let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+					const totalDamage = baseDamage + masteryBonus;
+
+					const panickedPrefix = isActorPanicked(item.actor) ? `<strong>${item.actor.name} is Panicked!</strong> ` : "";
+					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+					const combinedMessage = `
+					<div style="margin-bottom: 5px;">
+						<div class="hex-quality-message" style="
+						  background: rgba(75, 0, 130, 0.15);
+						  border: 1px solid #4b0082;
+						  border-radius: 5px;
+						  padding: 8px 12px;
+						  margin-bottom: 5px;
+						  text-align: center;
+						  font-family: 'Cinzel Decorative', cursive;
+						  color: #4b0082;
+						  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+						">
+						  <strong>Always Rolls a Twelve</strong> - Hex evoked at maximum efficiency.
+						</div>
+						<div class="damage-quality excellent">
+						  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+						</div>
+						${damageButton}
+					</div>
+					`;
+					
+					ChatMessage.create({
+						speaker: speaker,
+						content: combinedMessage,
+						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+					});
+					return;
+				}
 				
 				// Check if alwaysRollsExcellent is true
 				if (item.system.hex.alwaysRollsExcellent) {
@@ -1302,6 +1649,7 @@ export class StryderItem extends Item {
 					let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
 					const totalDamage = baseDamage + masteryBonus;
 
+					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
 					const combinedMessage = `
 					<div style="margin-bottom: 5px;">
 						<div class="hex-quality-message" style="
@@ -1320,6 +1668,7 @@ export class StryderItem extends Item {
 						<div class="damage-quality excellent">
 						  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
 						</div>
+						${damageButton}
 					</div>
 					`;
 					
@@ -1330,15 +1679,37 @@ export class StryderItem extends Item {
 					});
 				} else {
 					// Determine quality based on roll result
-					if (result <= 4) {
-						quality = "Poor";
-						damageMultiplier = 0.5;
-					} else if (result >= 5 && result <= 10) {
-						quality = "Good";
-						damageMultiplier = 1.0;
-					} else if (result >= 11) {
-						quality = "Excellent";
-						damageMultiplier = 1.5;
+					// Check if actor is panicked and apply panicked quality logic
+					if (isActorPanicked(item.actor)) {
+						const panickedQuality = getPanickedRollQuality(result, "hex", item.system);
+						if (panickedQuality) {
+							quality = panickedQuality.quality;
+							damageMultiplier = panickedQuality.damageMultiplier;
+						} else {
+							// Hex doesn't roll damage, use normal logic
+							if (result <= 4) {
+								quality = "Poor";
+								damageMultiplier = 0.5;
+							} else if (result >= 5 && result <= 10) {
+								quality = "Good";
+								damageMultiplier = 1.0;
+							} else if (result >= 11) {
+								quality = "Excellent";
+								damageMultiplier = 1.5;
+							}
+						}
+					} else {
+						// Normal quality logic
+						if (result <= 4) {
+							quality = "Poor";
+							damageMultiplier = 0.5;
+						} else if (result >= 5 && result <= 10) {
+							quality = "Good";
+							damageMultiplier = 1.0;
+						} else if (result >= 11) {
+							quality = "Excellent";
+							damageMultiplier = 1.5;
+						}
 					}
 
 					if (!item.actor || !item.actor.system.abilities.Arcana) {
@@ -1354,10 +1725,13 @@ export class StryderItem extends Item {
 					}
 					const totalDamage = baseDamage + masteryBonus;
 
+					const panickedPrefix = isActorPanicked(item.actor) ? `<strong>${item.actor.name} is Panicked!</strong> ` : "";
+					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
 					const qualityMessage = `
 					<div class="damage-quality ${quality.toLowerCase()}">
-					  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+					  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
 					</div>
+					${damageButton}
 					`;
 					ChatMessage.create({
 						speaker: speaker,
@@ -1397,11 +1771,12 @@ export class StryderItem extends Item {
 		}
 		else if (item.type === "racial") {
 		  const resourceButton = createResourceSpendButton(item);
+		  const bloodlossButton = createBloodlossSpendButton(item);
 
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			flavor: contentHTMLracial + resourceButton,
+			flavor: contentHTMLracial + resourceButton + bloodlossButton,
 				flags: {
 					'stryder.itemId': item.id,
 					'stryder.rollType': 'utility'
@@ -1431,11 +1806,12 @@ export class StryderItem extends Item {
 		}
 		else if (item.type === "fantasm") {
 		  const resourceButton = createResourceSpendButton(item);
+		  const bloodlossButton = createBloodlossSpendButton(item);
 		  
 		  ChatMessage.create({
 			speaker: speaker,
 			rollMode: rollMode,
-			content: contentHTMLfantasm + resourceButton,
+			content: contentHTMLfantasm + resourceButton + bloodlossButton,
 				flags: {
 					'stryder.itemId': item.id,
 					'stryder.rollType': 'utility'
@@ -1501,6 +1877,7 @@ export class StryderItem extends Item {
 		  let diceBonus = item.system.roll.diceBonus;
 
 		  const resourceButton = createResourceSpendButton(item);
+		  const bloodlossButton = createBloodlossSpendButton(item);
 
 		  const shouldSkipRoll = !diceNum || diceNum === 0;
 
@@ -1510,7 +1887,7 @@ export class StryderItem extends Item {
 			ChatMessage.create({
 			  speaker: speaker,
 			  rollMode: rollMode,
-			  content: cleanedContent + resourceButton,
+			  content: cleanedContent + resourceButton + bloodlossButton,
 				flags: {
 					'stryder.itemId': item.id,
 					'stryder.rollType': 'utility'
@@ -1528,10 +1905,10 @@ export class StryderItem extends Item {
 				attributePath = "attributes.mastery";
 			  } else if (diceBonus === "might" || diceBonus === "magyk" || diceBonus === "speed" || diceBonus === "instinct") {
 				attributePath = `abilities.${diceBonus}.value`;
-			  } else if (diceBonus === "power") {
-				attributePath = `abilities.Power.value`;
-			  } else if (diceBonus === "agility") {
-				attributePath = `abilities.Agility.value`;
+			  } else if (diceBonus === "soul") {
+				attributePath = `abilities.Soul.value`;
+			  } else if (diceBonus === "reflex") {
+				attributePath = `abilities.Reflex.value`;
 			  } else if (diceBonus === "grit") {
 				attributePath = `abilities.Grit.value`;
 			  } else if (diceBonus === "arcana") {
@@ -1564,7 +1941,7 @@ export class StryderItem extends Item {
 		  await roll.evaluate({async: true});
 		  roll.toMessage({
 			speaker: speaker,
-			flavor: contentHTMLaction.replace(/<br \/>$/, '') + resourceButton, // Remove last <br /> here too
+			flavor: contentHTMLaction.replace(/<br \/>$/, '') + resourceButton + bloodlossButton, // Remove last <br /> here too
 			rollMode: rollMode
 		  });
 
@@ -1612,15 +1989,23 @@ export class StryderItem extends Item {
 				quality = "Excellent";
 				damageMultiplier = 1.5;
 			} else {
-				if (result <= 4) {
-					quality = "Poor";
-					damageMultiplier = 0.5;
-				} else if (result >= 5 && result <= 10) {
-					quality = "Good";
-					damageMultiplier = 1.0;
-				} else if (result >= 11) {
-					quality = "Excellent";
-					damageMultiplier = 1.5;
+				// Check if actor is panicked and apply panicked quality logic
+				if (isActorPanicked(actor)) {
+					const panickedQuality = getPanickedRollQuality(result, "armament", item.system);
+					quality = panickedQuality.quality;
+					damageMultiplier = panickedQuality.damageMultiplier;
+				} else {
+					// Normal quality logic
+					if (result <= 4) {
+						quality = "Poor";
+						damageMultiplier = 0.5;
+					} else if (result >= 5 && result <= 10) {
+						quality = "Good";
+						damageMultiplier = 1.0;
+					} else if (result >= 11) {
+						quality = "Excellent";
+						damageMultiplier = 1.5;
+					}
 				}
 			}
 
@@ -1630,7 +2015,7 @@ export class StryderItem extends Item {
 			}
 
 			// Validate if armament is a Witchblade to choose the correct ability
-			const abilityType = item.system.armament.isWitchblade ? "Arcana" : "Power";
+			const abilityType = item.system.armament.isWitchblade ? "Arcana" : "Soul";
 			const abilityValue = item.actor.system.abilities[abilityType].value;
 
 			let baseDamage;
@@ -1647,11 +2032,14 @@ export class StryderItem extends Item {
 			const masteryBonus = item.system.armament.addsMastery ? item.actor.system.attributes.mastery : 0;
 			const totalDamage = baseDamage + rawDamageAmp + masteryBonus; // Add rawDamageAmp and mastery bonus after multiplier
 
-			// Create follow-up chat message
+			// Create follow-up chat message with damage button
+			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
+			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'physical');
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
-			  <strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			  ${panickedPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
 			</div>
+			${damageButton}
 			`;
 			ChatMessage.create({
 				speaker: speaker,
@@ -1670,6 +2058,7 @@ export class StryderItem extends Item {
 			const rawDamageAmp = item.system.roll.rawDamageAmp || 0;
 
 			const resourceButton = createResourceSpendButton(item);
+			const bloodlossButton = createBloodlossSpendButton(item);
 
 			const actor = item.actor;
 			if (!actor) {
@@ -1685,8 +2074,8 @@ export class StryderItem extends Item {
 					magyk: "abilities.magyk.value",
 					speed: "abilities.speed.value",
 					instinct: "abilities.instinct.value",
-					power: "abilities.Power.value",
-					agility: "abilities.Agility.value",
+					soul: "abilities.Soul.value",
+					reflex: "abilities.Reflex.value",
 					grit: "abilities.Grit.value",
 					arcana: "abilities.Arcana.value",
 					intuition: "abilities.Intuition.value",
@@ -1710,7 +2099,7 @@ export class StryderItem extends Item {
 			await roll.evaluate({async: true});
 			roll.toMessage({
 				speaker: speaker,
-				flavor: contentHTMLgeneric + resourceButton,
+				flavor: contentHTMLgeneric + resourceButton + bloodlossButton,
 				rollMode: rollMode,
 				flags: {
 					'stryder.itemId': item.id,
@@ -1721,15 +2110,24 @@ export class StryderItem extends Item {
 			let result = roll.total;
 			let quality;
 			let damageMultiplier;
-			if (result <= 4) {
-				quality = "Poor";
-				damageMultiplier = 0.5;
-			} else if (result >= 5 && result <= 10) {
-				quality = "Good";
-				damageMultiplier = 1.0;
-			} else if (result >= 11) {
-				quality = "Excellent";
-				damageMultiplier = 1.5;
+			
+			// Check if actor is panicked and apply panicked quality logic
+			if (isActorPanicked(actor)) {
+				const panickedQuality = getPanickedRollQuality(result, "generic", item.system);
+				quality = panickedQuality.quality;
+				damageMultiplier = panickedQuality.damageMultiplier;
+			} else {
+				// Normal quality logic
+				if (result <= 4) {
+					quality = "Poor";
+					damageMultiplier = 0.5;
+				} else if (result >= 5 && result <= 10) {
+					quality = "Good";
+					damageMultiplier = 1.0;
+				} else if (result >= 11) {
+					quality = "Excellent";
+					damageMultiplier = 1.5;
+				}
 			}
 
 			let totalDamage;
@@ -1746,10 +2144,13 @@ export class StryderItem extends Item {
 			}
 			totalDamage += rawDamageAmp;
 
+			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
+			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'ahl');
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
-			  <strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			  ${panickedPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
 			</div>
+			${damageButton}
 			`;
 			ChatMessage.create({
 				speaker: speaker,
@@ -1772,3 +2173,411 @@ export class StryderItem extends Item {
 		}
   }
 }
+
+// Damage application handler - moved outside class for export
+async function handleDamageApply(event) {
+  event.preventDefault();
+  const button = event.currentTarget;
+  const damage = parseInt(button.dataset.damage) || 0;
+  const damageType = button.dataset.damageType || 'ahl'; // Default to ahl if not specified
+  
+  if (damage < 0) {
+	console.error("Invalid damage amount:", damage);
+	return;
+  }
+  
+  // Get the currently controlled tokens
+  const controlledTokens = canvas.tokens.controlled;
+  let targetActors = [];
+  
+  if (controlledTokens.length > 0) {
+	// Use all controlled tokens
+	targetActors = controlledTokens.map(token => token.actor).filter(actor => actor);
+  } else {
+	// Check if user has a player character selected in Foundry user configuration
+	const userCharacter = game.user.character;
+	if (userCharacter) {
+	  targetActors = [userCharacter];
+	} else {
+	  ui.notifications.error("Please select an Actor to damage!");
+	  return;
+	}
+  }
+  
+  if (targetActors.length === 0) {
+	ui.notifications.error("No valid targets found!");
+	return;
+  }
+  
+  // Process damage for all target actors
+  const damageResults = [];
+  const actorUpdates = [];
+  
+  for (const targetActor of targetActors) {
+	// Calculate damage reduction based on damage type
+	let finalDamage = damage;
+	let reductionAmount = 0;
+	let reductionType = '';
+	
+	if (damageType === 'physical') {
+	  reductionAmount = targetActor.system.physical_reduction || 0;
+	  reductionType = 'Physical';
+	} else if (damageType === 'magykal') {
+	  reductionAmount = targetActor.system.magykal_reduction || 0;
+	  reductionType = 'Magykal';
+	}
+	
+	// Apply reduction
+	if (reductionAmount > 0) {
+	  finalDamage = Math.max(0, damage - reductionAmount);
+	}
+	
+	// Calculate damage breakdown for this actor
+	let armorDamage = 0;
+	let healthDamage = 0;
+	let remainingDamage = finalDamage;
+	
+	if (targetActor.type === "monster") {
+	  // For monsters, damage armor first, then health
+	  const currentArmor = targetActor.system.armor?.value || 0;
+	  if (currentArmor > 0) {
+		armorDamage = Math.min(remainingDamage, currentArmor);
+		remainingDamage -= armorDamage;
+	  }
+	}
+	
+	// Calculate health damage
+	if (remainingDamage > 0) {
+	  healthDamage = remainingDamage;
+	}
+	
+	// Prepare updates for this actor
+	let updates = {};
+	if (armorDamage > 0) {
+	  const currentArmor = targetActor.system.armor?.value || 0;
+	  updates['system.armor.value'] = Math.max(0, currentArmor - armorDamage);
+	}
+	if (healthDamage > 0) {
+	  const currentHealth = targetActor.system.health?.value || 0;
+	  updates['system.health.value'] = Math.max(0, currentHealth - healthDamage);
+	}
+	
+	// Store damage result and updates
+	damageResults.push({
+	  actor: targetActor,
+	  armorDamage: armorDamage,
+	  healthDamage: healthDamage,
+	  totalDamage: armorDamage + healthDamage,
+	  originalDamage: damage,
+	  finalDamage: finalDamage,
+	  reductionAmount: reductionAmount,
+	  reductionType: reductionType
+	});
+	
+	actorUpdates.push({
+	  actor: targetActor,
+	  updates: updates
+	});
+  }
+  
+  // Apply updates to all actors
+  try {
+	for (const { actor, updates } of actorUpdates) {
+	  await actor.update(updates);
+	}
+	
+	// Disable the button after clicking
+	button.disabled = true;
+	button.textContent = "Damage Applied";
+	
+	// Apply disabled styling
+	button.style.background = "linear-gradient(to bottom, #6c757d, #545b62)";
+	button.style.cursor = "not-allowed";
+	
+	// Store reference to this button for potential undo
+	button.dataset.damageApplied = "true";
+	
+	// Create chat message
+	let damageMessage;
+	let undoButton = "";
+	let reductionInfoIcon = "";
+	
+	// Check if any actor had damage reduced
+	const hasReduction = damageResults.some(result => result.reductionAmount > 0);
+	
+	if (damage === 0 || damageResults.every(result => result.finalDamage === 0)) {
+	  if (targetActors.length === 1) {
+		damageMessage = `${targetActors[0].name} took no damage.`;
+	  } else {
+		damageMessage = `The following took no damage:<br>• ${targetActors.map(actor => actor.name).join('<br>• ')}`;
+	  }
+	  
+	  // Add reduction info icon even for no damage if there was reduction
+	  if (hasReduction) {
+		const totalReduction = damageResults.reduce((sum, result) => sum + result.reductionAmount, 0);
+		const reductionTypes = [...new Set(damageResults.filter(r => r.reductionAmount > 0).map(r => r.reductionType))];
+		const reductionTypeText = reductionTypes.join('/');
+		
+		reductionInfoIcon = `
+		  <span class="reduction-info-container" style="margin-right: 5px;">
+			<i class="fas fa-info-circle reduction-info" 
+			   title="-${totalReduction} less damage from ${reductionTypeText} reduction." 
+			   style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
+		  </span>
+		`;
+	  }
+	} else {
+	  if (targetActors.length === 1) {
+		const result = damageResults[0];
+		damageMessage = `${result.actor.name} took ${result.finalDamage} damage`;
+		if (result.actor.type === "monster" && result.armorDamage > 0) {
+		  damageMessage += ` (${result.armorDamage} to armor, ${result.healthDamage} to health)`;
+		}
+		damageMessage += ".";
+	  } else {
+		damageMessage = `The following took damage:<br>`;
+		damageMessage += damageResults.map(result => {
+		  if (result.finalDamage === 0) {
+			return `• ${result.actor.name}: no damage`;
+		  }
+		  let line = `• ${result.actor.name}: ${result.finalDamage} damage`;
+		  if (result.actor.type === "monster" && result.armorDamage > 0) {
+			line += ` (${result.armorDamage} armor, ${result.healthDamage} health)`;
+		  }
+		  return line;
+		}).join('<br>');
+	  }
+	  
+	  // Add undo button for non-zero damage
+	  undoButton = `
+		<span class="damage-undo-container" style="margin-left: 5px;">
+		  <i class="fas fa-undo-alt damage-undo" 
+			 data-actor-ids="${damageResults.map(r => r.actor.id).join(',')}" 
+			 data-armor-damages="${damageResults.map(r => r.armorDamage).join(',')}" 
+			 data-health-damages="${damageResults.map(r => r.healthDamage).join(',')}"
+			 title="Undo Damage" 
+			 style="color: #6c757d; cursor: pointer; font-size: 14px;"></i>
+		</span>
+	  `;
+	  
+	  // Add reduction info icon if there was any reduction
+	  if (hasReduction) {
+		const totalReduction = damageResults.reduce((sum, result) => sum + result.reductionAmount, 0);
+		const reductionTypes = [...new Set(damageResults.filter(r => r.reductionAmount > 0).map(r => r.reductionType))];
+		const reductionTypeText = reductionTypes.join('/');
+		
+		reductionInfoIcon = `
+		  <span class="reduction-info-container" style="margin-right: 5px;">
+			<i class="fas fa-info-circle reduction-info" 
+			   title="-${totalReduction} less damage from ${reductionTypeText} reduction." 
+			   style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
+		  </span>
+		`;
+	  }
+	}
+	
+	ChatMessage.create({
+	  user: game.user.id,
+	  speaker: ChatMessage.getSpeaker({actor: targetActors[0]}),
+	  content: `
+		<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+					background-size: cover; 
+					padding: 15px; 
+					border: 1px solid #c9a66b; 
+					border-radius: 3px;">
+		  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b; color: #dc3545;"><strong>Damage Applied</strong></h3>
+		  <p style="margin-bottom: 0;"><span class="damage-text">${damageMessage}</span>${reductionInfoIcon}${undoButton}</p>
+		</div>
+	  `,
+	  type: CONST.CHAT_MESSAGE_TYPES.OTHER
+	});
+	
+	if (damage > 0) {
+	  if (targetActors.length === 1) {
+		ui.notifications.info(`Applied ${damage} damage to ${targetActors[0].name}!`);
+	  } else {
+		ui.notifications.info(`Applied ${damage} damage to ${targetActors.length} targets!`);
+	  }
+	} else {
+	  if (targetActors.length === 1) {
+		ui.notifications.info(`${targetActors[0].name} took no damage.`);
+	  } else {
+		ui.notifications.info(`${targetActors.length} targets took no damage.`);
+	  }
+	}
+	
+  } catch (err) {
+	console.error("Error applying damage:", err);
+	ui.notifications.error("Failed to apply damage!");
+  }
+}
+
+// Damage undo handler
+async function handleDamageUndo(event) {
+  event.preventDefault();
+  const undoIcon = event.currentTarget;
+  const actorIds = undoIcon.dataset.actorIds;
+  const armorDamages = undoIcon.dataset.armorDamages;
+  const healthDamages = undoIcon.dataset.healthDamages;
+  
+  if (!actorIds) {
+	console.error("No actor IDs found for undo button");
+	return;
+  }
+  
+  // Parse the comma-separated values
+  const actorIdList = actorIds.split(',');
+  const armorDamageList = armorDamages.split(',').map(d => parseInt(d) || 0);
+  const healthDamageList = healthDamages.split(',').map(d => parseInt(d) || 0);
+  
+  const targetActors = actorIdList.map(id => game.actors.get(id)).filter(actor => actor);
+  
+  if (targetActors.length === 0) {
+	ui.notifications.error("No valid targets found!");
+	return;
+  }
+  
+  // Prepare restoration updates for all actors
+  const actorUpdates = [];
+  
+  for (let i = 0; i < targetActors.length; i++) {
+	const targetActor = targetActors[i];
+	const armorDamage = armorDamageList[i] || 0;
+	const healthDamage = healthDamageList[i] || 0;
+	
+	let updates = {};
+	if (armorDamage > 0) {
+	  const currentArmor = targetActor.system.armor?.value || 0;
+	  const maxArmor = targetActor.system.armor?.max || currentArmor + armorDamage;
+	  updates['system.armor.value'] = Math.min(maxArmor, currentArmor + armorDamage);
+	}
+	if (healthDamage > 0) {
+	  const currentHealth = targetActor.system.health?.value || 0;
+	  const maxHealth = targetActor.system.health?.max || currentHealth + healthDamage;
+	  updates['system.health.value'] = Math.min(maxHealth, currentHealth + healthDamage);
+	}
+	
+	actorUpdates.push({
+	  actor: targetActor,
+	  updates: updates,
+	  armorDamage: armorDamage,
+	  healthDamage: healthDamage
+	});
+  }
+  
+  // Apply restoration updates
+  try {
+	for (const { actor, updates } of actorUpdates) {
+	  await actor.update(updates);
+	}
+	
+	// Disable the undo button and add visual feedback
+	undoIcon.style.color = "#28a745";
+	undoIcon.style.cursor = "not-allowed";
+	undoIcon.title = "Damage Restored";
+	
+	// Find the parent paragraph and add strikethrough to the damage text
+	const parentParagraph = undoIcon.closest('p');
+	if (parentParagraph) {
+	  const damageTextSpan = parentParagraph.querySelector('.damage-text');
+	  if (damageTextSpan) {
+		damageTextSpan.style.textDecoration = "line-through";
+		damageTextSpan.style.opacity = "0.6";
+	  }
+	}
+	
+	// Find and re-enable the original damage button
+	// Look through recent chat messages to find the original damage button
+	const totalDamage = actorUpdates.reduce((sum, { armorDamage, healthDamage }) => sum + armorDamage + healthDamage, 0);
+	const recentMessages = game.messages.contents.slice(-10); // Check last 10 messages
+	for (const message of recentMessages) {
+	  const messageContent = message.content;
+	  if (messageContent && messageContent.includes('damage-apply-button')) {
+		// Parse the HTML content to find the damage button
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(messageContent, 'text/html');
+		const damageButton = doc.querySelector('.damage-apply-button');
+		if (damageButton && parseInt(damageButton.dataset.damage) === totalDamage) {
+		  // Found the matching damage button - re-enable it
+		  damageButton.disabled = false;
+		  damageButton.textContent = damageButton.textContent.replace("Damage Applied", "Apply " + damageButton.dataset.damage + " Damage");
+		  damageButton.style.background = "linear-gradient(to bottom, #dc3545, #b02a37)";
+		  damageButton.style.cursor = "pointer";
+		  
+		  // Update the actual DOM element in the chat
+		  const chatMessageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+		  if (chatMessageElement) {
+			const actualButton = chatMessageElement.querySelector('.damage-apply-button');
+			if (actualButton) {
+			  actualButton.disabled = false;
+			  actualButton.textContent = actualButton.textContent.replace("Damage Applied", "Apply " + actualButton.dataset.damage + " Damage");
+			  actualButton.style.background = "linear-gradient(to bottom, #dc3545, #b02a37)";
+			  actualButton.style.cursor = "pointer";
+			}
+		  }
+		  break;
+		}
+	  }
+	}
+	
+	// Create restoration chat message
+	const totalRestored = actorUpdates.reduce((sum, { armorDamage, healthDamage }) => sum + armorDamage + healthDamage, 0);
+	let restorationMessage;
+	
+	if (targetActors.length === 1) {
+	  const { armorDamage, healthDamage } = actorUpdates[0];
+	  restorationMessage = `Restored ${totalRestored} damage to ${targetActors[0].name}`;
+	  if (armorDamage > 0 && healthDamage > 0) {
+		restorationMessage += ` (${armorDamage} armor, ${healthDamage} health)`;
+	  } else if (armorDamage > 0) {
+		restorationMessage += ` (${armorDamage} armor)`;
+	  } else if (healthDamage > 0) {
+		restorationMessage += ` (${healthDamage} health)`;
+	  }
+	  restorationMessage += ".";
+	} else {
+	  restorationMessage = `Restored damage to ${targetActors.length} targets:<br>`;
+	  restorationMessage += actorUpdates.map(({ actor, armorDamage, healthDamage }) => {
+		const total = armorDamage + healthDamage;
+		let line = `• ${actor.name}: ${total} damage restored`;
+		if (armorDamage > 0 && healthDamage > 0) {
+		  line += ` (${armorDamage} armor, ${healthDamage} health)`;
+		} else if (armorDamage > 0) {
+		  line += ` (${armorDamage} armor)`;
+		} else if (healthDamage > 0) {
+		  line += ` (${healthDamage} health)`;
+		}
+		return line;
+	  }).join('<br>');
+	}
+	
+	ChatMessage.create({
+	  user: game.user.id,
+	  speaker: ChatMessage.getSpeaker({actor: targetActors[0]}),
+	  content: `
+		<div style="background: url('systems/stryder/assets/parchment.jpg'); 
+					background-size: cover; 
+					padding: 15px; 
+					border: 1px solid #c9a66b; 
+					border-radius: 3px;">
+		  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b; color: #28a745;"><strong>Damage Restored</strong></h3>
+		  <p style="margin-bottom: 0;">${restorationMessage}</p>
+		</div>
+	  `,
+	  type: CONST.CHAT_MESSAGE_TYPES.OTHER
+	});
+	
+	if (targetActors.length === 1) {
+	  ui.notifications.info(`Restored ${totalRestored} damage to ${targetActors[0].name}!`);
+	} else {
+	  ui.notifications.info(`Restored damage to ${targetActors.length} targets!`);
+	}
+	
+  } catch (err) {
+	console.error("Error restoring damage:", err);
+	ui.notifications.error("Failed to restore damage!");
+  }
+}
+
+// Export the damage application and undo handlers
+export { handleDamageApply, handleDamageUndo };

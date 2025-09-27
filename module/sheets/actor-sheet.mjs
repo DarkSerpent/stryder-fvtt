@@ -16,7 +16,7 @@ export class StryderActorSheet extends ActorSheet {
       classes: ['stryder', 'sheet', 'actor'],
       width: 600,
       height: 700,
-      resizable: ["vertical"],
+      resizable: true,
       tabs: [
         {
           navSelector: '.sheet-tabs',
@@ -33,22 +33,38 @@ export class StryderActorSheet extends ActorSheet {
 	 */
 	toggleItems(header) {
 	  const listItem = header.closest('li.items-header');
-	  if (!listItem) return;
+	  const attributeHeader = header.closest('.attribute-modification-section .items-header');
+	  const parentElement = listItem || attributeHeader;
+	  if (!parentElement) return;
 	  
-	  const itemList = listItem.parentElement;
-	  const items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+	  const itemList = parentElement.parentElement;
+	  let items;
 	  const icon = header.querySelector('.toggle-icon');
 	  const sectionName = header.textContent.trim().toLowerCase().replace(/\s+/g, '-');
 	  
+	  // Handle different container types
+	  if (listItem) {
+		// Standard item list sections
+		items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+	  } else if (attributeHeader) {
+		// Attribute modifications section
+		items = Array.from(itemList.querySelectorAll('.attribute-inputs-container'));
+	  }
+	  
 	  // Skip if elements aren't found
-	  if (!items.length || !icon) return;
+	  if (!items || !items.length || !icon) return;
 	  
 	  // Determine new state
 	  const isCollapsed = items[0].style.display !== "none";
 	  const newState = isCollapsed ? "collapsed" : "expanded";
 	  
 	  // Update display and icon
-	  items.forEach(item => item.style.display = isCollapsed ? "none" : "flex");
+	  if (listItem) {
+		items.forEach(item => item.style.display = isCollapsed ? "none" : "flex");
+	  } else if (attributeHeader) {
+		items.forEach(item => item.style.display = isCollapsed ? "none" : "block");
+	  }
+	  
 	  icon.classList.toggle('fa-chevron-down', !isCollapsed);
 	  icon.classList.toggle('fa-chevron-up', isCollapsed);
 	  
@@ -66,21 +82,36 @@ export class StryderActorSheet extends ActorSheet {
 		const sectionName = header.textContent.trim().toLowerCase().replace(/\s+/g, '-');
 		const sectionState = flags[`section-${sectionName}`];
 		const listItem = header.closest('li.items-header');
-		if (!listItem) return;
+		const attributeHeader = header.closest('.attribute-modification-section .items-header');
+		const parentElement = listItem || attributeHeader;
+		if (!parentElement) return;
 		
-		const itemList = listItem.parentElement;
-		const items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+		const itemList = parentElement.parentElement;
+		let items;
 		const icon = header.querySelector('.toggle-icon');
 		
+		// Handle different container types
+		if (listItem) {
+		  // Standard item list sections
+		  items = Array.from(itemList.querySelectorAll('li:not(.items-header)'));
+		} else if (attributeHeader) {
+		  // Attribute modifications section
+		  items = Array.from(itemList.querySelectorAll('.attribute-inputs-container'));
+		}
+		
 		// Skip if elements aren't found
-		if (!items.length || !icon) return;
+		if (!items || !items.length || !icon) return;
 		
 		if (sectionState === "collapsed") {
 		  items.forEach(item => item.style.display = "none");
 		  icon.classList.remove('fa-chevron-down');
 		  icon.classList.add('fa-chevron-up');
 		} else {
-		  items.forEach(item => item.style.display = "flex");
+		  if (listItem) {
+			items.forEach(item => item.style.display = "flex");
+		  } else if (attributeHeader) {
+			items.forEach(item => item.style.display = "block");
+		  }
 		  icon.classList.remove('fa-chevron-up');
 		  icon.classList.add('fa-chevron-down');
 		}
@@ -156,6 +187,7 @@ export class StryderActorSheet extends ActorSheet {
 
     context.gearSlotsUsed = this._calculateGearSlotsUsed();
     context.lootSlotsUsed = this._calculateLootSlotsUsed();
+    context.armsSlotsUsed = this._calculateArmsSlotsUsed();
 
 	context.sectionStates = this.actor.flags.stryder || {};
 
@@ -165,6 +197,10 @@ export class StryderActorSheet extends ActorSheet {
       // as well as any items
       this.actor.allApplicableEffects()
     );
+
+    // Check for Bangleless condition
+    const { isActorBangleless } = await import('../conditions/bangleless.mjs');
+    context.isBangleless = isActorBangleless(this.actor);
 
     return context;
   }
@@ -180,6 +216,13 @@ export class StryderActorSheet extends ActorSheet {
     const lootItems = this.actor.items.filter(i => i.type === 'loot');
     return lootItems.reduce((total, item) => {
       return total + parseInt(item.system.inventory_size || 1);
+    }, 0);
+  }
+
+  _calculateArmsSlotsUsed() {
+    const armsItems = this.actor.items.filter(i => i.type === 'arms');
+    return armsItems.reduce((total, item) => {
+      return total + parseInt(item.system.slot_space || 1);
     }, 0);
   }
 
@@ -209,6 +252,7 @@ export class StryderActorSheet extends ActorSheet {
 	  // Create new effect if a talent is selected
 	  if (talentKey && talentKey !== "") {
 		const effectData = {
+		  name: effectName,
 		  label: effectName,
 		  icon: "icons/logo-scifi-blank.png",
 		  changes: [{
@@ -457,6 +501,13 @@ export class StryderActorSheet extends ActorSheet {
 		this.toggleItems(ev.currentTarget);
 	  });
 
+	  // Handle clicks on the entire items-header ONLY for attribute modifications section
+	  html.find('.attribute-modification-section .items-header').click(ev => {
+		// Only handle if the click wasn't already handled by .item-name
+		if (ev.target.closest('.item-name')) return;
+		this.toggleItems(ev.currentTarget.querySelector('.item-name'));
+	  });
+
     // Render the item sheet for viewing/editing prior to the editable check.
     html.on('click', '.item-edit', (ev) => {
       const li = $(ev.currentTarget).parents('.item');
@@ -470,6 +521,9 @@ export class StryderActorSheet extends ActorSheet {
 
     // Add Inventory Item
     html.on('click', '.item-create', this._onItemCreate.bind(this));
+    
+    // Open Compendium
+    html.on('click', '.item-control[data-action="compendium"]', this._onOpenCompendium.bind(this));
 
     // Delete Inventory Item
     html.on('click', '.item-delete', (ev) => {
@@ -490,7 +544,7 @@ export class StryderActorSheet extends ActorSheet {
     });
 
 	// Resource buttons
-	html.on('click', '.resource-button', async (event) => {
+	html.on('click', '.resource-button, .fantasy-action-button', async (event) => {
 	  event.preventDefault();
 	  const button = event.currentTarget;
 	  const action = button.dataset.action;
@@ -510,23 +564,28 @@ export class StryderActorSheet extends ActorSheet {
 		  updates['system.stamina.value'] = this.actor.system.stamina.max;
 		  updates['system.mana.value'] = this.actor.system.mana.max;
 		  updates['system.focus.value'] = this.actor.system.focus.max;
+		  // Remove exhaustion effects
+		  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
+		  await removeExhaustionEffects(this.actor);
 		  break;
 		  
 		case 'springOfLife':
-		  // Get current burning health reduction
+		  // Get current burning and bloodloss health reduction
 		  const burningReduction = this.actor.getFlag(SYSTEM_ID, "burningHealthReduction") || 0;
+		  const bloodlossReduction = this.actor.getFlag(SYSTEM_ID, "bloodlossHealthReduction") || 0;
+		  const totalReduction = burningReduction + bloodlossReduction;
 		  
 		  // Calculate how much health to restore (current max + reduction)
-		  const newMax = this.actor.system.health.max + burningReduction;
+		  const newMax = this.actor.system.health.max + totalReduction;
 		  
 		  updates['system.health.value'] = newMax;
 		  updates['system.mana.value'] = this.actor.system.mana.max;
-		  updates['system.aegis.value'] = this.actor.system.aegis.max;
 		  updates['system.focus.value'] = this.actor.system.focus.max;
 		  updates['system.stamina.value'] = 0;
 		  
-		  // Remove burning health reduction flag
+		  // Remove burning and bloodloss health reduction flags
 		  updates[`flags.${SYSTEM_ID}.burningHealthReduction`] = null;
+		  updates[`flags.${SYSTEM_ID}.bloodlossHealthReduction`] = null;
 		  break;
 	  }
 	  
@@ -536,7 +595,7 @@ export class StryderActorSheet extends ActorSheet {
 
 		  switch (action) {
 			case 'turnStart':
-			  message = `${this.actor.name} has regained all Stamina at the start of their turn.`;
+			  message = `${this.actor.name} has regained all Stamina at the  of their turn.`;
 			  updates['system.stamina.value'] = this.actor.system.stamina.max;
 			  break;
 
@@ -550,25 +609,38 @@ export class StryderActorSheet extends ActorSheet {
 			  updates['system.stamina.value'] = this.actor.system.stamina.max;
 			  updates['system.mana.value'] = this.actor.system.mana.max;
 			  updates['system.focus.value'] = this.actor.system.focus.max;
+			  // Remove exhaustion effects
+			  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
+			  await removeExhaustionEffects(this.actor);
 			  break;
 
 			case 'springOfLife':
 			  const burningReduction = this.actor.getFlag(SYSTEM_ID, "burningHealthReduction") || 0;
-			  const newMax = this.actor.system.health.max + burningReduction;
+			  const bloodlossReduction = this.actor.getFlag(SYSTEM_ID, "bloodlossHealthReduction") || 0;
+			  const totalReduction = burningReduction + bloodlossReduction;
+			  const newMax = this.actor.system.health.max + totalReduction;
 
 			  updates = {
 				'system.health.value': newMax,
 				'system.mana.value': this.actor.system.mana.max,
-				'system.aegis.value': this.actor.system.aegis.max,
 				'system.focus.value': this.actor.system.focus.max,
 				'system.stamina.value': 0,
-				[`flags.${SYSTEM_ID}.burningHealthReduction`]: null
+				[`flags.${SYSTEM_ID}.burningHealthReduction`]: null,
+				[`flags.${SYSTEM_ID}.bloodlossHealthReduction`]: null
 			  };
 
-			  message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, Aegis, and Focus but setting Stamina to 0.`;
+			  message = `${this.actor.name} has used Spring of Life, regaining all Health, Mana, and Focus but setting Stamina to 0.`;
 
-			  if (burningReduction > 0) {
-				message += `<br><br>In addition, the Spring of Life has healed burns that ${this.actor.name} sustained, restoring their Max Health by ${burningReduction}.`;
+			  if (totalReduction > 0) {
+				let restorationMessage = `<br><br>In addition, the Spring of Life has healed wounds that ${this.actor.name} sustained, restoring their Max Health by ${totalReduction}.`;
+				if (burningReduction > 0 && bloodlossReduction > 0) {
+				  restorationMessage = `<br><br>In addition, the Spring of Life has healed burns and bloodloss that ${this.actor.name} sustained, restoring their Max Health by ${totalReduction} (${burningReduction} from burns, ${bloodlossReduction} from bloodloss).`;
+				} else if (burningReduction > 0) {
+				  restorationMessage = `<br><br>In addition, the Spring of Life has healed burns that ${this.actor.name} sustained, restoring their Max Health by ${burningReduction}.`;
+				} else if (bloodlossReduction > 0) {
+				  restorationMessage = `<br><br>In addition, the Spring of Life has healed bloodloss that ${this.actor.name} sustained, restoring their Max Health by ${bloodlossReduction}.`;
+				}
+				message += restorationMessage;
 			  }
 			  break;
 		  }
@@ -668,15 +740,28 @@ export class StryderActorSheet extends ActorSheet {
 				return ui.notifications.warn(`Linked Actor not found!`);
 			}
 			
-			// Check stamina on linked actor instead of lordling
-			if (!actor.system.booleans?.usingUnboundLeap) {
-				const currentStamina = linkedActor.system.stamina.value;
-				if (currentStamina < 1) {
-					return ui.notifications.warn(`${linkedActor.name} doesn't have enough Stamina to leap!`);
-				}
-				await linkedActor.update({"system.stamina.value": currentStamina - 1});
-				staminaText = `1 Stamina was spent by ${linkedActor.name} (Linked Actor).`;
+		// Check stamina on linked actor instead of lordling
+		if (!actor.system.booleans?.usingUnboundLeap) {
+			const currentStamina = linkedActor.system.stamina.value;
+			if (currentStamina < 1) {
+				return ui.notifications.warn(`${linkedActor.name} doesn't have enough Stamina to leap!`);
 			}
+			
+			// Check for Stunned condition
+			const { handleStunnedStaminaSpend, removeStunnedEffect } = await import('../conditions/stunned.mjs');
+			const stunnedResult = await handleStunnedStaminaSpend(linkedActor, 1, 'jump');
+			if (!stunnedResult.shouldProceed) {
+				return; // Error message already shown
+			}
+			
+			await linkedActor.update({"system.stamina.value": currentStamina - stunnedResult.cost});
+			staminaText = `${stunnedResult.cost} Stamina was spent by ${linkedActor.name} (Linked Actor).`;
+			
+			// Remove stunned effect if it was applied
+			if (stunnedResult.cost > 1) {
+				await removeStunnedEffect(linkedActor, stunnedResult.cost - 1);
+			}
+		}
 		} 
 		// Normal character logic
 		else if (!actor.system.booleans?.usingUnboundLeap) {
@@ -684,7 +769,20 @@ export class StryderActorSheet extends ActorSheet {
 			if (currentStamina < 1) {
 				return ui.notifications.warn(`${actor.name} doesn't have enough Stamina to leap!`);
 			}
-			await actor.update({"system.stamina.value": currentStamina - 1});
+			
+			// Check for Stunned condition
+			const { handleStunnedStaminaSpend, removeStunnedEffect } = await import('../conditions/stunned.mjs');
+			const stunnedResult = await handleStunnedStaminaSpend(actor, 1, 'jump');
+			if (!stunnedResult.shouldProceed) {
+				return; // Error message already shown
+			}
+			
+			await actor.update({"system.stamina.value": currentStamina - stunnedResult.cost});
+			
+			// Remove stunned effect if it was applied
+			if (stunnedResult.cost > 1) {
+				await removeStunnedEffect(actor, stunnedResult.cost - 1);
+			}
 		}
 		
 		// Create chat message
@@ -882,8 +980,13 @@ export class StryderActorSheet extends ActorSheet {
 			}
 		} else if (type === 'arms') {
 			const armsItems = this.actor.items.filter(i => i.type === 'arms');
-			if (armsItems.length >= 1) {
-				let message = game.i18n.localize('<b>Notice:</b> You cannot equip more than 1 Arm item in your Arms Slot!');
+			const armsSlotsUsed = armsItems.reduce((acc, item) => {
+				return acc + parseInt(item.system.slot_space || 1);
+			}, 0);
+
+			const newItemSize = parseInt(header.dataset.slotSpace || 1);
+			if (armsSlotsUsed + newItemSize > 2) {
+				let message = game.i18n.localize('<b>Notice:</b> Your "Arms" slots are full! Please drop an item or move one to storage before adding another.');
 				ChatMessage.create({
 					content: message,
 					speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -927,6 +1030,25 @@ export class StryderActorSheet extends ActorSheet {
 
 	  return await Item.create(itemData, { parent: this.actor });
 	}
+
+  /**
+   * Handle opening compendiums.
+   * @param {Event} event   The originating click event
+   * @private
+   */
+  async _onOpenCompendium(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const packName = button.dataset.pack;
+    
+    // Get the compendium pack
+    const pack = game.packs.get(`stryder.${packName}`);
+    if (pack) {
+      pack.render(true);
+    } else {
+      console.warn(`Compendium pack stryder.${packName} not found`);
+    }
+  }
 
   /**
    * Handle clickable rolls.

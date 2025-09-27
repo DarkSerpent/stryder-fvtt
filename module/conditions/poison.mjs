@@ -3,6 +3,8 @@ import { SYSTEM_ID } from '../helpers/constants.mjs';
 export async function handlePoisonApplication(effect) {
   const actor = effect.parent;
   
+  console.log("Poison effect being configured:", effect);
+  
   // Check for Aegis protection
   if (actor.system.aegis?.value > 0) {
     ui.notifications.error(`${actor.name} cannot receive Poison because they have positive Aegis!`);
@@ -42,26 +44,53 @@ export async function handlePoisonApplication(effect) {
   // Handle stage selection
   $(document).on('click', '.stage-button', async (event) => {
     const stage = parseInt(event.currentTarget.dataset.stage);
-    await effect.update({
-      label: `Poisoned (Stage ${stage})`,
-      changes: [],
-      flags: {
-        [SYSTEM_ID]: {
-          poisonStage: stage,
-          poisonRoundsPassed: 0 // Track rounds for stage 4
+    console.log("Setting poison stage:", stage);
+    
+    try {
+      await effect.update({
+        name: `Poisoned (Stage ${stage})`,
+        label: `Poisoned (Stage ${stage})`,
+        changes: [],
+        flags: {
+          [SYSTEM_ID]: {
+            poisonStage: stage,
+            poisonRoundsPassed: 0 // Track rounds for stage 4
+          }
         }
+      });
+      
+      // Wait a moment for the update to be processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log("Poison effect after stage selection:", effect);
+      console.log("Effect flags:", effect.flags);
+      console.log("Effect flags.stryder:", effect.flags[SYSTEM_ID]);
+      
+      // Verify the update was successful
+      const updatedEffect = actor.effects.get(effect.id);
+      console.log("Updated effect from actor:", updatedEffect?.flags[SYSTEM_ID]);
+      
+      if (!updatedEffect) {
+        console.warn("Effect not found in actor's effects collection after update");
       }
-    });
+      
+    } catch (error) {
+      console.error("Error updating poison effect:", error);
+    }
+    
     $('.dialog').remove();
   });
 }
 
 export async function handlePoisonStage1Roll(roll, actor) {
   // Check if actor has poison stage 1 or higher
-  const poisonEffect = actor.effects.find(e => 
-    e.label.startsWith("Poisoned") && 
-    (e.flags[SYSTEM_ID]?.poisonStage || 1) >= 1
-  );
+  const poisonEffect = actor.effects.find(e => {
+    const hasLabel = e.label && e.label.startsWith("Poisoned");
+    const hasName = e.name && e.name.includes("Poisoned");
+    const stage = e.flags[SYSTEM_ID]?.poisonStage || 1;
+    const isPoisonEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.poisonStage;
+    return isPoisonEffect && stage >= 1;
+  });
   
   if (!poisonEffect) return;
 
@@ -95,15 +124,33 @@ export async function handlePoisonStage2Damage(combatant) {
   const actor = combatant.actor;
   if (!actor) return;
 
+  console.log("handlePoisonStage2Damage called for:", actor.name);
+
   // Check if poison damage has already been applied this turn
   const hasTakenPoisonDamage = combatant.getFlag(SYSTEM_ID, "hasTakenPoisonDamage");
-  if (hasTakenPoisonDamage) return;
+  console.log("Has taken poison damage this turn:", hasTakenPoisonDamage);
+  
+  // TEMPORARY: Clear the flag if it exists (for debugging)
+  if (hasTakenPoisonDamage) {
+    console.log("Clearing poison damage flag manually");
+    await combatant.unsetFlag(SYSTEM_ID, "hasTakenPoisonDamage");
+    // Don't return - continue with damage processing
+  }
 
   // Find poison effects stage 2 or higher
-  const poisonEffects = actor.effects.filter(e => 
-    e.label.startsWith("Poisoned") && 
-    (e.flags[SYSTEM_ID]?.poisonStage || 1) >= 2
-  );
+  const poisonEffects = actor.effects.filter(e => {
+    const hasLabel = e.label && e.label.startsWith("Poisoned");
+    const hasName = e.name && e.name.includes("Poisoned");
+    const stage = e.flags[SYSTEM_ID]?.poisonStage || 1;
+    const isStage2Plus = stage >= 2;
+    const isPoisonEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.poisonStage;
+    console.log(`Effect ${e.label || e.name}: hasLabel=${hasLabel}, hasName=${hasName}, stage=${stage}, isStage2Plus=${isStage2Plus}, isPoisonEffect=${isPoisonEffect}, flags=${JSON.stringify(e.flags)}`);
+    return isPoisonEffect && isStage2Plus;
+  });
+  
+  console.log("All actor effects:", actor.effects.map(e => ({ label: e.label, flags: e.flags })));
+  console.log("Found poison effects:", poisonEffects.length);
+  console.log("Actor health:", actor.system.health.value);
   
   if (!poisonEffects.length || actor.system.health.value <= 0) return;
 
@@ -149,10 +196,13 @@ export async function handlePoisonStage4Unconscious(combatant) {
   if (!actor) return;
 
   // Find poison effects stage 4
-  const poisonEffect = actor.effects.find(e => 
-    e.label.startsWith("Poisoned") && 
-    (e.flags[SYSTEM_ID]?.poisonStage || 1) === 4
-  );
+  const poisonEffect = actor.effects.find(e => {
+    const hasLabel = e.label && e.label.startsWith("Poisoned");
+    const hasName = e.name && e.name.includes("Poisoned");
+    const stage = e.flags[SYSTEM_ID]?.poisonStage || 1;
+    const isPoisonEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.poisonStage;
+    return isPoisonEffect && stage === 4;
+  });
   
   if (!poisonEffect) return;
 
@@ -167,6 +217,7 @@ export async function handlePoisonStage4Unconscious(combatant) {
   if (newRounds >= 3) {
     // Apply unconscious effect with proper configuration
     const unconsciousEffectData = {
+      name: "Unconscious",
       label: "Unconscious",
       icon: "systems/stryder/assets/status/unconscious.svg",
       disabled: false,
@@ -214,3 +265,93 @@ export async function handlePoisonStage4Unconscious(combatant) {
     await actor.deleteEmbeddedDocuments('ActiveEffect', [poisonEffect.id]);
   }
 }
+
+// Register the hook to handle Poison effect application
+Hooks.on('createActiveEffect', async (effect, options, userId) => {
+  // Check if this is a Poison effect that needs configuration
+  if ((effect.label === "Poisoned" || effect.name === "Poisoned" || 
+       effect.label?.includes("Poisoned") || effect.name?.includes("Poisoned")) && game.user.id === userId) {
+    console.log("createActiveEffect hook triggered for Poison");
+    await handlePoisonApplication(effect);
+  }
+});
+
+// Alternative hook in case the first one doesn't catch it
+Hooks.on('updateActiveEffect', async (effect, changes, options, userId) => {
+  if ((effect.label === "Poisoned" || effect.name === "Poisoned" || 
+       effect.label?.includes("Poisoned") || effect.name?.includes("Poisoned")) && game.user.id === userId) {
+    // Check if the effect doesn't have the proper flags yet
+    if (!effect.flags[SYSTEM_ID]?.poisonStage) {
+      console.log("updateActiveEffect hook triggered for Poison - adding missing data");
+      await handlePoisonApplication(effect);
+    }
+  }
+});
+
+// Hook to handle poison effects during combat turns
+Hooks.on('updateCombat', async (combat, updateData, options, userId) => {
+  console.log("updateCombat hook triggered:", updateData);
+  // Only process on turn change for the current user
+  if (updateData.turn !== undefined && game.user.id === userId) {
+    console.log("Turn change detected, processing poison effects");
+    
+    // Clear poison damage flags for all combatants at the start of each turn
+    for (const combatant of combat.combatants) {
+      await combatant.unsetFlag(SYSTEM_ID, "hasTakenPoisonDamage");
+    }
+    
+    const combatant = combat.combatants.get(combat.current.combatantId);
+    console.log("Current combatant:", combatant?.actor?.name);
+    if (combatant) {
+      await handlePoisonStage2Damage(combatant);
+      await handlePoisonStage4Unconscious(combatant);
+    }
+  }
+});
+
+// Alternative hook using socket communication for turn changes
+Hooks.once('ready', () => {
+  if (game.socket) {
+    game.socket.on(`system.stryder`, async (data) => {
+      console.log("Socket message received:", data);
+      if (data.type === "turnChangeNotification") {
+        console.log("Socket turn change notification received, processing poison effects");
+        
+        const combat = game.combat;
+        if (!combat) return;
+        
+        // Clear poison damage flags for all combatants at the start of each turn
+        for (const combatant of combat.combatants) {
+          console.log(`Clearing poison flag for ${combatant.actor?.name}`);
+          await combatant.unsetFlag(SYSTEM_ID, "hasTakenPoisonDamage");
+        }
+        
+        const combatant = combat.combatants.get(combat.current.combatantId);
+        console.log("Current combatant from socket:", combatant?.actor?.name);
+        if (combatant) {
+          await handlePoisonStage2Damage(combatant);
+          await handlePoisonStage4Unconscious(combatant);
+        }
+      }
+    });
+  } else {
+    console.log("Game socket not available");
+  }
+});
+
+// Hook to handle poison stage 1 roll modifications
+Hooks.on('preCreateChatMessage', (message, options, userId) => {
+  if (message.rolls?.length && game.user.id === userId) {
+    const roll = message.rolls[0];
+    if (roll) {
+      // Find the actor from the message speaker
+      const speaker = message.speaker;
+      if (speaker.actor) {
+        const actor = game.actors.get(speaker.actor);
+        if (actor) {
+          handlePoisonStage1Roll(roll, actor);
+        }
+      }
+    }
+  }
+});

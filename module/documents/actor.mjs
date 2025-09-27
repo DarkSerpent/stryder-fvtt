@@ -135,7 +135,7 @@ export class StryderActor extends Actor {
 	  // Ensure all talents have a base value of 0
 	  const talents = [
 		"endurance", "nimbleness", "strength", "survival", "charm",
-		"wit", "wisdom", "deceit", "diplomacy", "intimacy", "threat"
+		"wit", "wisdom", "deceit", "diplomacy", "intimacy", "aggression"
 	  ];
 
 	  if (!actorData.system.life) {
@@ -166,6 +166,9 @@ export class StryderActor extends Actor {
       this._calculateMaxMana(actorData);
       this._calculateMaxStamina(actorData);
       this._calculateMaxFocus(actorData);
+      
+      // Calculate reduction bonuses from equipped armor
+      this._calculateReductionBonuses(actorData);
 	}
 
 	/**
@@ -181,11 +184,13 @@ export class StryderActor extends Actor {
 	  const gritValue = system.abilities?.Grit?.value || 0;
 	  const hpMod = system.health?.max?.mod || 0;
 	  
-	  // Get burning health reduction from flags
+	  // Get burning and bloodloss health reduction from flags
 	  const burningReduction = actorData.flags[SYSTEM_ID]?.burningHealthReduction || 0;
+	  const bloodlossReduction = actorData.flags[SYSTEM_ID]?.bloodlossHealthReduction || 0;
+	  const totalReduction = burningReduction + bloodlossReduction;
 
 	  // Calculate base max HP from class
-	  let maxHP = baseHP + (hpPerLevel * (level - 1)) + hpMod - burningReduction;
+	  let maxHP = baseHP + (hpPerLevel * (level - 1)) + hpMod - totalReduction;
 
 	  // Add Grit bonuses at levels 1, 5, 10, and 15
 	  if (gritValue >= 1) {
@@ -330,6 +335,39 @@ export class StryderActor extends Actor {
 	  system.focus.max = maxFocus;
 	  system.focus.value = Math.min(currentFocus, maxFocus);
 	  system.focus.min = 0;
+	}
+
+	/**
+	 * Calculate physical and magykal reduction bonuses from equipped armor
+	 * @param {Object} actorData The actor data to modify
+	 */
+	_calculateReductionBonuses(actorData) {
+	  const system = actorData.system;
+	  
+	  // Initialize reduction values
+	  let physicalReductionBonus = 0;
+	  let magykalReductionBonus = 0;
+	  
+	  // Armor item types that can provide reduction bonuses
+	  const armorTypes = ['head', 'legs', 'arms', 'back', 'gems'];
+	  
+	  // Iterate through all items to find equipped armor
+	  for (const item of actorData.items) {
+		// Check if this item is an armor type and is equipped
+		if (armorTypes.includes(item.type) && item.system?.equipped !== false) {
+		  // Add physical reduction bonus
+		  const physicalBonus = item.system?.physical_reduction_bonus || 0;
+		  physicalReductionBonus += physicalBonus;
+		  
+		  // Add magykal reduction bonus
+		  const magykalBonus = item.system?.magykal_reduction_bonus || 0;
+		  magykalReductionBonus += magykalBonus;
+		}
+	  }
+	  
+	  // Update the actor's reduction values
+	  system.physical_reduction = physicalReductionBonus;
+	  system.magykal_reduction = magykalReductionBonus;
 	}
 
   /**

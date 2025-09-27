@@ -11,12 +11,22 @@ export class StryderCombatant extends Combatant {
      * @returns {string}
      */
     get faction() {
+        // First check if faction is explicitly set in flags
+        const explicitFaction = this.getFlag(SYSTEM_ID, 'faction');
+        if (explicitFaction) return explicitFaction;
+        
+        // Check actor type first - this is more reliable than token disposition
         const actorType = this.actor?.type;
-        // Characters and NPCs are Allies
-        if (actorType === 'character' || actorType === 'npc') return ALLIED;
-        // Monsters are Enemies
         if (actorType === 'monster') return ENEMY;
-        // Default fallback
+        if (actorType === 'character' || actorType === 'npc') return ALLIED;
+        
+        // Fallback to token disposition
+        const token = this.token;
+        if (token && token.document && token.document.disposition !== undefined) {
+            return token.document.disposition === 1 ? ALLIED : ENEMY;
+        }
+        
+        // Default to ALLIED
         return ALLIED;
     }
 

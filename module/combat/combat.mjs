@@ -108,12 +108,28 @@ export class StryderCombat extends Combat {
             }
         ];
 
-        const firstTurnFaction = await Dialog.prompt({
-            title: game.i18n.localize('Selecting Starting Phase'),
-            content: await renderTemplate('systems/stryder/templates/combat/dialog-first-turn.hbs', {
-                factions
-            }),
-            callback: html => html.find('select[name=faction]').val()
+        // Simple prompt approach
+        const templateContent = await foundry.applications.handlebars.renderTemplate('systems/stryder/templates/combat/dialog-first-turn.hbs', {
+            factions
+        });
+        
+        const firstTurnFaction = await new Promise((resolve) => {
+            const dialog = new Dialog({
+                title: game.i18n.localize('Selecting Starting Phase'),
+                content: templateContent,
+                buttons: {
+                    ok: {
+                        label: "OK",
+                        callback: (html) => {
+                            const selectedFaction = html.find('select[name=faction]').val();
+                            resolve(selectedFaction);
+                        }
+                    }
+                },
+                default: "ok",
+                close: () => resolve(null)
+            });
+            dialog.render(true);
         });
 
         if (!firstTurnFaction) return this;
@@ -123,6 +139,15 @@ export class StryderCombat extends Combat {
         });
         await this.setFirstTurn(firstTurnFaction);
         await this.setCurrentTurn(firstTurnFaction);
+
+        // Clear all turn states for the start of combat
+        await this.setFlag(SYSTEM_ID, STRYDER.flags.CombatantsTurnTaken, {});
+        await this.setFlag(SYSTEM_ID, STRYDER.flags.StartedTurns, []);
+        await this.setFlag(SYSTEM_ID, STRYDER.flags.ActiveTurns, []);
+        await this.setCombatant(null);
+
+        // Don't automatically start turns - let the UI buttons handle it
+        // This ensures all actors start with "Start Turn" buttons and inactive turns
 
         Hooks.callAll('stryderCombatEvent',
             new CombatEvent(StryderCombat.combatEvent.startOfCombat, this.round, this.combatants));
@@ -204,18 +229,45 @@ export class StryderCombat extends Combat {
         }
     }
 
+
+	async startFactionTurn(faction) {
+		if (!this.started) return;
+
+		const factionCombatants = this.combatants.filter(c => c.faction === faction && c.canTakeTurn);
+		
+		// Start all turns for this faction simultaneously
+		for (const combatant of factionCombatants) {
+			await this.startTurn(combatant);
+		}
+	}
+
 	async startTurn(combatant) {
-		if (!combatant || !this.started) return;
+		console.log('STRYDER DEBUG | startTurn called for:', combatant?.name);
+		console.log('STRYDER DEBUG | Combat state:', {
+			started: this.started,
+			round: this.round,
+			currentTurn: this.getCurrentTurn(),
+			combatantFaction: combatant?.faction
+		});
+
+		if (!combatant || !this.started) {
+			console.warn('STRYDER DEBUG | Early return - no combatant or combat not started');
+			return;
+		}
 
 		// Check permissions - only GM or owner can start turn
 		const isGM = game.user.isGM;
 		const isOwner = combatant.actor?.testUserPermission(game.user, "OWNER") ?? false;
 		
+		console.log('STRYDER DEBUG | Permissions:', { isGM, isOwner });
+		
 		if (!isGM) {
 			if (!isOwner) {
+				console.warn('STRYDER DEBUG | Permission denied');
 				return ui.notifications.warn(`You don't have permission to start ${combatant.name}'s turn`);
 			}
 			// For non-GM owners, request the GM to make the change
+			console.log('STRYDER DEBUG | Requesting GM to start turn');
 			return game.socket.emit(`system.${SYSTEM_ID}`, {
 				type: "startCombatantTurn",
 				combatId: this.id,
@@ -224,58 +276,79 @@ export class StryderCombat extends Combat {
 		}
 
 		const currentTurn = this.getCurrentTurn();
+		console.log('STRYDER DEBUG | Turn check:', {
+			currentTurn,
+			combatantFaction: combatant.faction,
+			match: combatant.faction === currentTurn
+		});
+		
 		if (combatant.faction !== currentTurn) {
+			console.warn('STRYDER DEBUG | Wrong faction phase');
 			return ui.notifications.warn(`It's not the ${combatant.faction} phase yet!`);
 		}
 
+		console.log('STRYDER DEBUG | Can take turn check:', {
+			canTakeTurn: combatant.canTakeTurn,
+			isDefeated: combatant.isDefeated,
+			visible: combatant.visible
+		});
+
 		if (!combatant.canTakeTurn) {
+			console.warn('STRYDER DEBUG | Cannot take turn');
 			return ui.notifications.warn(`${combatant.name} can't take a turn right now!`);
 		}
 
-		// Check if this is the first time starting turn this round
-		const isFirstTurn = !combatant.isActiveTurn;
+		// Check if this combatant has already ended their turn this round
+		const turnsTaken = this.currentRoundTurnsTaken;
+		console.log('STRYDER DEBUG | Turns taken check:', {
+			turnsTaken,
+			combatantId: combatant.id,
+			hasEnded: turnsTaken.includes(combatant.id)
+		});
+		
+		if (turnsTaken.includes(combatant.id)) {
+			console.warn('STRYDER DEBUG | Already ended turn this round');
+			return ui.notifications.warn(`${combatant.name} has already ended their turn this round!`);
+		}
 
-		// Set this combatant as active
-		await this.setFlag(SYSTEM_ID, STRYDER.flags.CombatantId, combatant.id);
-		await combatant.setActiveTurn(true);
+		console.log('STRYDER DEBUG | All checks passed, updating combat state...');
 
-		// Only process Active Effects if this is the first turn start
-		if (isFirstTurn && combatant.actor) {
+		// Set this combatant as active using Foundry's turn system
+		await this.setCombatant(combatant);
+		console.log('STRYDER DEBUG | Combatant set as active');
+
+		// Track that this combatant has started their turn
+		const startedTurns = this.getFlag(SYSTEM_ID, STRYDER.flags.StartedTurns) || [];
+		if (!startedTurns.includes(combatant.id)) {
+			startedTurns.push(combatant.id);
+			await this.setFlag(SYSTEM_ID, STRYDER.flags.StartedTurns, startedTurns);
+		}
+
+		// Process Active Effects at turn start
+		if (combatant.actor) {
+			console.log('STRYDER DEBUG | Processing turn start effects');
 			await this._processEffectDurations(combatant, 'turnStart');
 		}
 
-		// Show "started turn" notification
-		const notification = document.createElement('div');
-		notification.className = 'turn-notification';
-		notification.textContent = `${combatant.name} has started their turn!`;
-		document.body.appendChild(notification);
-
-		// Play sound effect
-		AudioHelper.play({
-			src: "systems/stryder/assets/sfx/turnChange.ogg",
-			volume: 0.8,
-			autoplay: true,
-			loop: false
-		}, false);
-
-		// Remove notification after animation completes
-		setTimeout(() => {
-			notification.remove();
-		}, 3000);
-
+		console.log('STRYDER DEBUG | Calling combat event hooks');
 		Hooks.callAll('stryderCombatEvent',
 			new CombatEvent(StryderCombat.combatEvent.startOfTurn, this.round, this.combatants)
 			.forCombatant(combatant));
 
+		console.log('STRYDER DEBUG | Notifying combat turn change');
 		this.notifyCombatTurnChange();
+		
+		// Broadcast turn notification to all clients
+		game.socket.emit(`system.${SYSTEM_ID}`, {
+			type: "turnChangeNotification",
+			combatantName: combatant.name
+		});
+		
+		console.log('STRYDER DEBUG | startTurn completed successfully');
 	}
 
 	async endTurn(combatant) {
 		if (!combatant || !this.started) return;
-
-		await combatant.setFlag(SYSTEM_ID, "hasTakenBleedingDamage", false);
-		await combatant.setFlag(SYSTEM_ID, "hasTakenBurningDamage", false);
-		await combatant.setFlag(SYSTEM_ID, "hasTakenPoisonDamage", false);
 
 		// Check permissions - only GM or owner can end turn
 		const isGM = game.user.isGM;
@@ -293,25 +366,6 @@ export class StryderCombat extends Combat {
 			});
 		}
 
-		// Show "ended turn" notification
-		const notification = document.createElement('div');
-		notification.className = 'turn-notification';
-		notification.textContent = `${combatant.name} has ended their turn!`;
-		document.body.appendChild(notification);
-
-		// Play sound effect
-		AudioHelper.play({
-			src: "systems/stryder/assets/sfx/turnChange.ogg",
-			volume: 0.8,
-			autoplay: true,
-			loop: false
-		}, false);
-
-		// Remove notification after animation completes
-		setTimeout(() => {
-			notification.remove();
-		}, 3000);
-
 		// Process Active Effects at turn end
 		if (combatant.actor) {
 			await this._processEffectDurations(combatant, 'turnEnd');
@@ -323,11 +377,13 @@ export class StryderCombat extends Combat {
 		flag[this.round].push(combatant.id);
 		await this.setFlag(SYSTEM_ID, STRYDER.flags.CombatantsTurnTaken, flag);
 
-		// Clear active turn status
-		await combatant.setActiveTurn(false);
-
 		// Clear current combatant
-		await this.setFlag(SYSTEM_ID, STRYDER.flags.CombatantId, null);
+		await this.setCombatant(null);
+
+		// Remove from started turns list
+		const startedTurns = this.getFlag(SYSTEM_ID, STRYDER.flags.StartedTurns) || [];
+		const updatedStartedTurns = startedTurns.filter(id => id !== combatant.id);
+		await this.setFlag(SYSTEM_ID, STRYDER.flags.StartedTurns, updatedStartedTurns);
 
 		Hooks.callAll('stryderCombatEvent',
 			new CombatEvent(StryderCombat.combatEvent.endOfTurn, this.round, this.combatants)
@@ -361,6 +417,7 @@ export class StryderCombat extends Combat {
 		this.notifyCombatTurnChange();
 	}
 
+
 	async _processEffectDurations(combatant, phase) {
 		if (!combatant.actor) return;
 		
@@ -370,7 +427,7 @@ export class StryderCombat extends Combat {
 		for (const effect of combatant.actor.effects) {
 			if (!effect.duration) continue;
 			
-			const duration = duplicate(effect.duration);
+			const duration = foundry.utils.duplicate(effect.duration);
 			let changed = false;
 			let shouldExpire = false;
 			
@@ -562,6 +619,20 @@ export class StryderCombat extends Combat {
     }
 
 	async nextRound() {
+		// Clear all turns taken for the new round
+		const flag = this.getTurnsTaken();
+		flag[this.round + 1] = [];
+		await this.setFlag(SYSTEM_ID, STRYDER.flags.CombatantsTurnTaken, flag);
+
+		// Clear started turns for the new round
+		await this.setFlag(SYSTEM_ID, STRYDER.flags.StartedTurns, []);
+
+		// Clear active turns for the new round
+		await this.setFlag(SYSTEM_ID, STRYDER.flags.ActiveTurns, []);
+
+		// Clear current combatant - no one should be active at round start
+		await this.setCombatant(null);
+
 		await this.setCurrentTurn(this.getFirstTurn());
 
 		let turn = this.turn === null ? null : 0;
@@ -587,7 +658,12 @@ export class StryderCombat extends Combat {
 		Hooks.callAll('stryderCombatEvent',
 			new CombatEvent(StryderCombat.combatEvent.endOfRound, this.round, this.combatants));
 		
-		return this.update(updateData, updateOptions);
+		const result = await this.update(updateData, updateOptions);
+		
+		// Don't automatically start turns - let the UI buttons handle it
+		// This ensures all actors start with "Start Turn" buttons and inactive turns
+		
+		return result;
 	}
 
     getFirstTurn() {
@@ -618,5 +694,35 @@ export class StryderCombat extends Combat {
 
     static get activeEncounter() {
         return game.combat;
+    }
+
+    /**
+     * Show turn notification for all clients
+     * @param {string} combatantName - Name of the combatant starting their turn
+     * @static
+     */
+    static showTurnNotification(combatantName) {
+        console.log('STRYDER DEBUG | showTurnNotification called for:', combatantName, 'User is GM:', game.user.isGM);
+        
+        // Play sound effect
+        AudioHelper.play({
+            src: "systems/stryder/assets/sfx/turnChange.ogg",
+            volume: 0.8,
+            autoplay: true,
+            loop: false
+        }, false);
+
+        // Show notification
+        const notification = document.createElement('div');
+        notification.className = 'turn-notification';
+        notification.textContent = `${combatantName} has started their turn!`;
+        document.body.appendChild(notification);
+        
+        console.log('STRYDER DEBUG | Notification element created and added to DOM');
+
+        // Remove notification after animation completes
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
 }

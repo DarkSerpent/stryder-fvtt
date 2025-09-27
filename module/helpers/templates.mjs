@@ -18,7 +18,11 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/stryder/templates/actor/parts/lordling-battle.hbs',
     // Item partials
     'systems/stryder/templates/item/parts/item-effects.hbs',
-	// UI Components
-	'systems/stryder/templates/combat/combat-tracker.hbs',
+	// Combat templates
+	"systems/stryder/templates/combat/combat-tracker-header.hbs",
+	"systems/stryder/templates/combat/combat-tracker.hbs",
+	"systems/stryder/templates/combat/combat-tracker-footer.hbs",
+	'systems/stryder/templates/combat/chat-combat-end.hbs',
+	'systems/stryder/templates/combat/dialog-first-turn.hbs',
   ]);
 };

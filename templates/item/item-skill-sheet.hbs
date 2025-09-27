@@ -7,16 +7,16 @@
           <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name"/></h1>
         </div>
         <div class="item-type-label">
-          <span>Skill Feature</span>
+          <span>{{localize "STRYDER.ItemTypes.SkillFeature"}}</span>
         </div>
       </div>
     </header>
 
     {{!-- Sheet Tab Navigation --}}
     <nav class="sheet-tabs tabs" data-group="primary">
-      <a class="item" data-tab="description"><i class="fas fa-scroll"></i> Description</a>
-      <a class="item" data-tab="attributes"><i class="fas fa-tools"></i> Attributes</a>
-      <a class="item" data-tab="effects"><i class="fas fa-magic"></i> Effects</a>
+      <a class="item" data-tab="description"><i class="fas fa-scroll"></i> {{localize "STRYDER.SheetLabels.Description"}}</a>
+      <a class="item" data-tab="attributes"><i class="fas fa-tools"></i> {{localize "STRYDER.SheetLabels.Attributes"}}</a>
+      <a class="item" data-tab="effects"><i class="fas fa-magic"></i> {{localize "STRYDER.SheetLabels.Effects"}}</a>
     </nav>
 
     {{!-- Sheet Body --}}
@@ -26,7 +26,7 @@
       <div class="tab description-tab" data-group="primary" data-tab="description">
         <div class="editor-container">
           <div class="editor-header">
-            <i class="fas fa-quill"></i> Skill Description
+            <i class="fas fa-quill"></i> {{localize "STRYDER.SheetLabels.SkillDescription"}}
           </div>
           {{editor system.description target="system.description" rollData=rollData button=true owner=owner editable=editable}}
         </div>
@@ -38,48 +38,48 @@
         <div class="section fantasy-section">
           <div class="section-header">
             <div class="header-decoration left"></div>
-            <h2>Restrictions</h2>
+            <h2>{{localize "STRYDER.SheetLabels.Restrictions"}}</h2>
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content">
             <div class="field fantasy-field">
-              <label>Action:</label>
+              <label>{{localize "STRYDER.SheetLabels.Action"}}:</label>
               <select name="system.action_type">
                 {{#select system.action_type}}
-                <option value="focused">Focused</option>
-                <option value="swift">Swift</option>
-                <option value="passive">Passive</option>
+                <option value="focused">{{localize "STRYDER.SheetLabels.Focused"}}</option>
+                <option value="swift">{{localize "STRYDER.SheetLabels.Swift"}}</option>
+                <option value="passive">{{localize "STRYDER.SheetLabels.Passive"}}</option>
                 {{/select}}
               </select>
             </div>
             <div class="field fantasy-field cooldown-field">
-              <label>Cooldown:</label>
-              <input type="number" name="system.cooldown_value" value="{{system.cooldown_value}}" min="0" placeholder="Number">
+              <label>{{localize "STRYDER.SheetLabels.Cooldown"}}:</label>
+              <input type="number" name="system.cooldown_value" value="{{system.cooldown_value}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.Number'}}">
               <select name="system.cooldown_unit">
                 {{#select system.cooldown_unit}}
-                <option value="turn">Turn(s)</option>
-                <option value="round">Round(s)</option>
-                <option value="perRest">per Rest</option>
-                <option value="perTurn">per Turn</option>
-                <option value="perSpring">per Spring of Life</option>
+                <option value="turn">{{localize "STRYDER.SheetLabels.Turns"}}</option>
+                <option value="round">{{localize "STRYDER.SheetLabels.Rounds"}}</option>
+                <option value="perRest">{{localize "STRYDER.SheetLabels.PerRest"}}</option>
+                <option value="perTurn">{{localize "STRYDER.SheetLabels.PerTurn"}}</option>
+                <option value="perSpring">{{localize "STRYDER.SheetLabels.PerSpringOfLife"}}</option>
                 {{/select}}
               </select>
             </div>
             <div class="field fantasy-field">
-              <label>Range:</label>
-              <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
+              <label>{{localize "STRYDER.SheetLabels.Range"}}:</label>
+              <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.RangePlaceholder'}}">
             </div>
             <div class="field fantasy-field">
-              <label>Stamina:</label>
-              <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
+              <label>{{localize "STRYDER.SheetLabels.Stamina"}}:</label>
+              <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.StaminaCost'}}" data-dtype="Number" />
             </div>
             <div class="field fantasy-field">
-              <label>Mana:</label>
-              <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+              <label>{{localize "STRYDER.SheetLabels.Mana"}}:</label>
+              <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.ManaCost'}}" data-dtype="Number" />
             </div>
             <div class="field fantasy-field">
-              <label>Other:</label>
-              <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+              <label>{{localize "STRYDER.SheetLabels.Other"}}:</label>
+              <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="{{localize 'STRYDER.SheetLabels.AdditionalRestrictions'}}">
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@
         <div class="section fantasy-section">
           <div class="section-header">
             <div class="header-decoration left"></div>
-            <h2>Tags</h2>
+            <h2>{{localize "STRYDER.SheetLabels.Tags"}}</h2>
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content tags-container">
@@ -96,12 +96,13 @@
               <select name="system.tag1">
                 {{#select system.tag1}}
                 <option value=""></option>
-                <option value="aid">Aid</option>
-                <option value="augment">Augment</option>
-                <option value="multi-target">Multi-Target</option>
-                <option value="persistent">Persistent</option>
-                <option value="targeted">Targeted</option>
-                <option value="breach">Breach</option>
+                <option value="aid">{{localize "STRYDER.SheetLabels.Aid"}}</option>
+                <option value="augment">{{localize "STRYDER.SheetLabels.Augment"}}</option>
+                <option value="multi-target">{{localize "STRYDER.SheetLabels.MultiTarget"}}</option>
+                <option value="persistent">{{localize "STRYDER.SheetLabels.Persistent"}}</option>
+                <option value="targeted">{{localize "STRYDER.SheetLabels.Targeted"}}</option>
+                <option value="breach">{{localize "STRYDER.SheetLabels.Breach"}}</option>
+                <option value="reflex">{{localize "STRYDER.SheetLabels.Reflex"}}</option>
                 {{/select}}
               </select>
             </div>
@@ -109,12 +110,13 @@
               <select name="system.tag2">
                 {{#select system.tag2}}
                 <option value=""></option>
-                <option value="aid">Aid</option>
-                <option value="augment">Augment</option>
-                <option value="multi-target">Multi-Target</option>
-                <option value="persistent">Persistent</option>
-                <option value="targeted">Targeted</option>
-                <option value="breach">Breach</option>
+                <option value="aid">{{localize "STRYDER.SheetLabels.Aid"}}</option>
+                <option value="augment">{{localize "STRYDER.SheetLabels.Augment"}}</option>
+                <option value="multi-target">{{localize "STRYDER.SheetLabels.MultiTarget"}}</option>
+                <option value="persistent">{{localize "STRYDER.SheetLabels.Persistent"}}</option>
+                <option value="targeted">{{localize "STRYDER.SheetLabels.Targeted"}}</option>
+                <option value="breach">{{localize "STRYDER.SheetLabels.Breach"}}</option>
+                <option value="reflex">{{localize "STRYDER.SheetLabels.Reflex"}}</option>
                 {{/select}}
               </select>
             </div>
@@ -122,12 +124,13 @@
               <select name="system.tag3">
                 {{#select system.tag3}}
                 <option value=""></option>
-                <option value="aid">Aid</option>
-                <option value="augment">Augment</option>
-                <option value="multi-target">Multi-Target</option>
-                <option value="persistent">Persistent</option>
-                <option value="targeted">Targeted</option>
-                <option value="breach">Breach</option>
+                <option value="aid">{{localize "STRYDER.SheetLabels.Aid"}}</option>
+                <option value="augment">{{localize "STRYDER.SheetLabels.Augment"}}</option>
+                <option value="multi-target">{{localize "STRYDER.SheetLabels.MultiTarget"}}</option>
+                <option value="persistent">{{localize "STRYDER.SheetLabels.Persistent"}}</option>
+                <option value="targeted">{{localize "STRYDER.SheetLabels.Targeted"}}</option>
+                <option value="breach">{{localize "STRYDER.SheetLabels.Breach"}}</option>
+                <option value="reflex">{{localize "STRYDER.SheetLabels.Reflex"}}</option>
                 {{/select}}
               </select>
             </div>
@@ -140,7 +143,7 @@
         <div class="section fantasy-section">
           <div class="section-header">
             <div class="header-decoration left"></div>
-            <h2>Active Effects</h2>
+            <h2>{{localize "STRYDER.SheetLabels.ActiveEffects"}}</h2>
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content">

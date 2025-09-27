@@ -4,28 +4,28 @@
     "templates": {
       "base": {
         "health": {
-			"value": 8,
-			"min": 0,
-			"max": 8,
-			"max": {
-				"mod": 0
-			}
+          "value": 8,
+          "min": 0,
+          "max": {
+            "value": 8,
+            "mod": 0
+          }
         },
         "mana": {
           "value": 3,
           "min": 0,
-          "max": 3,
-			"max": {
-				"mod": 0
-			}
+          "max": {
+            "value": 3,
+            "mod": 0
+          }
         },
         "stamina": {
           "value": 2,
           "min": 0,
-          "max": 2,
-			"max": {
-				"mod": 0
-			}
+          "max": {
+            "value": 2,
+            "mod": 0
+          }
         },
         "resource1": {
           "value": 0,
@@ -49,62 +49,60 @@
         "elixir_sickness": {
           "value": 0
         },
+        "physical_reduction": 0,
+        "magykal_reduction": 0,
         "biography": ""
       }
     },
     "character": {
       "templates": ["base"],
-	  "aegis": {
-	    "value": 20,
-	    "min": 0,
-	   "max": 20
-	  },
-	  "focus": {
-	    "value": 3,
-	    "min": 0,
-	    "max": 3,
-		  "max": {
-		  	"mod": 0
-		  }
-	  },
       "booleans": {
         "hasPracticedForm": false,
         "usingUnboundLeap": false,
         "hasFantastic": false
-	  },
+      },
       "grail": 0,
       "guild_tokens": 0,
       "class": {
         "name": "No Class",
         "base_hp": 0,
         "hp_per_level": 0
-	   },
+      },
       "folk": {
         "name": "Folkless"
-	   },
+      },
       "life": {
         "cooking": {
           "value": 0
-		},
+        },
         "elixirbrewing": {
           "value": 0
-		},
+        },
         "fishing": {
           "value": 0
-		},
+        },
         "hunting": {
           "value": 0
-		},
+        },
         "performing": {
           "value": 0
-		},
+        },
         "scavenging": {
           "value": 0
-		},
-        "trading": {
+        },
+        "cursebreaking": {
           "value": 0
-		}
-	   },
+        },
+        "coercing": {
+          "value": 0
+        },
+        "dueling": {
+          "value": 0
+        },
+        "taming": {
+          "value": 0
+        }
+      },
       "attributes": {
         "mastery": 0,
         "creature_size": "1",
@@ -192,16 +190,16 @@
           "intimacy": {
             "value": 0
           },
-          "threat": {
+          "aggression": {
             "value": 0
           }
         }
       },
       "abilities": {
-        "Power": {
+        "Soul": {
           "value": 0
         },
-        "Agility": {
+        "Reflex": {
           "value": 0
         },
         "Grit": {
@@ -224,7 +222,7 @@
         "Magykal": {
           "mod": 0
         }
-	  }
+      }
     },
     "monster": {
       "templates": ["base"],
@@ -325,22 +323,19 @@
           "intimacy": {
             "value": 0
           },
-          "threat": {
+          "aggression": {
             "value": 0
           }
         }
       },
       "abilities": {
-        "might": {
+        "Might": {
           "value": 0
         },
-        "magyk": {
+        "Movement": {
           "value": 0
         },
-        "speed": {
-          "value": 0
-        },
-        "instinct": {
+        "Defense": {
           "value": 0
         }
       }
@@ -348,11 +343,11 @@
     "lordling": {
       "templates": ["base"],
       "linkedCharacterId": "",
-	  "tactics": {
-	    "value": 6,
-	    "min": 0,
-	   "max": 6
-	  },
+      "tactics": {
+        "value": 6,
+        "min": 0,
+        "max": 6
+      },
       "attributes": {
         "mastery": "0",
         "creature_size": "1",
@@ -402,7 +397,7 @@
           "survival": {
             "value": 0
           },
-          "threat": {
+          "aggression": {
             "value": 0
           }
         }
@@ -411,7 +406,7 @@
         "Spirit": {
           "value": 0
         },
-        "Agility": {
+        "Reflex": {
           "value": 0
         },
         "Grit": {
@@ -428,15 +423,10 @@
         "Magykal": {
           "mod": 0
         }
-	  }
+      }
     },
     "npc": {
       "templates": ["base"],
-	  "aegis": {
-	    "value": 20,
-	    "min": 0,
-	   "max": 20
-	  },
       "level": 0
     }
   },
@@ -445,144 +435,158 @@
     "templates": {
       "base": {
         "description": "",
-		"roll": {
-			"diceBonus": 0,
-			"diceNum": 2,
-			"diceSize": 6
-		}
+        "roll": {
+          "diceBonus": 0,
+          "diceNum": 2,
+          "diceSize": 6
+        }
       }
     },
     "action": {
-        "templates": ["base"],
-        "roll": {
-          "diceBonus": 0,
-          "diceNum": 2,
-          "diceSize": 6
-        }
+      "templates": ["base"],
+      "roll": {
+        "diceBonus": 0,
+        "diceNum": 2,
+        "diceSize": 6
+      }
     },
     "armament": {
-        "templates": ["base"],
-        "armament": {
-          "isWitchblade": false,
-          "alwaysRollsExcellent": false,
-          "addsMastery": false
-        },
-        "roll": {
-          "diceBonus": 0,
-          "diceNum": 2,
-          "diceSize": 6
-        }
-	},
+      "templates": ["base"],
+      "damage_type": "physical",
+      "armament": {
+        "isWitchblade": false,
+        "alwaysRollsExcellent": false,
+        "addsMastery": false
+      },
+      "roll": {
+        "diceBonus": 0,
+        "diceNum": 2,
+        "diceSize": 6
+      }
+    },
     "generic": {
-        "templates": ["base"],
-        "roll": {
-          "diceBonus": 0,
-          "diceNum": 2,
-          "diceSize": 6
-        }
+      "templates": ["base"],
+      "damage_type": "ahl",
+      "roll": {
+        "diceBonus": 0,
+        "diceNum": 2,
+        "diceSize": 6
+      }
     },
     "racial": {
-        "templates": ["base"],
-        "charges": {
-          "max": 0,
-          "value": 0
-        }
+      "templates": ["base"],
+      "charges": {
+        "max": 0,
+        "value": 0
+      }
     },
     "hex": {
-        "templates": ["base"],
-        "hex": {
-          "rollsDamage": false,
-          "alwaysRollsExcellent": false,
-          "addsMastery": false
-        },
-        "roll": {
-          "diceBonus": 0,
-          "diceNum": 2,
-          "diceSize": 6
-        }
+      "templates": ["base"],
+      "damage_type": "magykal",
+      "hex": {
+        "rollsDamage": false,
+        "alwaysRollsExcellent": false,
+        "addsMastery": false,
+        "canOverflow": false
+      },
+      "roll": {
+        "diceBonus": 0,
+        "diceNum": 2,
+        "diceSize": 6
+      }
     },
     "loot": {
-        "templates": ["base"],
-        "rarity": "common",
-        "inventory_size": 1,
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "inventory_size": 1,
+      "sell_price": 0
     },
     "component": {
-        "templates": ["base"],
-        "grade": "G4",
-        "sell_price": 0
+      "templates": ["base"],
+      "grade": "G4",
+      "sell_price": 0
     },
     "miscellaneous": {
-        "templates": ["base"],
-        "itemtype": "Other"
+      "templates": ["base"],
+      "itemtype": "Other"
     },
     "consumable": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0,
-        "charges": {
-          "value": 1,
-          "max": 1
-        }
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "charges": {
+        "value": 1,
+        "max": 1
+      }
     },
     "gear": {
-        "templates": ["base"],
-        "quality": "prototype",
-        "nature": "enchanted",
-        "inventory_size": 1,
-        "sell_price": 0,
-        "charges": {
-          "value": 0,
-          "max": 0
-        }
+      "templates": ["base"],
+      "quality": "prototype",
+      "nature": "enchanted",
+      "inventory_size": 1,
+      "sell_price": 0,
+      "charges": {
+        "value": 0,
+        "max": 0
+      }
     },
     "aegiscore": {
-        "templates": ["base"]
+      "templates": ["base"]
     },
     "legacies": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted"
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted"
     },
     "head": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "physical_reduction_bonus": 0,
+      "magykal_reduction_bonus": 0
     },
     "back": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "physical_reduction_bonus": 0,
+      "magykal_reduction_bonus": 0
     },
     "arms": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "physical_reduction_bonus": 0,
+      "magykal_reduction_bonus": 0
     },
     "legs": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "physical_reduction_bonus": 0,
+      "magykal_reduction_bonus": 0
     },
     "gems": {
-        "templates": ["base"],
-        "rarity": "common",
-        "nature": "enchanted",
-        "sell_price": 0
+      "templates": ["base"],
+      "rarity": "common",
+      "nature": "enchanted",
+      "sell_price": 0,
+      "physical_reduction_bonus": 0,
+      "magykal_reduction_bonus": 0
     },
     "bonds": {
-        "bond": {
-          "level": "Neutral",
-          "date": "",
-          "folk": "",
-          "gender": "",
-          "age": ""
-        }
+      "bond": {
+        "level": "Neutral",
+        "date": "",
+        "folk": "",
+        "gender": "",
+        "age": ""
+      }
     },
     "item": {
       "templates": ["base"],

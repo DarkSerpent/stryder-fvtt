@@ -103,6 +103,27 @@
           </div>
         </div>
 
+        {{!-- Target Options Section --}}
+        <div class="section fantasy-section">
+          <div class="section-header">
+            <div class="header-decoration left"></div>
+            <h2>Target Options</h2>
+            <div class="header-decoration right"></div>
+          </div>
+          <div class="section-content">
+            <div class="field fantasy-field">
+              <label>Damage Type:</label>
+              <select name="system.damage_type" class="damage-type-select">
+                {{#select system.damage_type}}
+                <option value="ahl">Ahl</option>
+                <option value="physical">Physical</option>
+                <option value="magykal">Magykal</option>
+                {{/select}}
+              </select>
+            </div>
+          </div>
+        </div>
+
         {{!-- Checkbox Section --}}
         <div class="section fantasy-section checkbox-section">
           <div class="fantasy-checkbox">
@@ -120,9 +141,23 @@
             </div>
           </div>
           <div class="fantasy-checkbox">
+            <label>Always Rolls a 12?</label>
+            <div class="checkbox-slider">
+              <input type="checkbox" name="system.hex.alwaysRollsTwelve" value="true" {{#if system.hex.alwaysRollsTwelve}}checked{{/if}} data-dtype="Boolean" />
+              <span class="slider"></span>
+            </div>
+          </div>
+          <div class="fantasy-checkbox">
             <label>Adds Mastery to Damage Rolls?</label>
             <div class="checkbox-slider">
               <input type="checkbox" name="system.hex.addsMastery" value="true" {{#if system.hex.addsMastery}}checked{{/if}} data-dtype="Boolean" />
+              <span class="slider"></span>
+            </div>
+          </div>
+          <div class="fantasy-checkbox">
+            <label>Can Overflow?</label>
+            <div class="checkbox-slider">
+              <input type="checkbox" name="system.hex.canOverflow" value="true" {{#if system.hex.canOverflow}}checked{{/if}} data-dtype="Boolean" />
               <span class="slider"></span>
             </div>
           </div>

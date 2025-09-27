@@ -38,6 +38,27 @@
 
       {{!-- Attributes Tab --}}
       <div class="tab attributes" data-group="primary" data-tab="attributes">
+        {{!-- Target Options Section --}}
+        <div class="section fantasy-section">
+          <div class="section-header">
+            <div class="header-decoration left"></div>
+            <h2>Target Options</h2>
+            <div class="header-decoration right"></div>
+          </div>
+          <div class="section-content">
+            <div class="field fantasy-field">
+              <label>Damage Type:</label>
+              <select name="system.damage_type" class="damage-type-select">
+                {{#select system.damage_type}}
+                <option value="ahl">Ahl</option>
+                <option value="physical">Physical</option>
+                <option value="magykal">Magykal</option>
+                {{/select}}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="section fantasy-section">
           <div class="section-header">
             <div class="header-decoration left"></div>

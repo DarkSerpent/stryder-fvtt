@@ -69,6 +69,23 @@
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content">
+            {{!-- Resistance Bonuses --}}
+            <div class="resistance-bonuses" style="margin-bottom: 20px;">
+              <div class="grid grid-2col" style="gap: 15px;">
+                <div class="resistance-field">
+                  <label class="resource-label">Physical Reduction Bonus</label>
+                  <input class="tertiary-input" type="number" name="system.physical_reduction_bonus" 
+                    value="{{system.physical_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+                <div class="resistance-field">
+                  <label class="resource-label">Magykal Reduction Bonus</label>
+                  <input class="tertiary-input" type="number" name="system.magykal_reduction_bonus" 
+                    value="{{system.magykal_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+              </div>
+            </div>
             {{> "systems/stryder/templates/item/parts/item-effects.hbs"}}
           </div>
         </div>

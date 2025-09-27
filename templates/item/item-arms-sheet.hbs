@@ -33,9 +33,12 @@
             </select>
           </div>
           <div class="dropdown-field">
-            <label class="resource-label secondary-input">Sell Price (Grail)</label>
-            <input class="tertiary-input" type="text" name="system.sell_price" value="{{system.sell_price}}" placeholder="0" data-dtype="Number" 
-              style="width: 100%; font-size: 16px; font-weight: normal;" />
+            <label class="resource-label secondary-input">Slot Space</label>
+            <div class="inventory-counter">
+              <button type="button" class="counter-button minus" onclick="adjustArmsSlotSize(-1, '{{item.id}}')">-</button>
+              <input class="counter-value" type="number" name="system.slot_space" value="{{#if system.slot_space}}{{system.slot_space}}{{else}}1{{/if}}" min="1" max="2" data-dtype="Number" readonly id="arms-slot-size-{{item.id}}"/>
+              <button type="button" class="counter-button plus" onclick="adjustArmsSlotSize(1, '{{item.id}}')">+</button>
+            </div>
           </div>
         </div>
       </div>
@@ -69,6 +72,23 @@
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content">
+            {{!-- Resistance Bonuses --}}
+            <div class="resistance-bonuses" style="margin-bottom: 20px;">
+              <div class="grid grid-2col" style="gap: 15px;">
+                <div class="resistance-field">
+                  <label class="resource-label">Physical Reduction Bonus</label>
+                  <input class="tertiary-input" type="number" name="system.physical_reduction_bonus" 
+                    value="{{system.physical_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+                <div class="resistance-field">
+                  <label class="resource-label">Magykal Reduction Bonus</label>
+                  <input class="tertiary-input" type="number" name="system.magykal_reduction_bonus" 
+                    value="{{system.magykal_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+              </div>
+            </div>
             {{> "systems/stryder/templates/item/parts/item-effects.hbs"}}
           </div>
         </div>
@@ -76,5 +96,60 @@
     </section>
   </div>
 </form>
+
+<script>
+  function adjustArmsSlotSize(change, itemId) {
+    const slotInput = document.getElementById(`arms-slot-size-${itemId}`);
+    let currentValue = parseInt(slotInput.value) || 1; // Default to 1 if empty/undefined
+    const minVal = 1;
+    const maxVal = 2;
+
+    // Calculate new value within the bounds of 1 to 2
+    const newValue = Math.min(maxVal, Math.max(minVal, currentValue + change));
+
+    // Set the new value back to the input
+    slotInput.value = newValue;
+
+    // Update the item data
+    const item = game.items.get(itemId);
+    item.update({'system.slot_space': newValue});
+  }
+</script>
+
+<style>
+  .inventory-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+  }
+
+  .counter-button {
+    width: 20px;
+    height: 28px;
+    border: 1px solid #8b5a2b;
+    border-radius: 4px;
+    background: rgba(250, 240, 220, 0.8);
+    color: #5c3a21;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .counter-button:hover {
+    background: rgba(200, 160, 120, 0.3);
+  }
+
+  .counter-value {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #8b5a2b;
+    border-radius: 4px;
+    padding: 4px;
+    background: rgba(255, 248, 220, 0.7);
+    font-family: 'EB Garamond', serif;
+  }
+</style>
 
 {{log system}}

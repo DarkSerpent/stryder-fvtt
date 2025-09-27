@@ -7,33 +7,33 @@
           <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
         </div>
         <div class="item-type-label">
-          <span>Head Armor</span>
+          <span>{{localize "Head Armor"}}</span>
         </div>
         <div class="resource grid grid-3col" style="gap: 10px; margin-top: 10px; padding: 0 10px;">
           <div class="dropdown-field">
-            <label class="resource-label secondary-input">Rarity</label>
+            <label class="resource-label secondary-input">{{localize "Rarity"}}</label>
             <select class="secondary-input" name="system.rarity" style="width: 100%; font-size: 16px; font-weight: normal;">
               {{#select system.rarity}}
-              <option value="common">Common</option>
-              <option value="uncommon">Uncommon</option>
-              <option value="rare">Rare</option>
-              <option value="mythic">Legendary</option>
-              <option value="one of a kind">One of a Kind</option>
+              <option value="common">{{localize "Common"}}</option>
+              <option value="uncommon">{{localize "Uncommon"}}</option>
+              <option value="rare">{{localize "Rare"}}</option>
+              <option value="mythic">{{localize "Legendary"}}</option>
+              <option value="one of a kind">{{localize "One of a Kind"}}</option>
               {{/select}}
             </select>
           </div>
           <div class="dropdown-field">
-            <label class="resource-label secondary-input">Nature</label>
+            <label class="resource-label secondary-input">{{localize "Nature"}}</label>
             <select class="secondary-input" name="system.nature" style="width: 100%; font-size: 16px; font-weight: normal;">
               {{#select system.nature}}
-              <option value="enchanted">Enchanted</option>
-              <option value="magytech">Magytech</option>
-              <option value="other">Other</option>
+              <option value="enchanted">{{localize "Enchanted"}}</option>
+              <option value="magytech">{{localize "Magytech"}}</option>
+              <option value="other">{{localize "Other"}}</option>
               {{/select}}
             </select>
           </div>
           <div class="dropdown-field">
-            <label class="resource-label secondary-input">Sell Price (Grail)</label>
+            <label class="resource-label secondary-input">{{localize "Sell Price (Grail)"}}</label>
             <input class="tertiary-input" type="text" name="system.sell_price" value="{{system.sell_price}}" placeholder="0" data-dtype="Number" 
               style="width: 100%; font-size: 16px; font-weight: normal;" />
           </div>
@@ -43,8 +43,8 @@
 
     {{!-- Sheet Tab Navigation --}}
     <nav class="sheet-tabs tabs" data-group="primary">
-      <a class="item" data-tab="description"><i class="fas fa-scroll"></i> Description</a>
-      <a class="item" data-tab="effects"><i class="fas fa-helmet-battle"></i> Armor Effects</a>
+      <a class="item" data-tab="description"><i class="fas fa-scroll"></i> {{localize "Description"}}</a>
+      <a class="item" data-tab="effects"><i class="fas fa-helmet-battle"></i> {{localize "Armor Effects"}}</a>
     </nav>
 
     {{!-- Sheet Body --}}
@@ -54,7 +54,7 @@
       <div class="tab description-tab" data-group="primary" data-tab="description">
         <div class="editor-container">
           <div class="editor-header">
-            <i class="fas fa-quill"></i> Armor Description
+            <i class="fas fa-quill"></i> {{localize "Armor Description"}}
           </div>
           {{editor system.description target="system.description" rollData=rollData button=true owner=owner editable=editable}}
         </div>
@@ -65,10 +65,27 @@
         <div class="section fantasy-section">
           <div class="section-header">
             <div class="header-decoration left"></div>
-            <h2>Armor Effects</h2>
+            <h2>{{localize "Armor Effects"}}</h2>
             <div class="header-decoration right"></div>
           </div>
           <div class="section-content">
+            {{!-- Resistance Bonuses --}}
+            <div class="resistance-bonuses" style="margin-bottom: 20px;">
+              <div class="grid grid-2col" style="gap: 15px;">
+                <div class="resistance-field">
+                  <label class="resource-label">{{localize "Physical Reduction Bonus"}}</label>
+                  <input class="tertiary-input" type="number" name="system.physical_reduction_bonus" 
+                    value="{{system.physical_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+                <div class="resistance-field">
+                  <label class="resource-label">{{localize "Magykal Reduction Bonus"}}</label>
+                  <input class="tertiary-input" type="number" name="system.magykal_reduction_bonus" 
+                    value="{{system.magykal_reduction_bonus}}" placeholder="0" data-dtype="Number" 
+                    style="width: 100%; font-size: 16px; font-weight: normal;" />
+                </div>
+              </div>
+            </div>
             {{> "systems/stryder/templates/item/parts/item-effects.hbs"}}
           </div>
         </div>

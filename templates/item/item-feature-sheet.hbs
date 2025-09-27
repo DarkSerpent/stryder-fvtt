@@ -74,12 +74,16 @@
               <input type="number" name="system.stamina_cost" value="{{system.stamina_cost}}" min="0" placeholder="Stamina Cost" data-dtype="Number" />
             </div>
             <div class="field fantasy-field">
-              <label>Mana:</label>
-              <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="Mana Cost" data-dtype="Number" />
+              <label>{{localize "STRYDER.SheetLabels.Mana"}}:</label>
+              <input type="number" name="system.mana_cost" value="{{system.mana_cost}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.ManaCost'}}" data-dtype="Number" />
             </div>
             <div class="field fantasy-field">
-              <label>Other:</label>
-              <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="Additional Restrictions">
+              <label>{{localize "STRYDER.SheetLabels.Bloodloss"}}:</label>
+              <input type="number" name="system.blood_cost" value="{{system.blood_cost}}" min="0" placeholder="{{localize 'STRYDER.SheetLabels.BloodlossCost'}}" data-dtype="Number" />
+            </div>
+            <div class="field fantasy-field">
+              <label>{{localize "STRYDER.SheetLabels.Other"}}:</label>
+              <input type="text" name="system.other_restrictions" value="{{system.other_restrictions}}" placeholder="{{localize 'STRYDER.SheetLabels.AdditionalRestrictions'}}">
             </div>
           </div>
         </div>
@@ -102,6 +106,7 @@
                 <option value="persistent">Persistent</option>
                 <option value="targeted">Targeted</option>
                 <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
                 {{/select}}
               </select>
             </div>
@@ -115,6 +120,7 @@
                 <option value="persistent">Persistent</option>
                 <option value="targeted">Targeted</option>
                 <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
                 {{/select}}
               </select>
             </div>
@@ -128,6 +134,7 @@
                 <option value="persistent">Persistent</option>
                 <option value="targeted">Targeted</option>
                 <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
                 {{/select}}
               </select>
             </div>

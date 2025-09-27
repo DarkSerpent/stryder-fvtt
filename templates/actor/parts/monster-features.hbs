@@ -1,8 +1,14 @@
-<div class="resource-buttons flexrow flex-group-center-buttons">
-  <button class="resource-button" data-action="turnStart" title="Turn Start: Regain all your Stamina.">
-    <img style="border: 0px;" src="systems/stryder/assets/turn-start.svg" width="36" height="36"/>
-    <span><strong>Turn Start</strong></span>
-  </button>
+<div class="fantasy-action-buttons">
+  <div class="fantasy-button-container">
+    <button class="fantasy-action-button" data-action="turnStart" title="Turn Start: Regain all your Stamina.">
+      <div class="button-icon-container">
+        <img class="button-icon" src="systems/stryder/assets/turn-start.svg" width="36" height="36"/>
+        <div class="button-icon-glow"></div>
+      </div>
+      <span class="button-text"><strong>Turn Start</strong></span>
+      <div class="button-shine"></div>
+    </button>
+  </div>
 </div>
 
 <ol class='items-list'>
@@ -145,3 +151,138 @@
     </li>
   {{/each}}
 </ol>
+
+<!-- Attribute Modification Section -->
+<div class="attribute-modification-section">
+  <div class="section-header items-header">
+    <div class="item-name">
+      <i class="fas fa-cogs"></i>
+      {{localize 'Attribute Modifications'}}
+      <i class="toggle-icon fas fa-chevron-down"></i>
+    </div>
+  </div>
+  
+  <div class="attribute-inputs-container">
+    <div class="attribute-inputs-grid">
+    <!-- Physical Potency -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="physical-potency-value">
+        <img src="systems/stryder/assets/physical_potency.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Physical Potency'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="physical-potency-value"
+          name="system.attributes.potency_potency.value"
+          value="{{system.attributes.physical_potency.value}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+
+    <!-- Magykal Potency -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="magykal-potency-value">
+        <img src="systems/stryder/assets/magykal_potency.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Magykal Potency'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="magykal-potency-value"
+          name="system.attributes.magykal_potency.value"
+          value="{{system.attributes.magykal_potency.value}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+
+    <!-- Physical Resistance -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="physical-resistance-base">
+        <img src="systems/stryder/assets/physical_resistance.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Physical Resistance'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="physical-resistance-base"
+          name="system.attributes.physical_resistance.base"
+          value="{{system.attributes.physical_resistance.base}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+
+    <!-- Magykal Resistance -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="magykal-resistance-base">
+        <img src="systems/stryder/assets/magykal_resistance.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Magykal Resistance'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="magykal-resistance-base"
+          name="system.attributes.magykal_resistance.base"
+          value="{{system.attributes.magykal_resistance.base}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+
+    <!-- Physical Reduction -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="physical-reduction-value">
+        <img src="systems/stryder/assets/physical_reduction_black.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Physical Reduction'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="physical-reduction-value"
+          name="system.physical_reduction"
+          value="{{system.physical_reduction}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+
+    <!-- Magykal Reduction -->
+    <div class="attribute-input-group">
+      <label class="attribute-label" for="magykal-reduction-value">
+        <img src="systems/stryder/assets/magykal_reduction_black.svg" width="20" height="20" style="border:0px;" class="attribute-icon"/>
+        {{localize 'Magykal Reduction'}}
+      </label>
+      <div class="input-container">
+        <input 
+          type="number" 
+          id="magykal-reduction-value"
+          name="system.magykal_reduction"
+          value="{{system.magykal_reduction}}"
+          class="attribute-input"
+          data-dtype="Number"
+          min="0"
+          step="1"
+        />
+      </div>
+    </div>
+    </div>
+  </div>
+</div>

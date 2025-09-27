@@ -529,8 +529,14 @@ export class StryderActorSheet extends ActorSheet {
     html.on('click', '.item-delete', (ev) => {
       const li = $(ev.currentTarget).parents('.item');
       const item = this.actor.items.get(li.data('itemId'));
-      item.delete();
-      li.slideUp(200, () => this.render(false));
+      this._onItemDelete(item, li);
+    });
+
+    // Duplicate Inventory Item
+    html.on('click', '.item-duplicate', (ev) => {
+      const li = $(ev.currentTarget).parents('.item');
+      const item = this.actor.items.get(li.data('itemId'));
+      this._onItemDuplicate(item);
     });
 
     // Active Effect management
@@ -1030,6 +1036,73 @@ export class StryderActorSheet extends ActorSheet {
 
 	  return await Item.create(itemData, { parent: this.actor });
 	}
+
+  /**
+   * Handle duplicating an item.
+   * @param {Item} item   The item to duplicate
+   * @private
+   */
+  async _onItemDuplicate(item) {
+    if (!item) return;
+
+    // Generate a unique name for the duplicate
+    const baseName = item.name;
+    let duplicateName = `${baseName} (Copy)`;
+    
+    // Check if a duplicate name already exists and increment the number
+    let counter = 1;
+    while (this.actor.items.find(i => i.name === duplicateName)) {
+      counter++;
+      duplicateName = `${baseName} (Copy) (${counter})`;
+    }
+
+    // Create the duplicate item data
+    const duplicateData = {
+      name: duplicateName,
+      type: item.type,
+      img: item.img,
+      system: foundry.utils.deepClone(item.system)
+    };
+
+    // Create the duplicate item
+    await Item.create(duplicateData, { parent: this.actor });
+  }
+
+  /**
+   * Handle deleting an item with confirmation dialog.
+   * @param {Item} item   The item to delete
+   * @param {jQuery} li   The list item element
+   * @private
+   */
+  async _onItemDelete(item, li) {
+    if (!item) return;
+
+    // Use Dialog.confirm for proper handling
+    const confirmed = await Dialog.confirm({
+      title: game.i18n.localize("STRYDER.DOCUMENT.DeleteConfirm"),
+      content: `
+        <div style="text-align: center; padding: 20px;">
+          <p style="font-size: 16px; margin-bottom: 20px;">
+            ${game.i18n.format("STRYDER.DOCUMENT.DeleteConfirmMessage", { name: item.name })}
+          </p>
+        </div>
+      `,
+      yes: async () => {
+        await item.delete();
+        li.slideUp(200, () => this.render(false));
+        return true;
+      },
+      no: () => {
+        return false;
+      },
+      defaultYes: false,
+      options: {
+        classes: ["stryder-delete-confirm"]
+      }
+    });
+
+    // The dialog result is handled by the yes/no callbacks above
+  }
 
   /**
    * Handle opening compendiums.

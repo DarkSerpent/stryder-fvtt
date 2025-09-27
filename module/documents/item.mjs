@@ -39,24 +39,6 @@ export class StryderItem extends Item {
     }
   }
 
-  /** @override */
-  static async create(data, options = {}) {
-    // Initialize default damage_type based on item type
-    const defaultData = {};
-    
-    if (data.type === 'armament') {
-      defaultData.system = { damage_type: 'physical' };
-    } else if (data.type === 'generic') {
-      defaultData.system = { damage_type: 'ahl' };
-    } else if (data.type === 'hex') {
-      defaultData.system = { damage_type: 'magykal' };
-    }
-    
-    // Merge with insertKeys: false to ensure our values take precedence
-    data = foundry.utils.mergeObject(defaultData, data, { insertKeys: false });
-    
-    return super.create(data, options);
-  }
 
   /**
    * Prepare a data object which defines the data schema used by dice roll commands against this Item
@@ -518,20 +500,29 @@ export class StryderItem extends Item {
 		</div>
 		`;
 	  }
-	  // Handle mana and stamina costs
+	  // Handle mana, stamina, and tactic points costs
 	  else {
 		const hasStaminaCost = item.system.stamina_cost > 0;
 		const hasManaCost = item.system.mana_cost > 0;
+		const hasTacticsCost = item.system.tactics_cost > 0;
 		const canOverflow = item.type === "hex" && item.system.hex?.canOverflow;
 		
-		if (hasStaminaCost || hasManaCost) {
+		if (hasStaminaCost || hasManaCost || hasTacticsCost) {
 		  let buttonText = 'Spend Resources';
-		  if (hasStaminaCost && hasManaCost) {
-			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span> and <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
-		  } else if (hasStaminaCost) {
-			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span>`;
-		  } else if (hasManaCost) {
-			buttonText = `Spend <span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`;
+		  const resourceParts = [];
+		  
+		  if (hasStaminaCost) {
+			resourceParts.push(`<span style="font-family: 'Varela Round';">${item.system.stamina_cost}</span> <span style="color: #147c32; font-weight: bold;">Stamina</span>`);
+		  }
+		  if (hasManaCost) {
+			resourceParts.push(`<span style="font-family: 'Varela Round';">${item.system.mana_cost}</span> <span style="color: #08acff; font-weight: bold;">Mana</span>`);
+		  }
+		  if (hasTacticsCost) {
+			resourceParts.push(`<span style="font-family: 'Varela Round';">${item.system.tactics_cost}</span> <span style="color: #FFFF00; font-weight: bold;">Tactic Points</span>`);
+		  }
+		  
+		  if (resourceParts.length > 0) {
+			buttonText = `Spend ${resourceParts.join(' and ')}`;
 		  }
 
 		  buttonsHTML += `
@@ -539,6 +530,7 @@ export class StryderItem extends Item {
 			<button class="resource-spend-button" 
 					data-stamina-cost="${item.system.stamina_cost || 0}"
 					data-mana-cost="${item.system.mana_cost || 0}"
+					data-tactics-cost="${item.system.tactics_cost || 0}"
 					data-can-overflow="${canOverflow}"
 					data-item-id="${item.id}">
 			  ${buttonText}
@@ -635,6 +627,7 @@ export class StryderItem extends Item {
 	  const button = event.currentTarget;
 	  const staminaCost = parseInt(button.dataset.staminaCost) || 0;
 	  const manaCost = parseInt(button.dataset.manaCost) || 0;
+	  const tacticsCost = parseInt(button.dataset.tacticsCost) || 0;
 	  const focusCost = parseInt(button.dataset.focusCost) || 0;
 	  const canOverflow = button.dataset.canOverflow === "true";
 	  const itemId = button.dataset.itemId;
@@ -655,83 +648,105 @@ export class StryderItem extends Item {
 		return;
 	  }
 
-	  // Handle Lordling case
+	  // Handle Lordling case - Tactic Points come from Lordling, others from linked character
+	  let linkedActor = null;
 	  if (actor.type === 'lordling') {
 		const linkedCharacterId = actor.system.linkedCharacterId;
-		if (!linkedCharacterId) {
-		  let resourceMessage = "";
-		  if (staminaCost > 0) resourceMessage += "stamina";
-		  if (manaCost > 0) {
-			if (resourceMessage) resourceMessage += "/";
-			resourceMessage += "mana";
-		  }
-		  if (focusCost > 0) {
-			if (resourceMessage) resourceMessage += "/";
-			resourceMessage += "focus";
+		
+		// Check if we need linked actor for stamina/mana/focus
+		const needsLinkedActor = staminaCost > 0 || manaCost > 0 || focusCost > 0;
+		
+		if (needsLinkedActor) {
+		  if (!linkedCharacterId) {
+			let resourceMessage = "";
+			if (staminaCost > 0) resourceMessage += "stamina";
+			if (manaCost > 0) {
+			  if (resourceMessage) resourceMessage += "/";
+			  resourceMessage += "mana";
+			}
+			if (focusCost > 0) {
+			  if (resourceMessage) resourceMessage += "/";
+			  resourceMessage += "focus";
+			}
+			
+			ui.notifications.error(`Lordling has no Linked Actor, so ${resourceMessage} could not be subtracted!`);
+			return;
 		  }
 		  
-		  ui.notifications.error(`Lordling has no Linked Actor, so ${resourceMessage} could not be subtracted!`);
-		  return;
+		  // Get the linked actor for stamina/mana/focus
+		  linkedActor = game.actors.get(linkedCharacterId);
+		  if (!linkedActor) {
+			ui.notifications.error("Linked Actor not found!");
+			return;
+		  }
 		}
-		
-		// Get the linked actor
-		const linkedActor = game.actors.get(linkedCharacterId);
-		if (!linkedActor) {
-		  ui.notifications.error("Linked Actor not found!");
-		  return;
-		}
-		
-		// Use the linked actor instead
-		actor = linkedActor;
 	  }
 
 	  // Check if the actor has enough resources
 	  let canAfford = true;
 	  let warningMessage = "";
+	  let adjustedStaminaCost = null; // For stunned condition handling
 
 	  if (staminaCost > 0) {
-		if (actor.system.stamina?.value === undefined) {
+		const staminaActor = linkedActor || actor;
+		if (staminaActor.system.stamina?.value === undefined) {
 		  ui.notifications.warn("Selected character doesn't have stamina to spend!");
 		  return;
 		}
 		
 		// Check for Stunned condition
 		const { handleStunnedStaminaSpend } = await import('../conditions/stunned.mjs');
-		const stunnedResult = await handleStunnedStaminaSpend(actor, staminaCost, 'resource');
+		const stunnedResult = await handleStunnedStaminaSpend(staminaActor, staminaCost, 'resource');
 		if (!stunnedResult.shouldProceed) {
 		  return; // Error message already shown
 		}
 		
 		// Use the stunned-adjusted cost for the rest of the function
-		const adjustedStaminaCost = stunnedResult.cost;
+		adjustedStaminaCost = stunnedResult.cost;
 		
-		if (actor.system.stamina.value < adjustedStaminaCost) {
+		if (staminaActor.system.stamina.value < adjustedStaminaCost) {
 		  canAfford = false;
-		  warningMessage += `Not enough Stamina (${actor.system.stamina.value}/${adjustedStaminaCost})`;
+		  warningMessage += `Not enough Stamina (${staminaActor.system.stamina.value}/${adjustedStaminaCost})`;
 		}
 	  }
 
 	  if (manaCost > 0) {
-		if (actor.system.mana?.value === undefined) {
+		const manaActor = linkedActor || actor;
+		if (manaActor.system.mana?.value === undefined) {
 		  ui.notifications.warn("Selected character doesn't have mana to spend!");
 		  return;
 		}
-		if (actor.system.mana.value < manaCost) {
+		if (manaActor.system.mana.value < manaCost) {
 		  canAfford = false;
 		  if (warningMessage) warningMessage += " and ";
-		  warningMessage += `Not enough Mana (${actor.system.mana.value}/${manaCost})`;
+		  warningMessage += `Not enough Mana (${manaActor.system.mana.value}/${manaCost})`;
+		}
+	  }
+
+	  if (tacticsCost > 0) {
+		// Tactics always come from the original actor (Lordling), not linked character
+		const tacticsActor = actor;
+		if (tacticsActor.system.tactics?.value === undefined) {
+		  ui.notifications.warn(`Selected character (${tacticsActor.name}, type: ${tacticsActor.type}) doesn't have tactic points to spend!`);
+		  return;
+		}
+		if (tacticsActor.system.tactics.value < tacticsCost) {
+		  canAfford = false;
+		  if (warningMessage) warningMessage += " and ";
+		  warningMessage += `Not enough Tactic Points (${tacticsActor.system.tactics.value}/${tacticsCost})`;
 		}
 	  }
 
 	  if (focusCost > 0) {
-		if (actor.system.focus?.value === undefined) {
+		const focusActor = linkedActor || actor;
+		if (focusActor.system.focus?.value === undefined) {
 		  ui.notifications.warn("Selected character doesn't have focus to spend!");
 		  return;
 		}
-		if (actor.system.focus.value < focusCost) {
+		if (focusActor.system.focus.value < focusCost) {
 		  canAfford = false;
 		  if (warningMessage) warningMessage += " and ";
-		  warningMessage += `Not enough Focus (${actor.system.focus.value}/${focusCost})`;
+		  warningMessage += `Not enough Focus (${focusActor.system.focus.value}/${focusCost})`;
 		}
 	  }
 
@@ -751,30 +766,45 @@ export class StryderItem extends Item {
 		
 		// If overflow amount is 0, undefined, or null, proceed with normal behavior
 		if (overflowAmount > 0) {
+		  const manaActor = linkedActor || actor;
 		  // Check if actor has enough mana for overflow
-		  if (actor.system.mana.value < manaCost + overflowAmount) {
-			ui.notifications.warn(`Not enough Mana for overflow! Need ${manaCost + overflowAmount}, have ${actor.system.mana.value}`);
+		  if (manaActor.system.mana.value < manaCost + overflowAmount) {
+			ui.notifications.warn(`Not enough Mana for overflow! Need ${manaCost + overflowAmount}, have ${manaActor.system.mana.value}`);
 			return;
 		  }
 		  
-		  // Spend resources with overflow
+		  // Spend resources with overflow - need to update multiple actors
 		  const updates = {};
-		  updates['system.mana.value'] = Math.max(0, actor.system.mana.value - manaCost - overflowAmount);
+		  updates['system.mana.value'] = Math.max(0, manaActor.system.mana.value - manaCost - overflowAmount);
 		  
 		  let stunnedAdditionalCost = 0;
-		  if (staminaCost > 0 && actor.system.stamina?.value !== undefined) {
-			// Use the stunned-adjusted cost if we calculated it earlier
-			const finalStaminaCost = adjustedStaminaCost || staminaCost;
-			stunnedAdditionalCost = finalStaminaCost - staminaCost;
-			
-			updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - finalStaminaCost);
+		  if (staminaCost > 0) {
+			const staminaActor = linkedActor || actor;
+			if (staminaActor.system.stamina?.value !== undefined) {
+			  // Use the stunned-adjusted cost if we calculated it earlier
+			  const finalStaminaCost = adjustedStaminaCost || staminaCost;
+			  stunnedAdditionalCost = finalStaminaCost - staminaCost;
+			  
+			  updates['system.stamina.value'] = Math.max(0, staminaActor.system.stamina.value - finalStaminaCost);
+			}
 		  }
 		  
-		  if (focusCost > 0 && actor.system.focus?.value !== undefined) {
-			updates['system.focus.value'] = Math.max(0, actor.system.focus.value - focusCost);
+		  if (focusCost > 0) {
+			const focusActor = linkedActor || actor;
+			if (focusActor.system.focus?.value !== undefined) {
+			  updates['system.focus.value'] = Math.max(0, focusActor.system.focus.value - focusCost);
+			}
 		  }
 		  
-		  actor.update(updates).then(async () => {
+		  // Update the main actor (linked actor for stamina/mana/focus, or original actor)
+		  const mainActor = linkedActor || actor;
+		  mainActor.update(updates).then(async () => {
+			// If tactics need to be spent from original actor, update separately
+			if (tacticsCost > 0 && actor.system.tactics?.value !== undefined) {
+			  const tacticsUpdates = {};
+			  tacticsUpdates['system.tactics.value'] = Math.max(0, actor.system.tactics.value - tacticsCost);
+			  await actor.update(tacticsUpdates);
+			}
 			ui.notifications.info(`Resources spent with overflow for ${actor.name}!`);
 			button.disabled = true;
 			button.textContent = "Resources Spent";
@@ -787,10 +817,33 @@ export class StryderItem extends Item {
 			
 			// Create overflow chat message
 			let messageContent;
-			if (staminaCost > 0 && manaCost > 0) {
-			  messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana and ${overflowAmount} Overflow Mana.`;
-			} else if (manaCost > 0) {
-			  messageContent = `${actor.name} spent ${manaCost} Mana and ${overflowAmount} Overflow Mana.`;
+			const resourceParts = [];
+			if (staminaCost > 0) resourceParts.push(`${staminaCost} Stamina`);
+			if (manaCost > 0) resourceParts.push(`${manaCost} Mana`);
+			if (tacticsCost > 0) resourceParts.push(`${tacticsCost} Tactic Points`);
+			
+			if (resourceParts.length > 0) {
+			  // For Lordlings, show which resources come from linked character
+			  if (actor.type === 'lordling' && linkedActor) {
+				const linkedResources = [];
+				const lordlingResources = [];
+				
+				if (staminaCost > 0) linkedResources.push(`${staminaCost} Stamina`);
+				if (manaCost > 0) linkedResources.push(`${manaCost} Mana`);
+				if (tacticsCost > 0) lordlingResources.push(`${tacticsCost} Tactic Points`);
+				
+				let messageParts = [];
+				if (linkedResources.length > 0) {
+				  messageParts.push(`${actor.name} spent ${linkedResources.join(' and ')} from ${linkedActor.name}`);
+				}
+				if (lordlingResources.length > 0) {
+				  messageParts.push(`${actor.name} spent ${lordlingResources.join(' and ')}`);
+				}
+				
+				messageContent = messageParts.join(' and ') + ` and ${overflowAmount} Overflow Mana.`;
+			  } else {
+				messageContent = `${actor.name} spent ${resourceParts.join(' and ')} and ${overflowAmount} Overflow Mana.`;
+			  }
 			} else {
 			  messageContent = `${actor.name} spent ${overflowAmount} Overflow Mana.`;
 			}
@@ -830,33 +883,63 @@ export class StryderItem extends Item {
 		}
 	  }
 
-	  // Prepare updates
-	  const updates = {};
+	  // Prepare updates for different actors
+	  const mainUpdates = {}; // For stamina/mana/focus (linked actor or original)
+	  const tacticsUpdates = {}; // For tactics (always original actor)
 	  let hasResources = false;
 	  let stunnedAdditionalCost = 0;
 
-	  if (staminaCost > 0 && actor.system.stamina?.value !== undefined) {
-		// Use the stunned-adjusted cost if we calculated it earlier
-		const finalStaminaCost = adjustedStaminaCost || staminaCost;
-		stunnedAdditionalCost = finalStaminaCost - staminaCost;
-		
-		updates['system.stamina.value'] = Math.max(0, actor.system.stamina.value - finalStaminaCost);
-		hasResources = true;
+	  if (staminaCost > 0) {
+		const staminaActor = linkedActor || actor;
+		if (staminaActor.system.stamina?.value !== undefined) {
+		  // Use the stunned-adjusted cost if we calculated it earlier
+		  const finalStaminaCost = adjustedStaminaCost || staminaCost;
+		  stunnedAdditionalCost = finalStaminaCost - staminaCost;
+		  
+		  mainUpdates['system.stamina.value'] = Math.max(0, staminaActor.system.stamina.value - finalStaminaCost);
+		  hasResources = true;
+		}
 	  }
 
-	  if (manaCost > 0 && actor.system.mana?.value !== undefined) {
-		updates['system.mana.value'] = Math.max(0, actor.system.mana.value - manaCost);
-		hasResources = true;
+	  if (manaCost > 0) {
+		const manaActor = linkedActor || actor;
+		if (manaActor.system.mana?.value !== undefined) {
+		  mainUpdates['system.mana.value'] = Math.max(0, manaActor.system.mana.value - manaCost);
+		  hasResources = true;
+		}
 	  }
 
-	  if (focusCost > 0 && actor.system.focus?.value !== undefined) {
-		updates['system.focus.value'] = Math.max(0, actor.system.focus.value - focusCost);
-		hasResources = true;
+	  if (tacticsCost > 0) {
+		if (actor.system.tactics?.value !== undefined) {
+		  tacticsUpdates['system.tactics.value'] = Math.max(0, actor.system.tactics.value - tacticsCost);
+		  hasResources = true;
+		}
+	  }
+
+	  if (focusCost > 0) {
+		const focusActor = linkedActor || actor;
+		if (focusActor.system.focus?.value !== undefined) {
+		  mainUpdates['system.focus.value'] = Math.max(0, focusActor.system.focus.value - focusCost);
+		  hasResources = true;
+		}
 	  }
 
 	  // Apply updates if there are any
-	  if (hasResources && Object.keys(updates).length > 0) {
-		actor.update(updates).then(async () => {
+	  if (hasResources) {
+		const mainActor = linkedActor || actor;
+		const updatePromises = [];
+		
+		// Update main actor (stamina/mana/focus)
+		if (Object.keys(mainUpdates).length > 0) {
+		  updatePromises.push(mainActor.update(mainUpdates));
+		}
+		
+		// Update original actor for tactics (if different from main actor)
+		if (Object.keys(tacticsUpdates).length > 0) {
+		  updatePromises.push(actor.update(tacticsUpdates));
+		}
+		
+		Promise.all(updatePromises).then(async () => {
 		  ui.notifications.info(`Resources spent for ${actor.name}!`);
 		  // Disable the button after clicking
 		  button.disabled = true;
@@ -870,14 +953,35 @@ export class StryderItem extends Item {
 		  
 		  // Create chat message content
 		  let messageContent;
-		  if (staminaCost > 0 && manaCost > 0) {
-			messageContent = `${actor.name} spent ${staminaCost} Stamina and ${manaCost} Mana.`;
-		  } else if (staminaCost > 0) {
-			messageContent = `${actor.name} spent ${staminaCost} Stamina.`;
-		  } else if (manaCost > 0) {
-			messageContent = `${actor.name} spent ${manaCost} Mana.`;
-		  } else if (focusCost > 0) {
-			messageContent = `${actor.name} spent ${focusCost} Focus.`;
+		  const resourceParts = [];
+		  if (staminaCost > 0) resourceParts.push(`${staminaCost} Stamina`);
+		  if (manaCost > 0) resourceParts.push(`${manaCost} Mana`);
+		  if (tacticsCost > 0) resourceParts.push(`${tacticsCost} Tactic Points`);
+		  if (focusCost > 0) resourceParts.push(`${focusCost} Focus`);
+		  
+		  if (resourceParts.length > 0) {
+			// For Lordlings, show which resources come from linked character
+			if (actor.type === 'lordling' && linkedActor) {
+			  const linkedResources = [];
+			  const lordlingResources = [];
+			  
+			  if (staminaCost > 0) linkedResources.push(`${staminaCost} Stamina`);
+			  if (manaCost > 0) linkedResources.push(`${manaCost} Mana`);
+			  if (focusCost > 0) linkedResources.push(`${focusCost} Focus`);
+			  if (tacticsCost > 0) lordlingResources.push(`${tacticsCost} Tactic Points`);
+			  
+			  let messageParts = [];
+			  if (linkedResources.length > 0) {
+				messageParts.push(`${actor.name} spent ${linkedResources.join(' and ')} from ${linkedActor.name}`);
+			  }
+			  if (lordlingResources.length > 0) {
+				messageParts.push(`${actor.name} spent ${lordlingResources.join(' and ')}`);
+			  }
+			  
+			  messageContent = messageParts.join(' and ') + '.';
+			} else {
+			  messageContent = `${actor.name} spent ${resourceParts.join(' and ')}.`;
+			}
 		  } else {
 			messageContent = `${actor.name} spent resources.`;
 		  }

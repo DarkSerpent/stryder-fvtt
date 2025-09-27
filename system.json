@@ -19,7 +19,7 @@
       "thumbnail": "systems/stryder/assets/stryderfvtt.png"
     }
   ],
-  "version": "2.0.0",
+  "version": "2.1.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
@@ -44,6 +44,102 @@
       "path": "lang/es.json"
     }
   ],
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": ["biography"]
+      },
+      "monster": {
+        "htmlFields": ["biography"]
+      },
+      "lordling": {
+        "htmlFields": ["biography"]
+      }
+    },
+    "Item": {
+      "action": {
+        "htmlFields": ["description"]
+      },
+      "armament": {
+        "htmlFields": ["description"]
+      },
+      "generic": {
+        "htmlFields": ["description"]
+      },
+      "hex": {
+        "htmlFields": ["description"]
+      },
+      "loot": {
+        "htmlFields": ["description"]
+      },
+      "feature": {
+        "htmlFields": ["description"]
+      },
+      "skill": {
+        "htmlFields": ["description"]
+      },
+      "racial": {
+        "htmlFields": ["description"]
+      },
+      "aegiscore": {
+        "htmlFields": ["description"]
+      },
+      "legacies": {
+        "htmlFields": ["description"]
+      },
+      "head": {
+        "htmlFields": ["description"]
+      },
+      "back": {
+        "htmlFields": ["description"]
+      },
+      "arms": {
+        "htmlFields": ["description"]
+      },
+      "legs": {
+        "htmlFields": ["description"]
+      },
+      "gems": {
+        "htmlFields": ["description"]
+      },
+      "component": {
+        "htmlFields": ["description"]
+      },
+      "consumable": {
+        "htmlFields": ["description"]
+      },
+      "gear": {
+        "htmlFields": ["description"]
+      },
+      "fantasm": {
+        "htmlFields": ["description"]
+      },
+      "statperk": {
+        "htmlFields": ["description"]
+      },
+      "technique": {
+        "htmlFields": ["description"]
+      },
+      "profession": {
+        "htmlFields": ["description"]
+      },
+      "bonds": {
+        "htmlFields": ["description"]
+      },
+      "passive": {
+        "htmlFields": ["description"]
+      },
+      "miscellaneous": {
+        "htmlFields": ["description"]
+      },
+      "class": {
+        "htmlFields": ["description"]
+      },
+      "folk": {
+        "htmlFields": ["description"]
+      }
+    }
+  },
   "relationships": {
     "requires": [
       {
@@ -241,8 +337,8 @@
     }
   ],
   "socket": true,
-  "manifest": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.0.0/system.json",
-  "download": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.0.0/system.zip",
+  "manifest": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.1.0/system.json",
+  "download": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.1.0/system.zip",
   "background": "systems/stryder/assets/stryderfvtt.png",
   "grid": {
     "distance": 1,

@@ -4051,6 +4051,7 @@ progress.resource2-bar::-moz-progress-bar {
   color: #5c2b0a;
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  cursor: help;
 }
 
 /* ========================================
@@ -5248,4 +5249,40 @@ progress.resource2-bar::-moz-progress-bar {
 .reduction-tooltip li {
   margin: 2px 0;
   color: #f0f0f0;
+}
+
+/* Delete Confirmation Dialog Styling */
+.stryder-delete-confirm .dialog-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  margin-top: 20px !important;
+}
+
+.stryder-delete-confirm .dialog-button.yes {
+  background: #28a745 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 4px !important;
+  font-weight: bold !important;
+  min-width: 80px !important;
+}
+
+.stryder-delete-confirm .dialog-button.yes:hover {
+  background: #218838 !important;
+}
+
+.stryder-delete-confirm .dialog-button.no {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 4px !important;
+  font-weight: bold !important;
+  min-width: 80px !important;
+}
+
+.stryder-delete-confirm .dialog-button.no:hover {
+  background: #c82333 !important;
 }

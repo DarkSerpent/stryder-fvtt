@@ -671,6 +671,7 @@ Hooks.once('init', async function () {
   CONFIG.Actor.documentClass = StryderActor;
   CONFIG.Item.documentClass = StryderItem;
   CONFIG.ActiveEffect.legacyTransferral = false;
+
   CONFIG.time.roundTime = 8;
   CONFIG.STRYDER = STRYDER;
 

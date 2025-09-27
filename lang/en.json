@@ -19,6 +19,13 @@
 		"DialogFirstTurnFaction": "First Turn Faction",
 		"CombatEnded": "Combat ended after {round} rounds"
 	},
+	"DOCUMENT": {
+		"Duplicate": "Duplicate",
+		"DeleteConfirm": "Confirm Deletion",
+		"DeleteConfirmMessage": "Are you sure you want to delete <strong>{name}</strong>?",
+		"Yes": "Yes",
+		"No": "No"
+	},
     "Ability": {
       "power": { "long": "Power", "abbr": "POW" },
       "agility": { "long": "Agility", "abbr": "AGI" },

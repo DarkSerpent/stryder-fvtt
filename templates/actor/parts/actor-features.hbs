@@ -1,12 +1,3 @@
-<script>
-	document.addEventListener('DOMContentLoaded', function() {
-	  const allItems = document.querySelectorAll('.items-list li:not(.items-header)');
-	  allItems.forEach(item => {
-		item.style.display = 'none';
-	  });
-	});
-</script>
-
 <!-- Combined Class & Folk Section -->
 <div class="flexrow-stats scrolling-container" style="gap: 8px;">
     <!-- Class (Left Column) -->
@@ -44,6 +35,12 @@
 				<h4>{{item.name}}</h4>
 			  </div>
 			  <div class='item-controls'>
+				<a
+				  class='item-control item-duplicate'
+				  title='{{localize "STRYDER.DOCUMENT.Duplicate"}}'
+				>
+				  <i class='fas fa-copy'></i>
+				</a>
 				<a
 				  class='item-control item-edit'
 				  title='{{localize "DOCUMENT.Edit" type='feature'}}'
@@ -99,6 +96,12 @@
 				<h4>{{item.name}}</h4>
 			  </div>
 			  <div class='item-controls'>
+				<a
+				  class='item-control item-duplicate'
+				  title='{{localize "STRYDER.DOCUMENT.Duplicate"}}'
+				>
+				  <i class='fas fa-copy'></i>
+				</a>
 				<a
 				  class='item-control item-edit'
 				  title='{{localize "DOCUMENT.Edit" type='feature'}}'
@@ -268,6 +271,7 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Actions'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
+    <div class='item-action-type'>{{localize 'Action'}}</div>
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -294,6 +298,7 @@
         </div>
         <h4>{{item.name}}</h4>
       </div>
+      <div class='item-action-type item-prop'>{{#if system.action_type}}{{localize (concat "STRYDER.SheetLabels." (capitalize system.action_type))}}{{else}}{{localize "STRYDER.SheetLabels.Focused"}}{{/if}}</div>
       <div class='item-controls'>
         <a
           class='item-control item-duplicate'
@@ -373,6 +378,7 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Skills'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
+    <div class='item-skill-uses'>{{localize 'Uses'}}</div>
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -398,6 +404,22 @@
           </a>
         </div>
         <h4>{{item.name}}</h4>
+      </div>
+      <div class='item-skill-uses item-prop'>
+        {{#if (gt item.system.cooldown_value 0)}}
+          <div class='uses-container'>
+            <button type='button' class='uses-reset-btn' data-item-id='{{item._id}}' title='Reset to maximum uses'>
+              <i class='fas fa-redo'></i>
+            </button>
+            <input type='number' 
+                   class='uses-current' 
+                   value='{{#if (ne item.system.uses_current undefined)}}{{item.system.uses_current}}{{else}}{{item.system.cooldown_value}}{{/if}}' 
+                   data-item-id='{{item._id}}'
+                   data-field='uses_current' />
+            <span class='uses-separator'>/</span>
+            <span class='uses-max'>{{item.system.cooldown_value}}</span>
+          </div>
+        {{/if}}
       </div>
       <div class='item-controls'>
         <a
@@ -479,6 +501,7 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Folk Abilities'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
+    <div class='item-folk-uses'>{{localize 'Uses'}}</div>
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -505,7 +528,29 @@
         </div>
         <h4>{{item.name}}</h4>
       </div>
+      <div class='item-folk-uses item-prop'>
+        {{#if (gt item.system.cooldown_value 0)}}
+          <div class='uses-container'>
+            <button type='button' class='uses-reset-btn' data-item-id='{{item._id}}' title='Reset to maximum uses'>
+              <i class='fas fa-redo'></i>
+            </button>
+            <input type='number' 
+                   class='uses-current' 
+                   value='{{#if (ne item.system.uses_current undefined)}}{{item.system.uses_current}}{{else}}{{item.system.cooldown_value}}{{/if}}' 
+                   data-item-id='{{item._id}}'
+                   data-field='uses_current' />
+            <span class='uses-separator'>/</span>
+            <span class='uses-max'>{{item.system.cooldown_value}}</span>
+          </div>
+        {{/if}}
+      </div>
       <div class='item-controls'>
+        <a
+          class='item-control item-duplicate'
+          title='{{localize "STRYDER.DOCUMENT.Duplicate"}}'
+        >
+          <i class='fas fa-copy'></i>
+        </a>
         <a
           class='item-control item-edit'
           title='{{localize "DOCUMENT.Edit" type='racial'}}'

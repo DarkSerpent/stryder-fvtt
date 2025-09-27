@@ -539,6 +539,42 @@ export class StryderActorSheet extends ActorSheet {
       this._onItemDuplicate(item);
     });
 
+    // Handle uses input changes
+    let updateTimeout;
+    html.on('input', '.uses-current', (ev) => {
+      const input = ev.currentTarget;
+      const itemId = input.dataset.itemId;
+      const currentValue = parseInt(input.value);
+      
+      // Clear previous timeout
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      
+      // Debounce the update to prevent too many rapid calls
+      updateTimeout = setTimeout(() => {
+        const item = this.actor.items.get(itemId);
+        if (item && !isNaN(currentValue)) {
+          item.update({'system.uses_current': currentValue}).catch(err => {
+            console.error('Error updating uses_current:', err);
+          });
+        }
+      }, 300); // 300ms delay
+    });
+
+    // Handle uses reset button clicks
+    html.on('click', '.uses-reset-btn', (ev) => {
+      const button = ev.currentTarget;
+      const itemId = button.dataset.itemId;
+      const item = this.actor.items.get(itemId);
+      
+      if (item && item.system.cooldown_value > 0) {
+        item.update({'system.uses_current': item.system.cooldown_value}).catch(err => {
+          console.error('Error resetting uses_current:', err);
+        });
+      }
+    });
+
     // Active Effect management
     html.on('click', '.effect-control', (ev) => {
       const row = ev.currentTarget.closest('li');
@@ -618,6 +654,17 @@ export class StryderActorSheet extends ActorSheet {
 			  // Remove exhaustion effects
 			  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
 			  await removeExhaustionEffects(this.actor);
+			  
+			  // Reset uses for skills and folk abilities with perRest cooldown
+			  const itemsToReset = this.actor.items.filter(item => 
+				(item.type === 'skill' || item.type === 'racial') && 
+				item.system.cooldown_unit === 'perRest' && 
+				item.system.cooldown_value > 0
+			  );
+			  
+			  for (const item of itemsToReset) {
+				await item.update({'system.uses_current': item.system.cooldown_value});
+			  }
 			  break;
 
 			case 'springOfLife':
@@ -647,6 +694,17 @@ export class StryderActorSheet extends ActorSheet {
 				  restorationMessage = `<br><br>In addition, the Spring of Life has healed bloodloss that ${this.actor.name} sustained, restoring their Max Health by ${bloodlossReduction}.`;
 				}
 				message += restorationMessage;
+			  }
+			  
+			  // Reset uses for skills and folk abilities with perSpring cooldown
+			  const springItemsToReset = this.actor.items.filter(item => 
+				(item.type === 'skill' || item.type === 'racial') && 
+				item.system.cooldown_unit === 'perSpring' && 
+				item.system.cooldown_value > 0
+			  );
+			  
+			  for (const item of springItemsToReset) {
+				await item.update({'system.uses_current': item.system.cooldown_value});
 			  }
 			  break;
 		  }

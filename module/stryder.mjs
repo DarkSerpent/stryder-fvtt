@@ -21,6 +21,7 @@ import { handleExhaustionApplication, removeExhaustionEffects } from './conditio
 import { handleFrozenApplication, removeFrozenEffects, handleFrozenAttackPenalty, handleFrozenRoundTracking } from './conditions/frozen.mjs';
 import { handleMuteApplication, removeMuteEffects, isActorMuted, handleMuteHexBlocking } from './conditions/mute.mjs';
 import { handlePanickedApplication, isActorPanicked, getPanickedRollQuality } from './conditions/panicked.mjs';
+import { handleHorrifiedApplication, isActorHorrified, getHorrifiedRollQuality } from './conditions/horrified.mjs';
 import { handleGrappledApplication, isActorGrappled, handleGrappledEvasionBlock } from './conditions/grappled.mjs';
 import { handleShockedApplication, isActorShocked, handleShockedAttackPenalty } from './conditions/shocked.mjs';
 import { handleStunnedApplication, isActorStunned, handleStunnedStaminaSpend, removeStunnedEffect } from './conditions/stunned.mjs';
@@ -819,6 +820,11 @@ Hooks.once('init', async function () {
 		  id: "bangleless",
 		  label: "Bangleless",
 		  icon: "systems/stryder/assets/status/bangleless.svg"
+		},
+		{
+		  id: "horrified",
+		  label: "Horrified",
+		  icon: "systems/stryder/assets/status/horrified.svg"
 		}
 	];
 
@@ -1143,7 +1149,27 @@ Hooks.on('stryderCombatEvent', async (event) => {
 /*  Ready Hook                                  */
 /* -------------------------------------------- */
 
-Hooks.once('ready', function () {
+Hooks.once('ready', async function () {
+
+  // Migrate existing items to have uses_current field
+  if (game.user.isGM) {
+    const actors = game.actors.filter(actor => actor.type === 'character');
+    for (const actor of actors) {
+      const itemsToMigrate = actor.items.filter(item => 
+        (item.type === 'skill' || item.type === 'racial') && 
+        item.system.cooldown_value > 0 && 
+        (item.system.uses_current === undefined || item.system.uses_current === null)
+      );
+      
+      if (itemsToMigrate.length > 0) {
+        console.log(`Migrating ${itemsToMigrate.length} items for actor ${actor.name}`);
+        for (const item of itemsToMigrate) {
+          await item.update({'system.uses_current': item.system.cooldown_value});
+          console.log(`Migrated ${item.type} ${item.name}: uses_current set to ${item.system.cooldown_value}`);
+        }
+      }
+    }
+  }
 
   // Hotbar macros
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));

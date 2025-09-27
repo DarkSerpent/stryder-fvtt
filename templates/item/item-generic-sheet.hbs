@@ -47,6 +47,16 @@
           </div>
           <div class="section-content">
             <div class="field fantasy-field">
+              <label>Action:</label>
+              <select name="system.action_type">
+                {{#select system.action_type}}
+                <option value="focused">Focused</option>
+                <option value="swift">Swift</option>
+                <option value="passive">Passive</option>
+                {{/select}}
+              </select>
+            </div>
+            <div class="field fantasy-field">
               <label>Range:</label>
               <input type="number" name="system.range" value="{{system.range}}" min="0" placeholder="Range in meters (0 is Melee)">
             </div>
@@ -164,6 +174,65 @@
                   <input type="number" name="system.customDamage.excellent" value="{{system.customDamage.excellent}}" data-dtype="Number" />
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {{!-- Tags Section --}}
+        <div class="section fantasy-section">
+          <div class="section-header">
+            <div class="header-decoration left"></div>
+            <h2>Tags</h2>
+            <div class="header-decoration right"></div>
+          </div>
+          <div class="section-content tags-container">
+            <div class="field fantasy-field tag-field">
+              <select name="system.tag1">
+                {{#select system.tag1}}
+                <option value=""></option>
+                <option value="aid">Aid</option>
+                <option value="augment">Augment</option>
+                <option value="multi-target">Multi-Target</option>
+                <option value="persistent">Persistent</option>
+                <option value="targeted">Targeted</option>
+                <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
+                <option value="control">Control</option>
+                <option value="sunder">Sunder</option>
+                {{/select}}
+              </select>
+            </div>
+            <div class="field fantasy-field tag-field">
+              <select name="system.tag2">
+                {{#select system.tag2}}
+                <option value=""></option>
+                <option value="aid">Aid</option>
+                <option value="augment">Augment</option>
+                <option value="multi-target">Multi-Target</option>
+                <option value="persistent">Persistent</option>
+                <option value="targeted">Targeted</option>
+                <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
+                <option value="control">Control</option>
+                <option value="sunder">Sunder</option>
+                {{/select}}
+              </select>
+            </div>
+            <div class="field fantasy-field tag-field">
+              <select name="system.tag3">
+                {{#select system.tag3}}
+                <option value=""></option>
+                <option value="aid">Aid</option>
+                <option value="augment">Augment</option>
+                <option value="multi-target">Multi-Target</option>
+                <option value="persistent">Persistent</option>
+                <option value="targeted">Targeted</option>
+                <option value="breach">Breach</option>
+                <option value="reflex">Reflex</option>
+                <option value="control">Control</option>
+                <option value="sunder">Sunder</option>
+                {{/select}}
+              </select>
             </div>
           </div>
         </div>

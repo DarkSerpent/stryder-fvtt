@@ -478,7 +478,8 @@
       "charges": {
         "max": 0,
         "value": 0
-      }
+      },
+      "uses_current": 0
     },
     "hex": {
       "templates": ["base"],
@@ -596,6 +597,10 @@
     },
     "feature": {
       "templates": ["base"]
+    },
+    "skill": {
+      "templates": ["base"],
+      "uses_current": 0
     },
     "spell": {
       "templates": ["base"],

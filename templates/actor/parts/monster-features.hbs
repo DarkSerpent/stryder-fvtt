@@ -68,6 +68,7 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     <div class='item-name'>{{localize 'Actions'}}&nbsp<i class='toggle-icon fas fa-chevron-down'></i></div>
+    <div class='item-action-type'>{{localize 'Action'}}</div>
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -94,6 +95,7 @@
         </div>
         <h4>{{item.name}}</h4>
       </div>
+      <div class='item-action-type item-prop'>{{#if system.action_type}}{{localize (concat "STRYDER.SheetLabels." (capitalize system.action_type))}}{{else}}{{localize "STRYDER.SheetLabels.Focused"}}{{/if}}</div>
       <div class='item-controls'>
         <a
           class='item-control item-duplicate'

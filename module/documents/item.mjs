@@ -1,12 +1,34 @@
 import { SYSTEM_ID } from '../helpers/constants.mjs';
 import { handleConfusedApplication, handleConfusedRollIntercept, confusedState } from '../conditions/confused.mjs';
 import { isActorPanicked, getPanickedRollQuality } from '../conditions/panicked.mjs';
+import { isActorHorrified, getHorrifiedRollQuality } from '../conditions/horrified.mjs';
 
 export function getFantasmActionType(item) {
   if (item.name.includes("Hyper Sense") || item.name.includes("Unbound Leap") || item.actor?.system?.booleans?.hasFantastic) {
     return "Swift";
   }
   return "Focused";
+}
+
+// Tag descriptions for tooltips
+const tagDescriptions = {
+  "aid": "Abilities with this tag bestow a beneficial defensive effect, such as defense boosts or healing.",
+  "area": "Abilities with this tag target a number of spaces rather than a specific target.",
+  "augment": "Abilities with this tag bestow a beneficial offensive effect, such as damage boosts or accuracy increases.",
+  "breach": "Abilities with this tag are able to affect the action that occurred before them and can be used in reaction to them.",
+  "control": "Abilities with this tag inflict impairing or disabling effects on enemies hit.",
+  "reflex": "This tag marks specific defensive actions or abilities that can be enhanced or debuffed.",
+  "persistent": "Abilities with this tag inflict an effect that tends to linger after the usage of the ability itself.",
+  "sunder": "Abilities with this tag are unable to be reacted to and [Breach] abilities cannot be activated against them.",
+  "targeted": "Abilities with this tag target a number of specific creatures rather than an area.",
+  "multi-target": "Abilities with this tag target a number of specific creatures rather than an area."
+};
+
+// Helper function to create tag HTML with tooltip
+function createTagHTML(tagValue) {
+  if (!tagValue) return '';
+  const description = tagDescriptions[tagValue.toLowerCase()] || '';
+  return `<span class="chat-message-tag" style="cursor: help;" title="${description}">${tagValue}</span>`;
 }
 
 /**
@@ -21,6 +43,15 @@ export class StryderItem extends Item {
     // As with the actor class, items are documents that can have their data
     // preparation methods overridden (such as prepareBaseData()).
     super.prepareData();
+    
+    // Ensure uses_current is properly set for rendering
+    if ((this.type === 'skill' || this.type === 'racial') && this.system.cooldown_value > 0) {
+      if (this.system.uses_current === undefined || this.system.uses_current === null) {
+        this.system.uses_current = this.system.cooldown_value;
+      }
+    } else if ((this.type === 'skill' || this.type === 'racial') && this.system.cooldown_value === 0) {
+      this.system.uses_current = 0;
+    }
   }
 
   /** @override */
@@ -36,6 +67,17 @@ export class StryderItem extends Item {
       } else if (this.type === 'hex') {
         this.system.damage_type = 'magykal';
       }
+    }
+    
+    // Initialize uses_current for skills and racial items
+    if ((this.type === 'skill' || this.type === 'racial') && this.system.cooldown_value > 0) {
+      if (this.system.uses_current === undefined || this.system.uses_current === null) {
+        this.system.uses_current = this.system.cooldown_value;
+        console.log(`Initializing ${this.type} ${this.name}: setting uses_current to ${this.system.cooldown_value}`);
+      }
+    } else if ((this.type === 'skill' || this.type === 'racial') && this.system.cooldown_value === 0) {
+      // If cooldown_value is 0, ensure uses_current is also 0
+      this.system.uses_current = 0;
     }
   }
 
@@ -319,9 +361,9 @@ export class StryderItem extends Item {
 		<div class="chat-message-subtitle">${itemType}</div>
 		${(tag1 || tag2 || tag3) ? `
 		  <div class="chat-message-tags">
-			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
-			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
-			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+			${createTagHTML(tag1)}
+			${createTagHTML(tag2)}
+			${createTagHTML(tag3)}
 		  </div>
 		` : ''}
 	  </div>
@@ -363,9 +405,9 @@ export class StryderItem extends Item {
 		<div class="chat-message-subtitle">${itemType}</div>
 		${(tag1 || tag2 || tag3) ? `
 		  <div class="chat-message-tags">
-			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
-			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
-			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+			${createTagHTML(tag1)}
+			${createTagHTML(tag2)}
+			${createTagHTML(tag3)}
 		  </div>
 		` : ''}
 	  </div>
@@ -415,9 +457,9 @@ export class StryderItem extends Item {
 		<div class="chat-message-subtitle">${itemType}</div>
 		${(tag1 || tag2 || tag3) ? `
 		  <div class="chat-message-tags">
-			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
-			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
-			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+			${createTagHTML(tag1)}
+			${createTagHTML(tag2)}
+			${createTagHTML(tag3)}
 		  </div>
 		` : ''}
 	  </div>
@@ -1220,9 +1262,9 @@ export class StryderItem extends Item {
 		<div class="chat-message-subtitle">${itemType}</div>
 		${(tag1 || tag2 || tag3) ? `
 		  <div class="chat-message-tags">
-			${tag1 ? `<span class="chat-message-tag">${tag1}</span>` : ''}
-			${tag2 ? `<span class="chat-message-tag">${tag2}</span>` : ''}
-			${tag3 ? `<span class="chat-message-tag">${tag3}</span>` : ''}
+			${createTagHTML(tag1)}
+			${createTagHTML(tag2)}
+			${createTagHTML(tag3)}
 		  </div>
 		` : ''}
 	  </div>
@@ -1275,12 +1317,23 @@ export class StryderItem extends Item {
 		</div>
 		<div class="chat-message-title">${item.name}</div>
 		<div class="chat-message-subtitle">${itemType}</div>
+		${(tag1 || tag2 || tag3) ? `
+		  <div class="chat-message-tags">
+			${createTagHTML(tag1)}
+			${createTagHTML(tag2)}
+			${createTagHTML(tag3)}
+		  </div>
+		` : ''}
 	  </div>
 	  
 	  <div class="chat-message-details">
 		<div class="chat-message-detail-row">
 		  <span class="chat-message-detail-label">Parent Ability:</span>
 		  <span>${parentAbility}</span>
+		</div>
+		<div class="chat-message-detail-row">
+		  <span class="chat-message-detail-label">Action:</span>
+		  <span>${actionType}</span>
 		</div>
 		${range ? `
 		  <div class="chat-message-detail-row">
@@ -1620,6 +1673,25 @@ export class StryderItem extends Item {
 
     // If there's no roll data, send a chat message.
 		if (item.type === "feature" || item.type === "skill" || item.type === "technique") {
+		  // Check uses for skills
+		  if (item.type === "skill" && item.system.cooldown_value > 0) {
+			// Initialize uses_current if it doesn't exist
+			if (item.system.uses_current === undefined || item.system.uses_current === null) {
+			  await item.update({'system.uses_current': item.system.cooldown_value});
+			  console.log(`Initialized skill ${item.name}: uses_current set to ${item.system.cooldown_value}`);
+			}
+			
+			const currentUses = item.system.uses_current;
+			console.log(`Skill ${item.name}: currentUses=${currentUses}, cooldown_value=${item.system.cooldown_value}`);
+			if (currentUses <= 0) {
+			  ui.notifications.error("This ability has been used the maximum number of times!");
+			  return;
+			}
+			// Decrement uses
+			const newUses = Math.max(0, currentUses - 1);
+			await item.update({'system.uses_current': newUses});
+		  }
+		  
 		  const resourceButton = createResourceSpendButton(item);
 		  const bloodlossButton = createBloodlossSpendButton(item);
 
@@ -1783,8 +1855,27 @@ export class StryderItem extends Item {
 					});
 				} else {
 					// Determine quality based on roll result
-					// Check if actor is panicked and apply panicked quality logic
-					if (isActorPanicked(item.actor)) {
+					// Check if actor is horrified first (horrified overrides everything)
+					if (isActorHorrified(item.actor)) {
+						const horrifiedQuality = getHorrifiedRollQuality(result, "hex", item.system);
+						if (horrifiedQuality) {
+							quality = horrifiedQuality.quality;
+							damageMultiplier = horrifiedQuality.damageMultiplier;
+						} else {
+							// Hex doesn't roll damage, use normal logic
+							if (result <= 4) {
+								quality = "Poor";
+								damageMultiplier = 0.5;
+							} else if (result >= 5 && result <= 10) {
+								quality = "Good";
+								damageMultiplier = 1.0;
+							} else if (result >= 11) {
+								quality = "Excellent";
+								damageMultiplier = 1.5;
+							}
+						}
+					} else if (isActorPanicked(item.actor)) {
+						// Check if actor is panicked and apply panicked quality logic
 						const panickedQuality = getPanickedRollQuality(result, "hex", item.system);
 						if (panickedQuality) {
 							quality = panickedQuality.quality;
@@ -1829,11 +1920,13 @@ export class StryderItem extends Item {
 					}
 					const totalDamage = baseDamage + masteryBonus;
 
+					const horrifiedPrefix = isActorHorrified(item.actor) ? `<strong>${item.actor.name} is Horrified!</strong> ` : "";
 					const panickedPrefix = isActorPanicked(item.actor) ? `<strong>${item.actor.name} is Panicked!</strong> ` : "";
+					const statusPrefix = horrifiedPrefix || panickedPrefix;
 					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
 					const qualityMessage = `
 					<div class="damage-quality ${quality.toLowerCase()}">
-					  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+					  ${statusPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
 					</div>
 					${damageButton}
 					`;
@@ -1874,6 +1967,25 @@ export class StryderItem extends Item {
 		  });
 		}
 		else if (item.type === "racial") {
+		  // Check uses for folk abilities
+		  if (item.system.cooldown_value > 0) {
+			// Initialize uses_current if it doesn't exist
+			if (item.system.uses_current === undefined || item.system.uses_current === null) {
+			  await item.update({'system.uses_current': item.system.cooldown_value});
+			  console.log(`Initialized racial ${item.name}: uses_current set to ${item.system.cooldown_value}`);
+			}
+			
+			const currentUses = item.system.uses_current;
+			console.log(`Racial ${item.name}: currentUses=${currentUses}, cooldown_value=${item.system.cooldown_value}`);
+			if (currentUses <= 0) {
+			  ui.notifications.error("This ability has been used the maximum number of times!");
+			  return;
+			}
+			// Decrement uses
+			const newUses = Math.max(0, currentUses - 1);
+			await item.update({'system.uses_current': newUses});
+		  }
+		  
 		  const resourceButton = createResourceSpendButton(item);
 		  const bloodlossButton = createBloodlossSpendButton(item);
 
@@ -2093,8 +2205,13 @@ export class StryderItem extends Item {
 				quality = "Excellent";
 				damageMultiplier = 1.5;
 			} else {
-				// Check if actor is panicked and apply panicked quality logic
-				if (isActorPanicked(actor)) {
+				// Check if actor is horrified first (horrified overrides everything)
+				if (isActorHorrified(actor)) {
+					const horrifiedQuality = getHorrifiedRollQuality(result, "armament", item.system);
+					quality = horrifiedQuality.quality;
+					damageMultiplier = horrifiedQuality.damageMultiplier;
+				} else if (isActorPanicked(actor)) {
+					// Check if actor is panicked and apply panicked quality logic
 					const panickedQuality = getPanickedRollQuality(result, "armament", item.system);
 					quality = panickedQuality.quality;
 					damageMultiplier = panickedQuality.damageMultiplier;
@@ -2137,11 +2254,13 @@ export class StryderItem extends Item {
 			const totalDamage = baseDamage + rawDamageAmp + masteryBonus; // Add rawDamageAmp and mastery bonus after multiplier
 
 			// Create follow-up chat message with damage button
+			const horrifiedPrefix = isActorHorrified(actor) ? `<strong>${actor.name} is Horrified!</strong> ` : "";
 			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
+			const statusPrefix = horrifiedPrefix || panickedPrefix;
 			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'physical');
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
-			  ${panickedPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			  ${statusPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
 			</div>
 			${damageButton}
 			`;
@@ -2215,8 +2334,13 @@ export class StryderItem extends Item {
 			let quality;
 			let damageMultiplier;
 			
-			// Check if actor is panicked and apply panicked quality logic
-			if (isActorPanicked(actor)) {
+			// Check if actor is horrified first (horrified overrides everything)
+			if (isActorHorrified(actor)) {
+				const horrifiedQuality = getHorrifiedRollQuality(result, "generic", item.system);
+				quality = horrifiedQuality.quality;
+				damageMultiplier = horrifiedQuality.damageMultiplier;
+			} else if (isActorPanicked(actor)) {
+				// Check if actor is panicked and apply panicked quality logic
 				const panickedQuality = getPanickedRollQuality(result, "generic", item.system);
 				quality = panickedQuality.quality;
 				damageMultiplier = panickedQuality.damageMultiplier;
@@ -2248,11 +2372,13 @@ export class StryderItem extends Item {
 			}
 			totalDamage += rawDamageAmp;
 
+			const horrifiedPrefix = isActorHorrified(actor) ? `<strong>${actor.name} is Horrified!</strong> ` : "";
 			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
+			const statusPrefix = horrifiedPrefix || panickedPrefix;
 			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'ahl');
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
-			  ${panickedPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
+			  ${statusPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
 			</div>
 			${damageButton}
 			`;

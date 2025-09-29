@@ -798,7 +798,7 @@ export class StryderItem extends Item {
 	  }
 
 	  // Handle overflow dialog for hexes
-	  if (canOverflow && manaCost > 0) {
+	  if (canOverflow) {
 		const overflowAmount = await showOverflowDialog();
 		
 		if (overflowAmount === null) {

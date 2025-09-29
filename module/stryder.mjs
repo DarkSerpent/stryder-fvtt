@@ -1424,131 +1424,148 @@ Hooks.on('renderChatMessage', (message, html, data) => {
  * - Use game.stryder.testInfluencedCondition("ActorName") to test Influenced condition on specific actor
  */
 
-// Function to create a visual aura template for an actor
-async function createAuraTemplate(actor) {
+// Function to create a visual aura ring for an actor
+async function createAuraRing(actor) {
   const token = canvas.tokens.placeables.find(t => t.actor === actor);
   if (!token) return null;
   
-  // Create a 2-meter radius circle template
-  const templateData = {
-    t: "circle",
-    x: token.center.x,
-    y: token.center.y,
-    distance: 2, // 2 meters radius
-    direction: 0,
+  // Check if user can control this actor
+  const canControl = actor.isOwner || game.user.isGM;
+  if (!canControl) return null;
+  
+  // Create aura ring data
+  const auraRingData = {
+    id: 0,
+    name: "Body of Influence",
+    radius: 2, // 2 meters radius
     angle: 360,
-    width: 2,
-    borderColor: "#000000", // Black circle outline
-    fillColor: "#004400", // Dark green fill for squares/hexes
-    hidden: true, // Start hidden - only show on hover
-    flags: {
-      [SYSTEM_ID]: {
-        isBodyOfInfluenceAura: true,
-        sourceActorId: actor.id,
-        sourceTokenId: token.id
-      }
-    }
+    direction: 0,
+    stroke_colour: "#000000", // Black outline
+    stroke_opacity: 0.75,
+    stroke_weight: 4,
+    fill_colour: "#004400", // Dark green fill
+    fill_opacity: 0.1,
+    hide: false, // Always show
+    hover_only: false, // Not hover-only
+    visibility: "PLAYER"
   };
   
   try {
-    const template = await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [templateData]);
-    return template[0];
+    // Set the aura ring flag on the token
+    await token.document.setFlag("stryder", "auraRing", auraRingData);
+    return auraRingData;
   } catch (error) {
-    console.error(`Failed to create aura template for ${actor.name}:`, error);
+    console.error(`Failed to create aura ring for ${actor.name}:`, error);
     return null;
   }
 }
 
-// Function to remove aura template for a specific token
-async function removeAuraTemplateForToken(token) {
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
-  );
+// Function to remove aura ring for a specific token
+async function removeAuraRingForToken(token) {
+  if (!token || !token.id) return;
   
-  if (templates.length > 0) {
-    try {
-      await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
-    } catch (error) {
-      // Template may have already been deleted, ignore the error
-      console.log(`Template for token ${token.id} was already removed or doesn't exist`);
-    }
+  // Check if user can control this token
+  const canControl = token.actor.isOwner || game.user.isGM;
+  if (!canControl) return;
+  
+  try {
+    // Remove the aura ring flag from the token
+    await token.document.unsetFlag("stryder", "auraRing");
+  } catch (error) {
+    // Aura ring may have already been removed, ignore the error
+    console.log(`Aura ring for token ${token.id} was already removed or doesn't exist`);
   }
 }
 
-// Function to remove aura template for an actor (legacy - for cleanup)
-async function removeAuraTemplate(actor) {
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-    t.flags[SYSTEM_ID]?.sourceActorId === actor.id
-  );
+// Function to remove aura ring for an actor (legacy - for cleanup)
+async function removeAuraRing(actor) {
+  if (!actor || !actor.id) return;
   
-  if (templates.length > 0) {
-    try {
-      await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
-    } catch (error) {
-      // Template may have already been deleted, ignore the error
-      console.log(`Template for ${actor.name} was already removed or doesn't exist`);
-    }
+  // Check if user can control this actor
+  const canControl = actor.isOwner || game.user.isGM;
+  if (!canControl) return;
+  
+  const token = canvas.tokens.placeables.find(t => t.actor === actor);
+  if (token) {
+    await removeAuraRingForToken(token);
   }
 }
 
-// Function to check if a token is within any aura template
+// Function to check if a token is within any aura ring
 function isTokenInAura(token) {
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura
-  );
+  const allTokens = canvas.tokens.placeables;
   
-  for (const template of templates) {
-    if (template.t === "circle") {
-      const tokenCenter = token.center;
-      const templateCenter = { x: template.x, y: template.y };
-      
-      // Use Foundry's grid measurement system
-      const distance = canvas.grid.measureDistance(templateCenter, tokenCenter);
-      
-      // Check if token center is within the circle radius
-      if (distance <= template.distance) {
-        return true;
-      }
-      
-      // For hex grids, add a small tolerance for edge cases
-      // This helps with the "bulge" effect where tokens at the outer edges
-      // might visually be in the template but their center is slightly outside
-      const tolerance = 0.1; // Small tolerance for hex grid edge cases
-      if (distance <= (template.distance + tolerance)) {
-        return true;
-      }
+  for (const auraToken of allTokens) {
+    if (!auraToken.actor || !auraToken.actor.system?.booleans?.aura?.BodyofInfluence) continue;
+    
+    // Get aura ring data from the token
+    const auraRing = auraToken.document.getFlag("stryder", "auraRing");
+    if (!auraRing) continue;
+    
+    // Use the same logic as the working reference
+    const tokenCenter = token.center;
+    const auraCenter = auraToken.center;
+    
+    // Use Foundry's grid measurement system
+    const distance = canvas.grid.measureDistance(auraCenter, tokenCenter);
+    
+    // Check if token center is within the circle radius
+    if (distance <= auraRing.radius) {
+      return true;
+    }
+    
+    // For hex grids, add a small tolerance for edge cases
+    // This helps with the "bulge" effect where tokens at the outer edges
+    // might visually be in the template but their center is slightly outside
+    const tolerance = 0.1; // Small tolerance for hex grid edge cases
+    if (distance <= (auraRing.radius + tolerance)) {
+      return true;
     }
   }
   return false;
 }
 
-// Function to show aura template for a specific token
-async function showAuraTemplate(token) {
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
-  );
+// Function to show aura ring for a specific token
+async function showAuraRing(token) {
+  if (!token || !token.id) return;
   
-  for (const template of templates) {
-    if (template.hidden) {
-      await template.update({ hidden: false });
+  // Check if user can control this token
+  const canControl = token.actor.isOwner || game.user.isGM;
+  if (!canControl) return;
+  
+  try {
+    // Get current aura ring data
+    const auraRing = token.document.getFlag("stryder", "auraRing");
+    if (auraRing && auraRing.hide) {
+      // Update the aura ring to show it
+      auraRing.hide = false;
+      await token.document.setFlag("stryder", "auraRing", auraRing);
     }
+  } catch (error) {
+    // Aura ring may have been removed, ignore the error
+    console.log(`Aura ring for token ${token.id} was already removed or doesn't exist`);
   }
 }
 
-// Function to hide aura template for a specific token
-async function hideAuraTemplate(token) {
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
-  );
+// Function to hide aura ring for a specific token
+async function hideAuraRing(token) {
+  if (!token || !token.id) return;
   
-  for (const template of templates) {
-    if (!template.hidden) {
-      await template.update({ hidden: true });
+  // Check if user can control this token
+  const canControl = token.actor.isOwner || game.user.isGM;
+  if (!canControl) return;
+  
+  try {
+    // Get current aura ring data
+    const auraRing = token.document.getFlag("stryder", "auraRing");
+    if (auraRing && !auraRing.hide) {
+      // Update the aura ring to hide it
+      auraRing.hide = true;
+      await token.document.setFlag("stryder", "auraRing", auraRing);
     }
+  } catch (error) {
+    // Aura ring may have been removed, ignore the error
+    console.log(`Aura ring for token ${token.id} was already removed or doesn't exist`);
   }
 }
 
@@ -1634,6 +1651,26 @@ async function updateAuraEffects() {
   }, 100); // 100ms delay
 }
 
+// Function to update aura effects for a specific user
+async function updateAuraEffectsForUser(userId) {
+  if (!canvas.ready) return;
+  
+  // Get the user object
+  const user = game.users.get(userId);
+  if (!user) return;
+  
+  // Clear any existing timer
+  if (auraUpdateTimer) {
+    clearTimeout(auraUpdateTimer);
+  }
+  
+  // Debounce the update to prevent rapid-fire calls
+  auraUpdateTimer = setTimeout(async () => {
+    await performAuraUpdateForUser(user);
+  }, 200); // 200ms delay to prevent flicker
+}
+
+
 // The actual aura update logic
 async function performAuraUpdate() {
   if (!canvas.ready) return;
@@ -1648,34 +1685,23 @@ async function performAuraUpdate() {
   });
   
   
-  // Ensure each aura token has exactly one template
+  // Ensure each aura token has exactly one aura ring
   for (const auraToken of auraActors) {
     const auraActor = auraToken.actor;
     
-    // Check if this specific token already has a template
-    const existingTemplates = canvas.scene.templates.filter(t => 
-      t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-      t.flags[SYSTEM_ID]?.sourceTokenId === auraToken.id
-    );
+    // Check if this specific token already has an aura ring
+    const existingAuraRing = auraToken.document.getFlag("stryder", "auraRing");
     
-    // Remove any duplicate templates for this token (should only be 1)
-    if (existingTemplates.length > 1) {
-      for (let i = 1; i < existingTemplates.length; i++) {
-        await removeAuraTemplateForToken(auraToken);
-      }
+    // Create aura ring if none exists
+    if (!existingAuraRing) {
+      await createAuraRing(auraActor);
     }
-    
-    // Always recreate template to ensure correct distance
-    if (existingTemplates.length > 0) {
-      await removeAuraTemplateForToken(auraToken);
-    }
-    await createAuraTemplate(auraActor);
   }
   
-  // Remove aura templates for tokens without aura enabled
+  // Remove aura rings for tokens without aura enabled
   for (const token of allTokens) {
     if (token.actor && !token.actor.system?.booleans?.aura?.BodyofInfluence) {
-      await removeAuraTemplateForToken(token);
+      await removeAuraRingForToken(token);
     }
   }
   
@@ -1704,87 +1730,213 @@ async function performAuraUpdate() {
   }
 }
 
+// The actual aura update logic for a specific user
+async function performAuraUpdateForUser(user) {
+  if (!canvas.ready) return;
+  
+  // Get all tokens on the current scene
+  const allTokens = canvas.tokens.placeables;
+  
+  // Find all actors with Body of Influence aura enabled that the user can control
+  const auraActors = allTokens.filter(token => {
+    const actor = token.actor;
+    const hasAura = actor && actor.system?.booleans?.aura?.BodyofInfluence === true;
+    const canControl = actor.isOwner || user.isGM;
+    return hasAura && canControl;
+  });
+  
+  // Ensure each aura token has exactly one aura ring
+  for (const auraToken of auraActors) {
+    const auraActor = auraToken.actor;
+    
+    // Check if this specific token already has an aura ring
+    const existingAuraRing = auraToken.document.getFlag("stryder", "auraRing");
+    
+    // Create aura ring if none exists
+    if (!existingAuraRing) {
+      await createAuraRing(auraActor);
+    }
+  }
+  
+  // Remove aura rings for tokens without aura enabled (only for tokens user can control)
+  for (const token of allTokens) {
+    if (token.actor && !token.actor.system?.booleans?.aura?.BodyofInfluence) {
+      const canControl = token.actor.isOwner || user.isGM;
+      if (canControl) {
+        await removeAuraRingForToken(token);
+      }
+    }
+  }
+  
+  // Check all tokens to see if they're in any aura
+  for (const token of allTokens) {
+    if (!token.actor) continue;
+    
+    const isInAura = isTokenInAura(token);
+    const isFriendly = isTokenFriendly(token);
+    const hasInfluenced = token.actor.effects.find(e => 
+      (e.label === "Influenced" || e.name === "Influenced" || e.flags[SYSTEM_ID]?.isInfluenced) &&
+      !e.flags[SYSTEM_ID]?.isManual // Only count aura effects, not manual ones
+    );
+    
+    // Apply Influenced condition if in aura and friendly
+    if (isInAura && isFriendly && !hasInfluenced) {
+      await applyInfluencedConditionWithPermissionCheck(token.actor, user);
+    }
+    
+    // Remove Influenced condition if not in aura or not friendly
+    // Only remove aura effects, not manual ones
+    if ((!isInAura || !isFriendly) && hasInfluenced) {
+      await removeInfluencedConditionWithPermissionCheck(token.actor, user);
+    }
+  }
+}
+
+// Function to apply Influenced condition with permission check
+async function applyInfluencedConditionWithPermissionCheck(actor, user) {
+  // Check if user can modify this actor
+  if (actor.isOwner || user.isGM) {
+    // User has permission, apply directly
+    await applyInfluencedCondition(actor);
+  } else {
+    // User doesn't have permission, request GM to apply
+    await requestGMToApplyInfluencedCondition(actor);
+  }
+}
+
+// Function to remove Influenced condition with permission check
+async function removeInfluencedConditionWithPermissionCheck(actor, user) {
+  // Check if user can modify this actor
+  if (actor.isOwner || user.isGM) {
+    // User has permission, remove directly
+    await removeInfluencedCondition(actor);
+  } else {
+    // User doesn't have permission, request GM to remove
+    await requestGMToRemoveInfluencedCondition(actor);
+  }
+}
+
+// Function to request GM to apply Influenced condition
+async function requestGMToApplyInfluencedCondition(actor) {
+  if (!game.stryder?.socket) {
+    return;
+  }
+  
+  try {
+    await game.stryder.socket.executeAsGM("applyInfluencedCondition", actor.id, actor.name, game.user.name);
+  } catch (error) {
+    console.error(`Failed to request GM apply Influenced to ${actor.name}:`, error);
+  }
+}
+
+// Function to request GM to remove Influenced condition
+async function requestGMToRemoveInfluencedCondition(actor) {
+  if (!game.stryder?.socket) {
+    return;
+  }
+  
+  try {
+    await game.stryder.socket.executeAsGM("removeInfluencedCondition", actor.id, actor.name, game.user.name);
+  } catch (error) {
+    console.error(`Failed to request GM remove Influenced from ${actor.name}:`, error);
+  }
+}
+
+
 // Hook to update aura effects when tokens move
 Hooks.on('updateToken', async (tokenDocument, updateData, options, userId) => {
+  // Only process for the user who made the change
+  if (game.user.id !== userId) return;
+  
   // Only process if position changed
   if (updateData.x !== undefined || updateData.y !== undefined) {
-    // Update aura template for this specific token if it has aura enabled
+    // Update aura ring for this specific token if it has aura enabled
     const actor = tokenDocument.actor;
     if (actor && actor.system?.booleans?.aura?.BodyofInfluence) {
       // Find the token on canvas
       const token = canvas.tokens.placeables.find(t => t.id === tokenDocument.id);
       if (token) {
-        // Remove old template for this specific token and create new one
-        await removeAuraTemplateForToken(token);
-        await createAuraTemplate(actor);
+        // Remove old aura ring for this specific token and create new one
+        await removeAuraRingForToken(token);
+        await createAuraRing(actor);
       }
     }
     
-    // Check all tokens for aura effects
-    updateAuraEffects();
+    // Check all tokens for aura effects (only for tokens the user can control)
+    updateAuraEffectsForUser(userId);
   }
 });
 
 // Hook to create aura when tokens are created
 Hooks.on('createToken', (tokenDocument, options, userId) => {
+  // Only process for the user who created the token
+  if (game.user.id !== userId) return;
+  
   // Check if the token's actor has aura enabled
   const actor = tokenDocument.actor;
   if (actor && actor.system?.booleans?.aura?.BodyofInfluence) {
-    // Small delay to ensure token is fully created
+    // Small delay to ensure token is fully created and rendered
     setTimeout(() => {
-      updateAuraEffects();
+      const token = canvas.tokens.placeables.find(t => t.id === tokenDocument.id);
+      if (token) {
+        // Create aura ring immediately
+        createAuraRing(actor);
+        // Update aura effects
+        updateAuraEffectsForUser(userId);
+      }
     }, 100);
   }
 });
 
 // Hook to remove aura when tokens are deleted
 Hooks.on('deleteToken', (tokenDocument, options, userId) => {
-  // Remove aura template for this specific token using the token document ID
-  const templates = canvas.scene.templates.filter(t => 
-    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
-    t.flags[SYSTEM_ID]?.sourceTokenId === tokenDocument.id
-  );
+  // Only process for the user who deleted the token
+  if (game.user.id !== userId) return;
   
-  if (templates.length > 0) {
-    canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
-  }
+  // Remove aura ring for this specific token
+  // Note: The aura ring flag will be automatically removed when the token is deleted
   
   // Also update aura effects to clean up any Influenced conditions
-  updateAuraEffects();
+  updateAuraEffectsForUser(userId);
 });
 
 // Hook to update aura effects when actors are updated (for aura toggle)
 Hooks.on('updateActor', (actor, updateData, options, userId) => {
+  // Only process for the user who made the change
+  if (game.user.id !== userId) return;
+  
   // Check if aura.BodyofInfluence was changed
   if (updateData.system?.booleans?.aura?.BodyofInfluence !== undefined) {
     // Immediate update for better responsiveness
-    updateAuraEffects();
+    updateAuraEffectsForUser(userId);
   }
 });
 
 // Hook to update aura effects when effects are added/removed
 Hooks.on('createActiveEffect', (effect, options, userId) => {
+  // Only process for the user who made the change
+  if (game.user.id !== userId) return;
+  
   if (effect.label === "Influenced" || effect.name === "Influenced") {
     // Immediate update for better responsiveness
-    updateAuraEffects();
+    updateAuraEffectsForUser(userId);
   }
 });
 
 Hooks.on('deleteActiveEffect', (effect, options, userId) => {
+  // Only process for the user who made the change
+  if (game.user.id !== userId) return;
+  
   if (effect.label === "Influenced" || effect.name === "Influenced") {
     // Immediate update for better responsiveness
-    updateAuraEffects();
+    updateAuraEffectsForUser(userId);
   }
 });
 
-// Hook to show aura on token hover
-Hooks.on('hoverToken', (token, hovered) => {
-  if (hovered && token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
-    showAuraTemplate(token);
-  } else if (!hovered && token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
-    hideAuraTemplate(token);
-  }
-});
+// Hook to show aura on token hover (disabled - aura rings always show)
+// Hooks.on('hoverToken', (token, hovered) => {
+//   // Aura rings now always show, no hover interaction needed
+// });
 
 // Initialize aura system when canvas is ready
 Hooks.on('canvasReady', () => {
@@ -1794,9 +1946,272 @@ Hooks.on('canvasReady', () => {
   }, 500);
 });
 
+// Aura Ring Rendering System
+class AuraRingRenderer {
+  static key = 'stryderAuraRings';
+  
+  static initialize() {
+    // Create the PIXI container for aura rings
+    this.createPixiContainer();
+    
+    // Hook into token refresh to redraw aura rings
+    Hooks.on('refreshToken', this.handleRefreshToken.bind(this));
+    
+    // Hook into hover events to update aura ring opacity
+    Hooks.on('hoverToken', this.handleHoverToken.bind(this));
+  }
+  
+  static createPixiContainer() {
+    // Find existing container or create new one
+    for (const container of canvas.primary.children) {
+      if (container.name === this.key) {
+        return container;
+      }
+    }
+    
+    const container = new PIXI.Container();
+    container.name = this.key;
+    container.sortLayer = 600;
+    canvas.primary.addChild(container);
+    return container;
+  }
+  
+  static handleRefreshToken(token) {
+    if (token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
+      this.renderAuraRing(token);
+    } else {
+      // Remove aura ring if actor doesn't have aura enabled
+      this.destroyAuraRing(token);
+    }
+  }
+  
+  static handleHoverToken(token, hovered) {
+    // Only update if this token has an aura
+    if (token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
+      this.renderAuraRing(token);
+    }
+  }
+  
+  static renderAuraRing(token) {
+    const auraRing = token.document.getFlag("stryder", "auraRing");
+    if (!auraRing) return;
+    
+    // Get or create the token's aura container
+    let auraContainer = token[this.key];
+    if (!auraContainer) {
+      auraContainer = new PIXI.Container();
+      token[this.key] = auraContainer;
+      this.createPixiContainer().addChild(auraContainer);
+    }
+    
+    // Clear previous graphics
+    auraContainer.removeChildren();
+    
+    // Create graphics for the aura ring
+    const graphics = new PIXI.Graphics();
+    auraContainer.addChild(graphics);
+    
+    // Position the container at the token's center
+    auraContainer.position.set(token.center.x, token.center.y);
+    
+    // Draw the aura ring
+    this.drawAuraRing(graphics, auraRing, token);
+  }
+  
+  static drawAuraRing(graphics, auraRing, token) {
+    const gridSize = canvas.grid.size;
+    const radius = auraRing.radius * gridSize;
+    
+    // Check if token is hovered
+    const isHovered = token.hover;
+    
+    // Calculate opacity based on hover state
+    const fillOpacity = isHovered ? auraRing.fill_opacity : auraRing.fill_opacity * 0.25;
+    const strokeOpacity = isHovered ? auraRing.stroke_opacity : auraRing.stroke_opacity * 0.25;
+    
+    // Draw fill if opacity > 0
+    if (fillOpacity > 0) {
+      graphics.beginFill(auraRing.fill_colour, fillOpacity);
+      graphics.drawCircle(0, 0, radius);
+      graphics.endFill();
+    }
+    
+    // Draw stroke if weight > 0
+    if (auraRing.stroke_weight > 0 && strokeOpacity > 0) {
+      graphics.lineStyle(auraRing.stroke_weight, auraRing.stroke_colour, strokeOpacity);
+      graphics.drawCircle(0, 0, radius);
+    }
+  }
+  
+  static destroyAuraRing(token) {
+    if (token[this.key]) {
+      this.createPixiContainer().removeChild(token[this.key]);
+      token[this.key].destroy();
+      delete token[this.key];
+    }
+  }
+}
+
+// Initialize aura ring rendering system
+Hooks.on('initializeVisionSources', () => {
+  AuraRingRenderer.initialize();
+});
+
+// Clean up aura rings when tokens are destroyed
+Hooks.on('destroyToken', (token) => {
+  AuraRingRenderer.destroyAuraRing(token);
+});
+
+// Custom GM request system (inspired by socketlib)
+class StryderSocket {
+  constructor() {
+    this.functions = new Map();
+    this.pendingRequests = new Map();
+    this.socketName = `system.${game.system.id}`;
+    
+    // Register socket handler
+    game.socket.on(this.socketName, this._onSocketReceived.bind(this));
+  }
+  
+  register(name, func) {
+    if (!(func instanceof Function)) {
+      console.error(`[STRYDER SOCKET] Cannot register non-function as socket handler for '${name}'.`);
+      return;
+    }
+    if (this.functions.has(name)) {
+      console.warn(`[STRYDER SOCKET] Function '${name}' is already registered. Ignoring registration request.`);
+      return;
+    }
+    this.functions.set(name, func);
+  }
+  
+  async executeAsGM(handlerName, ...args) {
+    if (game.user.isGM) {
+      // Execute locally if we're the GM
+      const func = this.functions.get(handlerName);
+      if (!func) {
+        throw new Error(`No socket handler with the name '${handlerName}' has been registered.`);
+      }
+      return func(...args);
+    } else {
+      // Send request to GM
+      if (!game.users.activeGM) {
+        throw new Error(`Could not execute handler '${handlerName}' as GM, because no GM is connected.`);
+      }
+      return this._sendRequest(handlerName, args);
+    }
+  }
+  
+  _sendRequest(handlerName, args) {
+    const message = {
+      handlerName,
+      args,
+      type: 'REQUEST',
+      id: foundry.utils.randomID()
+    };
+    
+    const promise = new Promise((resolve, reject) => {
+      this.pendingRequests.set(message.id, { handlerName, resolve, reject });
+    });
+    
+    game.socket.emit(this.socketName, message);
+    return promise;
+  }
+  
+  _onSocketReceived(message, senderId) {
+    if (message.type === 'REQUEST') {
+      this._handleRequest(message, senderId);
+    } else if (message.type === 'RESULT') {
+      this._handleResponse(message, senderId);
+    }
+  }
+  
+  async _handleRequest(message, senderId) {
+    const { handlerName, args, id } = message;
+    
+    // Only GMs handle requests
+    if (!game.user.isGM) {
+      return;
+    }
+    
+    const func = this.functions.get(handlerName);
+    if (!func) {
+      console.error(`[STRYDER SOCKET] No handler registered for '${handlerName}'`);
+      return;
+    }
+    
+    try {
+      const result = await func(...args);
+      this._sendResult(id, result);
+    } catch (error) {
+      console.error(`[STRYDER SOCKET] Error executing handler '${handlerName}':`, error);
+    }
+  }
+  
+  _handleResponse(message, senderId) {
+    const { id, result } = message;
+    const request = this.pendingRequests.get(id);
+    if (request) {
+      request.resolve(result);
+      this.pendingRequests.delete(id);
+    }
+  }
+  
+  _sendResult(id, result) {
+    const message = { id, result, type: 'RESULT' };
+    game.socket.emit(this.socketName, message);
+  }
+}
+
+// Initialize custom socket system
+Hooks.on('ready', () => {
+  // Initialize game.stryder if it doesn't exist
+  if (!game.stryder) {
+    game.stryder = {};
+  }
+  
+  // Create custom socket
+  const socket = new StryderSocket();
+  
+  // Register GM functions
+  socket.register("applyInfluencedCondition", async (actorId, actorName, requestingUser) => {
+    const actor = game.actors.get(actorId);
+    if (!actor) {
+      return;
+    }
+    
+    await applyInfluencedCondition(actor);
+    ui.notifications.info(`${requestingUser} applied Influenced to ${actorName}`);
+  });
+  
+  socket.register("removeInfluencedCondition", async (actorId, actorName, requestingUser) => {
+    const actor = game.actors.get(actorId);
+    if (!actor) {
+      return;
+    }
+    
+    await removeInfluencedCondition(actor);
+    ui.notifications.info(`${requestingUser} removed Influenced from ${actorName}`);
+  });
+  
+  // Store socket for use in request functions
+  game.stryder.socket = socket;
+});
+
 // Add aura testing function to global game object
 game.stryder = game.stryder || {};
 game.stryder.updateAuraEffects = updateAuraEffects;
+
+// Test socket function
+game.stryder.testSocket = function() {
+  if (game.stryder?.socket) {
+    game.stryder.socket.executeAsGM("applyInfluencedCondition", "test", "Test Actor", game.user.name)
+      .then(() => console.log(`Socket test successful`))
+      .catch(err => console.error(`Socket test failed:`, err));
+  } else {
+    console.log(`No socket available`);
+  }
+};
 game.stryder.testAuraSystem = async function() {
   console.log("Testing aura system...");
   

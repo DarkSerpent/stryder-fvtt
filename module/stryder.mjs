@@ -24,7 +24,11 @@ import { handlePanickedApplication, isActorPanicked, getPanickedRollQuality } fr
 import { handleHorrifiedApplication, isActorHorrified, getHorrifiedRollQuality } from './conditions/horrified.mjs';
 import { handleGrappledApplication, isActorGrappled, handleGrappledEvasionBlock } from './conditions/grappled.mjs';
 import { handleShockedApplication, isActorShocked, handleShockedAttackPenalty } from './conditions/shocked.mjs';
+import { handleInfluencedApplication, isActorInfluenced, handleInfluencedAttackBonus } from './conditions/influenced.mjs';
 import { handleStunnedApplication, isActorStunned, handleStunnedStaminaSpend, removeStunnedEffect } from './conditions/stunned.mjs';
+
+// Debounce timer for aura updates
+let auraUpdateTimer = null;
 import { handleBanglelessApplication, isActorBangleless } from './conditions/bangleless.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
@@ -206,6 +210,19 @@ Hooks.once('init', async function () {
 		
 		if (shocked && this.formula.includes('2d6')) {
 		  this._formula = `${this._formula} - 2`;
+		  this.terms = Roll.parse(this._formula);
+		}
+
+		// Influenced handling - apply bonus to attack rolls
+		const influenced = actor.effects.find(e => {
+		  const hasLabel = e.label === "Influenced";
+		  const hasName = e.name === "Influenced";
+		  const isInfluencedEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.isInfluenced;
+		  return isInfluencedEffect;
+		});
+		
+		if (influenced && this.formula.includes('2d6')) {
+		  this._formula = `${this._formula} + 1`;
 		  this.terms = Roll.parse(this._formula);
 		}
 	  }
@@ -825,6 +842,11 @@ Hooks.once('init', async function () {
 		  id: "horrified",
 		  label: "Horrified",
 		  icon: "systems/stryder/assets/status/horrified.svg"
+		},
+		{
+		  id: "influenced",
+		  label: "Influenced",
+		  icon: "systems/stryder/assets/status/influenced.svg"
 		}
 	];
 
@@ -1381,6 +1403,463 @@ Hooks.on('renderChatMessage', (message, html, data) => {
     });
 
 });
+
+/* -------------------------------------------- */
+/*  Aura System - Body of Influence            */
+/* -------------------------------------------- */
+/*
+ * This aura system provides the "Body of Influence" ability that gives allies within 2 meters
+ * a +1 bonus to attack rolls through the "Influenced" condition.
+ * 
+ * How to use:
+ * 1. Set actor.system.booleans.aura.BodyofInfluence = true on any actor
+ * 2. The system will automatically detect friendly tokens within 2 meters
+ * 3. Those tokens will receive the "Influenced" condition
+ * 4. The Influenced condition provides +1 to attack rolls (2d6 rolls)
+ * 5. The condition is automatically removed when tokens move out of range
+ * 
+ * Testing:
+ * - Use game.stryder.testAuraSystem() in console to test the system
+ * - Use game.stryder.updateAuraEffects() to manually update aura effects
+ * - Use game.stryder.testInfluencedCondition("ActorName") to test Influenced condition on specific actor
+ */
+
+// Function to create a visual aura template for an actor
+async function createAuraTemplate(actor) {
+  const token = canvas.tokens.placeables.find(t => t.actor === actor);
+  if (!token) return null;
+  
+  // Create a 2-meter radius circle template
+  const templateData = {
+    t: "circle",
+    x: token.center.x,
+    y: token.center.y,
+    distance: 2, // 2 meters radius
+    direction: 0,
+    angle: 360,
+    width: 2,
+    borderColor: "#000000", // Black circle outline
+    fillColor: "#004400", // Dark green fill for squares/hexes
+    hidden: true, // Start hidden - only show on hover
+    flags: {
+      [SYSTEM_ID]: {
+        isBodyOfInfluenceAura: true,
+        sourceActorId: actor.id,
+        sourceTokenId: token.id
+      }
+    }
+  };
+  
+  try {
+    const template = await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [templateData]);
+    return template[0];
+  } catch (error) {
+    console.error(`Failed to create aura template for ${actor.name}:`, error);
+    return null;
+  }
+}
+
+// Function to remove aura template for a specific token
+async function removeAuraTemplateForToken(token) {
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
+  );
+  
+  if (templates.length > 0) {
+    try {
+      await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
+    } catch (error) {
+      // Template may have already been deleted, ignore the error
+      console.log(`Template for token ${token.id} was already removed or doesn't exist`);
+    }
+  }
+}
+
+// Function to remove aura template for an actor (legacy - for cleanup)
+async function removeAuraTemplate(actor) {
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+    t.flags[SYSTEM_ID]?.sourceActorId === actor.id
+  );
+  
+  if (templates.length > 0) {
+    try {
+      await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
+    } catch (error) {
+      // Template may have already been deleted, ignore the error
+      console.log(`Template for ${actor.name} was already removed or doesn't exist`);
+    }
+  }
+}
+
+// Function to check if a token is within any aura template
+function isTokenInAura(token) {
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura
+  );
+  
+  for (const template of templates) {
+    if (template.t === "circle") {
+      const tokenCenter = token.center;
+      const templateCenter = { x: template.x, y: template.y };
+      
+      // Use Foundry's grid measurement system
+      const distance = canvas.grid.measureDistance(templateCenter, tokenCenter);
+      
+      // Check if token center is within the circle radius
+      if (distance <= template.distance) {
+        return true;
+      }
+      
+      // For hex grids, add a small tolerance for edge cases
+      // This helps with the "bulge" effect where tokens at the outer edges
+      // might visually be in the template but their center is slightly outside
+      const tolerance = 0.1; // Small tolerance for hex grid edge cases
+      if (distance <= (template.distance + tolerance)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Function to show aura template for a specific token
+async function showAuraTemplate(token) {
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
+  );
+  
+  for (const template of templates) {
+    if (template.hidden) {
+      await template.update({ hidden: false });
+    }
+  }
+}
+
+// Function to hide aura template for a specific token
+async function hideAuraTemplate(token) {
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+    t.flags[SYSTEM_ID]?.sourceTokenId === token.id
+  );
+  
+  for (const template of templates) {
+    if (!template.hidden) {
+      await template.update({ hidden: true });
+    }
+  }
+}
+
+// Function to check if a token has friendly disposition
+function isTokenFriendly(token) {
+  if (!token || !token.document) return false;
+  return token.document.disposition === 1; // 1 = friendly, 0 = neutral, -1 = hostile
+}
+
+// Function to apply Influenced condition to an actor
+async function applyInfluencedCondition(actor) {
+  if (!actor) return;
+  
+  // Check if actor already has Influenced condition
+  const existingInfluenced = actor.effects.find(e => 
+    e.label === "Influenced" || e.name === "Influenced" || e.flags[SYSTEM_ID]?.isInfluenced
+  );
+  
+  if (existingInfluenced) return; // Already influenced
+  
+  // Create Influenced effect with proper status effect configuration
+  const influencedEffectData = {
+    name: "Influenced",
+    label: "Influenced",
+    icon: "systems/stryder/assets/status/influenced.svg",
+    disabled: false,
+    duration: {
+      rounds: 999999, // Very long duration to make it effectively permanent but still temporary
+      seconds: 999999,
+      startRound: game.combat?.round || 0
+    },
+    changes: [],
+    flags: {
+      core: {
+        statusId: "influenced"
+      },
+      [SYSTEM_ID]: {
+        isInfluenced: true,
+        isAura: true // Mark as aura effect
+      }
+    }
+  };
+  
+  try {
+    await actor.createEmbeddedDocuments('ActiveEffect', [influencedEffectData]);
+  } catch (error) {
+    console.error(`Failed to apply Influenced condition to ${actor.name}:`, error);
+  }
+}
+
+// Function to remove Influenced condition from an actor
+async function removeInfluencedCondition(actor) {
+  if (!actor) return;
+  
+  // Find Influenced effect (aura only, not manual)
+  const influencedEffect = actor.effects.find(e => 
+    (e.label === "Influenced" || e.name === "Influenced" || e.flags[SYSTEM_ID]?.isInfluenced) &&
+    !e.flags[SYSTEM_ID]?.isManual // Only remove aura effects
+  );
+  
+  if (influencedEffect) {
+    try {
+      await actor.deleteEmbeddedDocuments('ActiveEffect', [influencedEffect.id]);
+    } catch (error) {
+      // Effect may have already been deleted, ignore the error
+      console.log(`Influenced effect for ${actor.name} was already removed or doesn't exist`);
+    }
+  }
+}
+
+// Function to update aura effects for all actors
+async function updateAuraEffects() {
+  if (!canvas.ready) return;
+  
+  // Clear any existing timer
+  if (auraUpdateTimer) {
+    clearTimeout(auraUpdateTimer);
+  }
+  
+  // Debounce the update to prevent rapid-fire calls
+  auraUpdateTimer = setTimeout(async () => {
+    await performAuraUpdate();
+  }, 100); // 100ms delay
+}
+
+// The actual aura update logic
+async function performAuraUpdate() {
+  if (!canvas.ready) return;
+  
+  // Get all tokens on the current scene
+  const allTokens = canvas.tokens.placeables;
+  
+  // Find all actors with Body of Influence aura enabled
+  const auraActors = allTokens.filter(token => {
+    const actor = token.actor;
+    return actor && actor.system?.booleans?.aura?.BodyofInfluence === true;
+  });
+  
+  
+  // Ensure each aura token has exactly one template
+  for (const auraToken of auraActors) {
+    const auraActor = auraToken.actor;
+    
+    // Check if this specific token already has a template
+    const existingTemplates = canvas.scene.templates.filter(t => 
+      t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+      t.flags[SYSTEM_ID]?.sourceTokenId === auraToken.id
+    );
+    
+    // Remove any duplicate templates for this token (should only be 1)
+    if (existingTemplates.length > 1) {
+      for (let i = 1; i < existingTemplates.length; i++) {
+        await removeAuraTemplateForToken(auraToken);
+      }
+    }
+    
+    // Always recreate template to ensure correct distance
+    if (existingTemplates.length > 0) {
+      await removeAuraTemplateForToken(auraToken);
+    }
+    await createAuraTemplate(auraActor);
+  }
+  
+  // Remove aura templates for tokens without aura enabled
+  for (const token of allTokens) {
+    if (token.actor && !token.actor.system?.booleans?.aura?.BodyofInfluence) {
+      await removeAuraTemplateForToken(token);
+    }
+  }
+  
+  // Check all tokens to see if they're in any aura
+  for (const token of allTokens) {
+    if (!token.actor) continue;
+    
+    const isInAura = isTokenInAura(token);
+    const isFriendly = isTokenFriendly(token);
+    const hasInfluenced = token.actor.effects.find(e => 
+      (e.label === "Influenced" || e.name === "Influenced" || e.flags[SYSTEM_ID]?.isInfluenced) &&
+      !e.flags[SYSTEM_ID]?.isManual // Only count aura effects, not manual ones
+    );
+    
+    
+    // Apply Influenced condition if in aura and friendly
+    if (isInAura && isFriendly && !hasInfluenced) {
+      await applyInfluencedCondition(token.actor);
+    }
+    
+    // Remove Influenced condition if not in aura or not friendly
+    // Only remove aura effects, not manual ones
+    if ((!isInAura || !isFriendly) && hasInfluenced) {
+      await removeInfluencedCondition(token.actor);
+    }
+  }
+}
+
+// Hook to update aura effects when tokens move
+Hooks.on('updateToken', async (tokenDocument, updateData, options, userId) => {
+  // Only process if position changed
+  if (updateData.x !== undefined || updateData.y !== undefined) {
+    // Update aura template for this specific token if it has aura enabled
+    const actor = tokenDocument.actor;
+    if (actor && actor.system?.booleans?.aura?.BodyofInfluence) {
+      // Find the token on canvas
+      const token = canvas.tokens.placeables.find(t => t.id === tokenDocument.id);
+      if (token) {
+        // Remove old template for this specific token and create new one
+        await removeAuraTemplateForToken(token);
+        await createAuraTemplate(actor);
+      }
+    }
+    
+    // Check all tokens for aura effects
+    updateAuraEffects();
+  }
+});
+
+// Hook to create aura when tokens are created
+Hooks.on('createToken', (tokenDocument, options, userId) => {
+  // Check if the token's actor has aura enabled
+  const actor = tokenDocument.actor;
+  if (actor && actor.system?.booleans?.aura?.BodyofInfluence) {
+    // Small delay to ensure token is fully created
+    setTimeout(() => {
+      updateAuraEffects();
+    }, 100);
+  }
+});
+
+// Hook to remove aura when tokens are deleted
+Hooks.on('deleteToken', (tokenDocument, options, userId) => {
+  // Remove aura template for this specific token using the token document ID
+  const templates = canvas.scene.templates.filter(t => 
+    t.flags[SYSTEM_ID]?.isBodyOfInfluenceAura && 
+    t.flags[SYSTEM_ID]?.sourceTokenId === tokenDocument.id
+  );
+  
+  if (templates.length > 0) {
+    canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", templates.map(t => t.id));
+  }
+  
+  // Also update aura effects to clean up any Influenced conditions
+  updateAuraEffects();
+});
+
+// Hook to update aura effects when actors are updated (for aura toggle)
+Hooks.on('updateActor', (actor, updateData, options, userId) => {
+  // Check if aura.BodyofInfluence was changed
+  if (updateData.system?.booleans?.aura?.BodyofInfluence !== undefined) {
+    // Immediate update for better responsiveness
+    updateAuraEffects();
+  }
+});
+
+// Hook to update aura effects when effects are added/removed
+Hooks.on('createActiveEffect', (effect, options, userId) => {
+  if (effect.label === "Influenced" || effect.name === "Influenced") {
+    // Immediate update for better responsiveness
+    updateAuraEffects();
+  }
+});
+
+Hooks.on('deleteActiveEffect', (effect, options, userId) => {
+  if (effect.label === "Influenced" || effect.name === "Influenced") {
+    // Immediate update for better responsiveness
+    updateAuraEffects();
+  }
+});
+
+// Hook to show aura on token hover
+Hooks.on('hoverToken', (token, hovered) => {
+  if (hovered && token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
+    showAuraTemplate(token);
+  } else if (!hovered && token.actor && token.actor.system?.booleans?.aura?.BodyofInfluence) {
+    hideAuraTemplate(token);
+  }
+});
+
+// Initialize aura system when canvas is ready
+Hooks.on('canvasReady', () => {
+  // Small delay to ensure all tokens are loaded
+  setTimeout(() => {
+    updateAuraEffects();
+  }, 500);
+});
+
+// Add aura testing function to global game object
+game.stryder = game.stryder || {};
+game.stryder.updateAuraEffects = updateAuraEffects;
+game.stryder.testAuraSystem = async function() {
+  console.log("Testing aura system...");
+  
+  // Check if canvas is ready
+  if (!canvas.ready) {
+    console.log("Canvas not ready");
+    return;
+  }
+  
+  // Get all tokens
+  const allTokens = canvas.tokens.placeables;
+  console.log(`Found ${allTokens.length} tokens on canvas`);
+  
+  // Find actors with aura enabled
+  const auraActors = allTokens.filter(token => {
+    const actor = token.actor;
+    return actor && actor.system?.booleans?.aura?.BodyofInfluence === true;
+  });
+  
+  
+  // Update aura effects
+  await updateAuraEffects();
+  
+  console.log("Aura system test completed");
+};
+
+// Add manual test function for Influenced condition
+game.stryder.testInfluencedCondition = async function(actorName) {
+  console.log(`Testing Influenced condition on ${actorName}...`);
+  
+  // Find the actor
+  const actor = game.actors.find(a => a.name === actorName);
+  if (!actor) {
+    console.error(`Actor ${actorName} not found`);
+    return;
+  }
+  
+  console.log(`Found actor: ${actor.name}`);
+  
+  // Apply Influenced condition
+  await applyInfluencedCondition(actor);
+  
+  // Check if it was applied
+  const influencedEffect = actor.effects.find(e => 
+    e.label === "Influenced" || e.name === "Influenced" || e.flags[SYSTEM_ID]?.isInfluenced
+  );
+  
+  if (influencedEffect) {
+    console.log("Influenced condition applied successfully:", influencedEffect);
+    
+    // Check if it shows up on the token
+    const token = canvas.tokens.placeables.find(t => t.actor === actor);
+    if (token) {
+      console.log("Token found:", token);
+      console.log("Token effects:", token.effects);
+      console.log("Token status effects:", token.statusEffects);
+    } else {
+      console.log("No token found for this actor");
+    }
+  } else {
+    console.error("Failed to apply Influenced condition");
+  }
+};
 
 /* -------------------------------------------- */
 /*  Monk's Little Details Compatibility         */

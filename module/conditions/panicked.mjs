@@ -38,9 +38,9 @@ export function isActorPanicked(actor) {
 
 // Function to modify attack roll quality based on panicked condition
 export function getPanickedRollQuality(rollTotal, itemType, itemSystem) {
-  // For hex items, only apply panicked logic if rollsDamage is true
-  if (itemType === "hex" && !itemSystem?.hex?.rollsDamage) {
-    return null; // Don't modify quality for hexes that don't roll damage
+  // For hex items, only apply panicked logic if rollsQuality is true
+  if (itemType === "hex" && !itemSystem?.hex?.rollsQuality) {
+    return null; // Don't modify quality for hexes that don't roll quality
   }
   
   // Panicked condition modifies the quality thresholds:

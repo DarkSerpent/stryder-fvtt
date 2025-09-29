@@ -127,12 +127,21 @@
         {{!-- Checkbox Section --}}
         <div class="section fantasy-section checkbox-section">
           <div class="fantasy-checkbox">
-            <label>Rolls Poor/Good/Excellent & Damage?</label>
+            <label>Rolls Quality (Poor/Good/Excellent)?</label>
+            <div class="checkbox-slider">
+              <input type="checkbox" name="system.hex.rollsQuality" value="true" {{#if system.hex.rollsQuality}}checked{{/if}} {{#if system.hex.rollsDamage}}disabled{{/if}} data-dtype="Boolean" />
+              <span class="slider"></span>
+            </div>
+          </div>
+          {{#if system.hex.rollsQuality}}
+          <div class="fantasy-checkbox" style="margin-left: 20px;">
+            <label>↳ Also Rolls Damage?</label>
             <div class="checkbox-slider">
               <input type="checkbox" name="system.hex.rollsDamage" value="true" {{#if system.hex.rollsDamage}}checked{{/if}} data-dtype="Boolean" />
               <span class="slider"></span>
             </div>
           </div>
+          {{/if}}
           <div class="fantasy-checkbox">
             <label>Always Rolls Excellent?</label>
             <div class="checkbox-slider">
@@ -239,3 +248,33 @@
     </section>
   </div>
 </form>
+
+<script>
+// Handle checkbox interactions for hex quality and damage
+document.addEventListener('DOMContentLoaded', function() {
+  const qualityCheckbox = document.querySelector('input[name="system.hex.rollsQuality"]');
+  const damageCheckbox = document.querySelector('input[name="system.hex.rollsDamage"]');
+  
+  if (qualityCheckbox && damageCheckbox) {
+    // When damage checkbox changes
+    damageCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        // When damage is checked, disable quality checkbox (can't uncheck quality while damage is on)
+        qualityCheckbox.disabled = true;
+      } else {
+        // When damage is unchecked, re-enable quality checkbox
+        qualityCheckbox.disabled = false;
+      }
+    });
+    
+    // When quality checkbox changes
+    qualityCheckbox.addEventListener('change', function() {
+      if (!this.checked && damageCheckbox.checked) {
+        // If quality is unchecked but damage is still checked, uncheck damage too
+        damageCheckbox.checked = false;
+        damageCheckbox.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+});
+</script>

@@ -38,9 +38,9 @@ export function isActorHorrified(actor) {
 
 // Function to modify attack roll quality based on horrified condition
 export function getHorrifiedRollQuality(rollTotal, itemType, itemSystem) {
-  // For hex items, only apply horrified logic if rollsDamage is true
-  if (itemType === "hex" && !itemSystem?.hex?.rollsDamage) {
-    return null; // Don't modify quality for hexes that don't roll damage
+  // For hex items, only apply horrified logic if rollsQuality is true
+  if (itemType === "hex" && !itemSystem?.hex?.rollsQuality) {
+    return null; // Don't modify quality for hexes that don't roll quality
   }
   
   // Horrified condition makes EVERY roll result Poor, no matter what

@@ -19,7 +19,7 @@
       "thumbnail": "systems/stryder/assets/stryderfvtt.png"
     }
   ],
-  "version": "2.2.1",
+  "version": "2.3.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
@@ -337,8 +337,8 @@
     }
   ],
   "socket": true,
-  "manifest": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.2.1/system.json",
-  "download": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.2.1/system.zip",
+  "manifest": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.3.0/system.json",
+  "download": "https://github.com/DarkSerpent/stryder-fvtt/releases/download/2.3.0/system.zip",
   "background": "systems/stryder/assets/stryderfvtt.png",
   "grid": {
     "distance": 1,

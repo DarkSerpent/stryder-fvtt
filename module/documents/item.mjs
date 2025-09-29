@@ -1758,8 +1758,8 @@ export class StryderItem extends Item {
 				}
 			});
 
-			// If rollsDamage is true, proceed with additional chat messages.
-			if (item.system.hex.rollsDamage) {
+			// If rollsQuality is true, proceed with quality messages.
+			if (item.system.hex.rollsQuality) {
 				let result = roll.total;
 				let quality, damageMultiplier;
 				
@@ -1773,40 +1773,72 @@ export class StryderItem extends Item {
 						return;
 					}
 
-					let arcanaValue = item.actor.system.abilities.Arcana.value;
-					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
-					let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
-					const totalDamage = baseDamage + masteryBonus;
-
 					const panickedPrefix = isActorPanicked(item.actor) ? `<strong>${item.actor.name} is Panicked!</strong> ` : "";
-					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
-					const combinedMessage = `
-					<div style="margin-bottom: 5px;">
-						<div class="hex-quality-message" style="
-						  background: rgba(75, 0, 130, 0.15);
-						  border: 1px solid #4b0082;
-						  border-radius: 5px;
-						  padding: 8px 12px;
-						  margin-bottom: 5px;
-						  text-align: center;
-						  font-family: 'Cinzel Decorative', cursive;
-						  color: #4b0082;
-						  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
-						">
-						  <strong>Always Rolls a Twelve</strong> - Hex evoked at maximum efficiency.
-						</div>
-						<div class="damage-quality excellent">
-						  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
-						</div>
-						${damageButton}
-					</div>
-					`;
 					
-					ChatMessage.create({
-						speaker: speaker,
-						content: combinedMessage,
-						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-					});
+					// Check if damage should also be rolled
+					if (item.system.hex.rollsDamage) {
+						let arcanaValue = item.actor.system.abilities.Arcana.value;
+						let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+						let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+						const totalDamage = baseDamage + masteryBonus;
+
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const combinedMessage = `
+						<div style="margin-bottom: 5px;">
+							<div class="hex-quality-message" style="
+							  background: rgba(75, 0, 130, 0.15);
+							  border: 1px solid #4b0082;
+							  border-radius: 5px;
+							  padding: 8px 12px;
+							  margin-bottom: 5px;
+							  text-align: center;
+							  font-family: 'Cinzel Decorative', cursive;
+							  color: #4b0082;
+							  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+							">
+							  <strong>Always Rolls a Twelve</strong> - Hex evoked at maximum efficiency.
+							</div>
+							<div class="damage-quality excellent">
+							  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+							</div>
+							${damageButton}
+						</div>
+						`;
+						
+						ChatMessage.create({
+							speaker: speaker,
+							content: combinedMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					} else {
+						// Only show quality, no damage
+						const qualityMessage = `
+						<div style="margin-bottom: 5px;">
+							<div class="hex-quality-message" style="
+							  background: rgba(75, 0, 130, 0.15);
+							  border: 1px solid #4b0082;
+							  border-radius: 5px;
+							  padding: 8px 12px;
+							  margin-bottom: 5px;
+							  text-align: center;
+							  font-family: 'Cinzel Decorative', cursive;
+							  color: #4b0082;
+							  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+							">
+							  <strong>Always Rolls a Twelve</strong> - Hex evoked at maximum efficiency.
+							</div>
+							<div class="damage-quality excellent">
+							  ${panickedPrefix}You casted a <strong>${quality} Hex!</strong>
+							</div>
+						</div>
+						`;
+						
+						ChatMessage.create({
+							speaker: speaker,
+							content: qualityMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					}
 					return;
 				}
 				
@@ -1820,39 +1852,70 @@ export class StryderItem extends Item {
 						return;
 					}
 
-					let arcanaValue = item.actor.system.abilities.Arcana.value;
-					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
-					let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
-					const totalDamage = baseDamage + masteryBonus;
+					// Check if damage should also be rolled
+					if (item.system.hex.rollsDamage) {
+						let arcanaValue = item.actor.system.abilities.Arcana.value;
+						let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+						let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+						const totalDamage = baseDamage + masteryBonus;
 
-					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
-					const combinedMessage = `
-					<div style="margin-bottom: 5px;">
-						<div class="hex-quality-message" style="
-						  background: rgba(75, 0, 130, 0.15);
-						  border: 1px solid #4b0082;
-						  border-radius: 5px;
-						  padding: 8px 12px;
-						  margin-bottom: 5px;
-						  text-align: center;
-						  font-family: 'Cinzel Decorative', cursive;
-						  color: #4b0082;
-						  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
-						">
-						  <strong>Always Excellent Hex</strong> - Perfect execution guaranteed.
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const combinedMessage = `
+						<div style="margin-bottom: 5px;">
+							<div class="hex-quality-message" style="
+							  background: rgba(75, 0, 130, 0.15);
+							  border: 1px solid #4b0082;
+							  border-radius: 5px;
+							  padding: 8px 12px;
+							  margin-bottom: 5px;
+							  text-align: center;
+							  font-family: 'Cinzel Decorative', cursive;
+							  color: #4b0082;
+							  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+							">
+							  <strong>Always Excellent Hex</strong> - Perfect execution guaranteed.
+							</div>
+							<div class="damage-quality excellent">
+							  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+							</div>
+							${damageButton}
 						</div>
-						<div class="damage-quality excellent">
-						  You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+						`;
+						
+						ChatMessage.create({
+							speaker: speaker,
+							content: combinedMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					} else {
+						// Only show quality, no damage
+						const qualityMessage = `
+						<div style="margin-bottom: 5px;">
+							<div class="hex-quality-message" style="
+							  background: rgba(75, 0, 130, 0.15);
+							  border: 1px solid #4b0082;
+							  border-radius: 5px;
+							  padding: 8px 12px;
+							  margin-bottom: 5px;
+							  text-align: center;
+							  font-family: 'Cinzel Decorative', cursive;
+							  color: #4b0082;
+							  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+							">
+							  <strong>Always Excellent Hex</strong> - Perfect execution guaranteed.
+							</div>
+							<div class="damage-quality excellent">
+							  You casted a <strong>${quality} Hex!</strong>
+							</div>
 						</div>
-						${damageButton}
-					</div>
-					`;
-					
-					ChatMessage.create({
-						speaker: speaker,
-						content: combinedMessage,
-						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-					});
+						`;
+						
+						ChatMessage.create({
+							speaker: speaker,
+							content: qualityMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					}
 				} else {
 					// Determine quality based on roll result
 					// Check if actor is horrified first (horrified overrides everything)
@@ -1912,29 +1975,45 @@ export class StryderItem extends Item {
 						return;
 					}
 
-					let arcanaValue = item.actor.system.abilities.Arcana.value;
-					let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
-					let baseDamage = Math.floor(arcanaValue * damageMultiplier);
-					if (quality === "Excellent") {
-						baseDamage = Math.ceil(arcanaValue * damageMultiplier);
-					}
-					const totalDamage = baseDamage + masteryBonus;
-
 					const horrifiedPrefix = isActorHorrified(item.actor) ? `<strong>${item.actor.name} is Horrified!</strong> ` : "";
 					const panickedPrefix = isActorPanicked(item.actor) ? `<strong>${item.actor.name} is Panicked!</strong> ` : "";
 					const statusPrefix = horrifiedPrefix || panickedPrefix;
-					const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
-					const qualityMessage = `
-					<div class="damage-quality ${quality.toLowerCase()}">
-					  ${statusPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
-					</div>
-					${damageButton}
-					`;
-					ChatMessage.create({
-						speaker: speaker,
-						content: qualityMessage,
-						whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
-					});
+					
+					// Check if damage should also be rolled
+					if (item.system.hex.rollsDamage) {
+						let arcanaValue = item.actor.system.abilities.Arcana.value;
+						let masteryBonus = item.system.hex.addsMastery ? item.actor.system.attributes.mastery : 0;
+						let baseDamage = Math.floor(arcanaValue * damageMultiplier);
+						if (quality === "Excellent") {
+							baseDamage = Math.ceil(arcanaValue * damageMultiplier);
+						}
+						const totalDamage = baseDamage + masteryBonus;
+
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const qualityMessage = `
+						<div class="damage-quality ${quality.toLowerCase()}">
+						  ${statusPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
+						</div>
+						${damageButton}
+						`;
+						ChatMessage.create({
+							speaker: speaker,
+							content: qualityMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					} else {
+						// Only show quality, no damage
+						const qualityMessage = `
+						<div class="damage-quality ${quality.toLowerCase()}">
+						  ${statusPrefix}You casted a <strong>${quality} Hex!</strong>
+						</div>
+						`;
+						ChatMessage.create({
+							speaker: speaker,
+							content: qualityMessage,
+							whisper: rollMode === "blindroll" ? ChatMessage.getWhisperRecipients("GM") : []
+						});
+					}
 				}
 			}
 

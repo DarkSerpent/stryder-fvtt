@@ -9,6 +9,7 @@ import { StryderCombat, ALLIED, ENEMY } from './combat/combat.mjs';
 import { StryderCombatant } from './combat/combatant.mjs';
 import { StryderCombatTracker } from './combat/combat-tracker.mjs';
 import { SYSTEM_ID } from './helpers/constants.mjs';
+import { STRYDER } from './helpers/config.mjs';
 // Import status automation.
 import { handleBleedingWoundApplication, handleBleedingWoundDamage } from './conditions/bleeding-wounds.mjs';
 import { handleBurningApplication, handleBurningDamage, handleBurningMaxHealthReduction } from './conditions/burning.mjs';
@@ -26,13 +27,13 @@ import { handleGrappledApplication, isActorGrappled, handleGrappledEvasionBlock 
 import { handleShockedApplication, isActorShocked, handleShockedAttackPenalty } from './conditions/shocked.mjs';
 import { handleInfluencedApplication, isActorInfluenced, handleInfluencedAttackBonus } from './conditions/influenced.mjs';
 import { handleStunnedApplication, isActorStunned, handleStunnedStaminaSpend, removeStunnedEffect } from './conditions/stunned.mjs';
+import { handleHaggardApplication, removeHaggardEffects, isActorHaggard, getHaggardStage } from './conditions/haggard.mjs';
 
 // Debounce timer for aura updates
 let auraUpdateTimer = null;
 import { handleBanglelessApplication, isActorBangleless } from './conditions/bangleless.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
-import { STRYDER } from './helpers/config.mjs';
 
 /* -------------------------------------------- */
 /*  Init Hook                                   */
@@ -2289,6 +2290,185 @@ Hooks.once('ready', function() {
     });
   }
 });
+
+/* -------------------------------------------- */
+/*  Grapple Resistance Handling                 */
+/* -------------------------------------------- */
+
+// Handle grapple resistance button clicks
+Hooks.on('renderChatMessage', (message, html, data) => {
+  html.on('click', '.grapple-resist-button', async (event) => {
+    const button = event.currentTarget;
+    const grappleDC = parseInt(button.dataset.grappleDc);
+    const grapplerId = button.dataset.grapplerId;
+    
+    // Determine the target actor
+    let targetActor = null;
+    
+    // First check for selected tokens
+    const selectedTokens = canvas.tokens.controlled;
+    if (selectedTokens.length > 0) {
+      targetActor = selectedTokens[0].actor;
+    } else {
+      // Check for assigned character
+      const assignedActor = game.user.character;
+      if (assignedActor) {
+        targetActor = assignedActor;
+      } else {
+        ui.notifications.error("Please select a token or set an assigned character to resist the grapple!");
+        return;
+      }
+    }
+    
+    // Show resistance options dialog
+    await showGrappleResistanceDialog(targetActor, grappleDC, grapplerId);
+  });
+});
+
+async function showGrappleResistanceDialog(targetActor, grappleDC, grapplerId) {
+  const content = `
+    <div style="text-align: center; margin-bottom: 15px;">
+      <h3>What are you using to resist the Grapple?</h3>
+      <p><strong>${targetActor.name}</strong> must beat DC ${grappleDC}</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="resistance-option" data-type="strength" 
+              style="padding: 10px; background-color: #8b5a2b; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        <strong>Strength</strong><br>
+        <small>2d6 + ${targetActor.system.attributes.talent.strength.value}</small>
+      </button>
+      <button class="resistance-option" data-type="nimbleness" 
+              style="padding: 10px; background-color: #8b5a2b; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        <strong>Nimbleness</strong><br>
+        <small>2d6 + ${targetActor.system.attributes.talent.nimbleness.value}</small>
+      </button>
+      <button class="resistance-option" data-type="physical" 
+              style="padding: 10px; background-color: #8b5a2b; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        <strong>Physical Resistance</strong><br>
+        <small>2d6 + ${targetActor.system.abilities.Grit.value} + ${targetActor.system.checks.Physical.mod}</small>
+      </button>
+    </div>
+  `;
+  
+  const dialog = new Dialog({
+    title: "Grapple Resistance",
+    content: content,
+    buttons: {},
+    render: (html) => {
+      html.on('click', '.resistance-option', async (event) => {
+        const resistanceType = event.currentTarget.dataset.type;
+        await handleGrappleResistance(targetActor, grappleDC, grapplerId, resistanceType);
+        dialog.close();
+      });
+    }
+  });
+  
+  dialog.render(true);
+}
+
+async function handleGrappleResistance(targetActor, grappleDC, grapplerId, resistanceType) {
+  let rollFormula;
+  let resistanceLabel;
+  
+  switch (resistanceType) {
+    case 'strength':
+      rollFormula = '2d6+@attributes.talent.strength.value';
+      resistanceLabel = 'Strength';
+      break;
+    case 'nimbleness':
+      rollFormula = '2d6+@attributes.talent.nimbleness.value';
+      resistanceLabel = 'Nimbleness';
+      break;
+    case 'physical':
+      rollFormula = '2d6+@abilities.Grit.value+@checks.Physical.mod';
+      resistanceLabel = 'Physical Resistance';
+      break;
+  }
+  
+  const resistanceRoll = new Roll(rollFormula, targetActor.getRollData());
+  await resistanceRoll.evaluate();
+  
+  const success = resistanceRoll.total >= grappleDC;
+  const grappler = game.actors.get(grapplerId);
+  
+  let content = `
+    <div style="background: url('systems/stryder/assets/parchment.jpg'); 
+                background-size: cover; 
+                padding: 15px; 
+                border: 1px solid #c9a66b; 
+                border-radius: 3px;">
+      <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Grapple Resistance</strong></h3>
+      <p><strong>${targetActor.name}</strong> resists using <strong>${resistanceLabel}</strong></p>
+      <div style="margin: 10px 0; padding: 10px; background-color: rgba(0,0,0,0.1); border-radius: 3px;">
+        <strong>Resistance Roll:</strong> ${resistanceRoll.total} vs DC ${grappleDC}
+      </div>
+      <div style="margin: 10px 0; padding: 10px; border-radius: 3px; ${success ? 'background-color: rgba(0,255,0,0.2);' : 'background-color: rgba(255,0,0,0.2);'}">
+        <strong>${success ? 'SUCCESS!' : 'FAILURE!'}</strong><br>
+        ${success ? `${targetActor.name} successfully resists the grapple!` : `${targetActor.name} fails to resist and becomes Grappled!`}
+      </div>
+    </div>
+  `;
+  
+  await ChatMessage.create({
+    content: content,
+    speaker: ChatMessage.getSpeaker({actor: targetActor}),
+    rolls: [resistanceRoll]
+  });
+  
+  // Apply Grappled condition if failed
+  if (!success) {
+    await applyGrappledCondition(targetActor);
+  }
+}
+
+async function applyGrappledCondition(actor) {
+  // Use the isActorGrappled function to check for existing grappled status
+  const { isActorGrappled } = await import('./conditions/grappled.mjs');
+  
+  if (isActorGrappled(actor)) {
+    ui.notifications.info(`${actor.name} is already Grappled!`);
+    return;
+  }
+  
+  // Find the grappled status effect configuration
+  const grappledStatus = CONFIG.statusEffects.find(effect => effect.id === "grappled");
+  if (!grappledStatus) {
+    console.error("Grappled status effect not found in CONFIG.statusEffects");
+    return;
+  }
+  
+  // Create the Active Effect that matches the status effect
+  const effectData = {
+    id: grappledStatus.id,
+    name: grappledStatus.label,
+    label: grappledStatus.label,
+    icon: grappledStatus.icon,
+    changes: [],
+    duration: {
+      rounds: 999,  // Large number so it doesn't expire automatically
+      startRound: game.combat?.round || 0,
+      startTime: game.time.worldTime
+    },
+    flags: {
+      core: {
+        statusId: grappledStatus.id
+      },
+      [SYSTEM_ID]: {
+        isGrappled: true
+      }
+    },
+    origin: actor.uuid,
+    disabled: false
+  };
+  
+  try {
+    await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+    ui.notifications.info(`${actor.name} is now Grappled!`);
+  } catch (error) {
+    console.error("Error applying Grappled condition:", error);
+    ui.notifications.error("Failed to apply Grappled condition!");
+  }
+}
 
 /* -------------------------------------------- */
 /*  Hotbar Macros                               */

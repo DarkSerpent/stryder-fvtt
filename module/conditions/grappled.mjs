@@ -25,11 +25,21 @@ export async function handleGrappledApplication(effect) {
 export function isActorGrappled(actor) {
   if (!actor) return false;
   
+  // Check active effects for grappled status
   const grappledEffect = actor.effects.find(e => {
+    // Check for status effect with core.statusId flag (new method)
+    if (e.flags?.core?.statusId === "grappled") {
+      return true;
+    }
+    
+    // Check for direct label/name matches (standard method)
     const hasLabel = e.label === "Grappled";
     const hasName = e.name === "Grappled";
-    const isGrappledEffect = hasLabel || hasName || e.flags[SYSTEM_ID]?.isGrappled;
-    return isGrappledEffect;
+    
+    // Check for custom flag (backwards compatibility)
+    const isGrappledEffect = e.flags[SYSTEM_ID]?.isGrappled;
+    
+    return hasLabel || hasName || isGrappledEffect;
   });
   
   return !!grappledEffect;

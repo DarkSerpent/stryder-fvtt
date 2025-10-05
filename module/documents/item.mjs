@@ -21,7 +21,8 @@ const tagDescriptions = {
   "persistent": "Abilities with this tag inflict an effect that tends to linger after the usage of the ability itself.",
   "sunder": "Abilities with this tag are unable to be reacted to and [Breach] abilities cannot be activated against them.",
   "targeted": "Abilities with this tag target a number of specific creatures rather than an area.",
-  "multi-target": "Abilities with this tag target a number of specific creatures rather than an area."
+  "multi-target": "Abilities with this tag target a number of specific creatures rather than an area.",
+  "pierce": "Abilities with this tag ignore armor when dealing damage, but still respect physical and magykal reduction."
 };
 
 // Helper function to create tag HTML with tooltip
@@ -597,12 +598,13 @@ export class StryderItem extends Item {
 	  return buttonsHTML;
 	}
 
-	function createDamageButton(damage, damageType = 'ahl') {
+	function createDamageButton(damage, damageType = 'ahl', hasPierce = false) {
 	  return `
 	  <div class="damage-apply-container" style="margin: 5px 0; text-align: center;">
 		<button class="damage-apply-button" 
 				data-damage="${damage}"
-				data-damage-type="${damageType}">
+				data-damage-type="${damageType}"
+				data-has-pierce="${hasPierce}">
 		  Apply <span style="color: #dc3545; font-weight: bold;">${damage}</span> Damage
 		</button>
 	  </div>
@@ -1782,7 +1784,8 @@ export class StryderItem extends Item {
 						let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
 						const totalDamage = baseDamage + masteryBonus;
 
-						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const hasPierce = item.system.tag1 === 'pierce' || item.system.tag2 === 'pierce' || item.system.tag3 === 'pierce';
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal', hasPierce);
 						const combinedMessage = `
 						<div style="margin-bottom: 5px;">
 							<div class="hex-quality-message" style="
@@ -1859,7 +1862,8 @@ export class StryderItem extends Item {
 						let baseDamage = Math.ceil(arcanaValue * damageMultiplier);
 						const totalDamage = baseDamage + masteryBonus;
 
-						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const hasPierce = item.system.tag1 === 'pierce' || item.system.tag2 === 'pierce' || item.system.tag3 === 'pierce';
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal', hasPierce);
 						const combinedMessage = `
 						<div style="margin-bottom: 5px;">
 							<div class="hex-quality-message" style="
@@ -1989,7 +1993,8 @@ export class StryderItem extends Item {
 						}
 						const totalDamage = baseDamage + masteryBonus;
 
-						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal');
+						const hasPierce = item.system.tag1 === 'pierce' || item.system.tag2 === 'pierce' || item.system.tag3 === 'pierce';
+						const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'magykal', hasPierce);
 						const qualityMessage = `
 						<div class="damage-quality ${quality.toLowerCase()}">
 						  ${statusPrefix}You casted a <strong>${quality} Hex!</strong> If the Hex deals damage, you did <strong>${totalDamage}</strong> damage.
@@ -2336,7 +2341,8 @@ export class StryderItem extends Item {
 			const horrifiedPrefix = isActorHorrified(actor) ? `<strong>${actor.name} is Horrified!</strong> ` : "";
 			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
 			const statusPrefix = horrifiedPrefix || panickedPrefix;
-			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'physical');
+			const hasPierce = item.system.tag1 === 'pierce' || item.system.tag2 === 'pierce' || item.system.tag3 === 'pierce';
+			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'physical', hasPierce);
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
 			  ${statusPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
@@ -2454,7 +2460,8 @@ export class StryderItem extends Item {
 			const horrifiedPrefix = isActorHorrified(actor) ? `<strong>${actor.name} is Horrified!</strong> ` : "";
 			const panickedPrefix = isActorPanicked(actor) ? `<strong>${actor.name} is Panicked!</strong> ` : "";
 			const statusPrefix = horrifiedPrefix || panickedPrefix;
-			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'ahl');
+			const hasPierce = item.system.tag1 === 'pierce' || item.system.tag2 === 'pierce' || item.system.tag3 === 'pierce';
+			const damageButton = createDamageButton(totalDamage, item.system.damage_type || 'ahl', hasPierce);
 			const qualityMessage = `
 			<div class="damage-quality ${quality.toLowerCase()}">
 			  ${statusPrefix}<strong>${quality} Attack!</strong> The attack did <strong>${totalDamage}</strong> damage.
@@ -2489,6 +2496,7 @@ async function handleDamageApply(event) {
   const button = event.currentTarget;
   const damage = parseInt(button.dataset.damage) || 0;
   const damageType = button.dataset.damageType || 'ahl'; // Default to ahl if not specified
+  const hasPierce = button.dataset.hasPierce === 'true'; // Check if Pierce tag is present
   
   if (damage < 0) {
 	console.error("Invalid damage amount:", damage);
@@ -2546,8 +2554,8 @@ async function handleDamageApply(event) {
 	let healthDamage = 0;
 	let remainingDamage = finalDamage;
 	
-	if (targetActor.type === "monster") {
-	  // For monsters, damage armor first, then health
+	if (targetActor.type === "monster" && !hasPierce) {
+	  // For monsters, damage armor first, then health (unless Pierce tag is present)
 	  const currentArmor = targetActor.system.armor?.value || 0;
 	  if (currentArmor > 0) {
 		armorDamage = Math.min(remainingDamage, currentArmor);
@@ -2580,7 +2588,8 @@ async function handleDamageApply(event) {
 	  originalDamage: damage,
 	  finalDamage: finalDamage,
 	  reductionAmount: reductionAmount,
-	  reductionType: reductionType
+	  reductionType: reductionType,
+	  hasPierce: hasPierce
 	});
 	
 	actorUpdates.push({
@@ -2609,10 +2618,6 @@ async function handleDamageApply(event) {
 	// Create chat message
 	let damageMessage;
 	let undoButton = "";
-	let reductionInfoIcon = "";
-	
-	// Check if any actor had damage reduced
-	const hasReduction = damageResults.some(result => result.reductionAmount > 0);
 	
 	if (damage === 0 || damageResults.every(result => result.finalDamage === 0)) {
 	  if (targetActors.length === 1) {
@@ -2621,19 +2626,24 @@ async function handleDamageApply(event) {
 		damageMessage = `The following took no damage:<br>• ${targetActors.map(actor => actor.name).join('<br>• ')}`;
 	  }
 	  
-	  // Add reduction info icon even for no damage if there was reduction
-	  if (hasReduction) {
-		const totalReduction = damageResults.reduce((sum, result) => sum + result.reductionAmount, 0);
-		const reductionTypes = [...new Set(damageResults.filter(r => r.reductionAmount > 0).map(r => r.reductionType))];
-		const reductionTypeText = reductionTypes.join('/');
+	  // Add combined info icon for Pierce and/or reduction even for no damage
+	  const hasAnyModifier = damageResults.some(result => result.hasPierce || result.reductionAmount > 0);
+	  if (hasAnyModifier) {
+		const result = damageResults[0]; // For no damage, we can use the first result
+		let infoTitle = "";
+		if (result.hasPierce && result.reductionAmount > 0) {
+		  infoTitle = `Armor ignored due to Pierce tag. -${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		} else if (result.hasPierce) {
+		  infoTitle = "Armor ignored due to Pierce tag.";
+		} else if (result.reductionAmount > 0) {
+		  infoTitle = `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		}
 		
-		reductionInfoIcon = `
-		  <span class="reduction-info-container" style="margin-right: 5px;">
-			<i class="fas fa-info-circle reduction-info" 
-			   title="-${totalReduction} less damage from ${reductionTypeText} reduction." 
-			   style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
-		  </span>
-		`;
+		damageMessage += ` <span class="reduction-info-container" style="margin-left: 5px;">
+		  <i class="fas fa-info-circle reduction-info" 
+			 title="${infoTitle}" 
+			 style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
+		</span>`;
 	  }
 	} else {
 	  if (targetActors.length === 1) {
@@ -2643,6 +2653,24 @@ async function handleDamageApply(event) {
 		  damageMessage += ` (${result.armorDamage} to armor, ${result.healthDamage} to health)`;
 		}
 		damageMessage += ".";
+		
+		// Add combined info icon for Pierce and/or reduction
+		if (result.hasPierce || result.reductionAmount > 0) {
+		  let infoTitle = "";
+		  if (result.hasPierce && result.reductionAmount > 0) {
+			infoTitle = `Armor ignored due to Pierce tag. -${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		  } else if (result.hasPierce) {
+			infoTitle = "Armor ignored due to Pierce tag.";
+		  } else if (result.reductionAmount > 0) {
+			infoTitle = `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		  }
+		  
+		  damageMessage += ` <span class="reduction-info-container" style="margin-left: 5px;">
+			<i class="fas fa-info-circle reduction-info" 
+			   title="${infoTitle}" 
+			   style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
+		  </span>`;
+		}
 	  } else {
 		damageMessage = `The following took damage:<br>`;
 		damageMessage += damageResults.map(result => {
@@ -2652,6 +2680,24 @@ async function handleDamageApply(event) {
 		  let line = `• ${result.actor.name}: ${result.finalDamage} damage`;
 		  if (result.actor.type === "monster" && result.armorDamage > 0) {
 			line += ` (${result.armorDamage} armor, ${result.healthDamage} health)`;
+		  }
+		  
+		  // Add combined info icon for Pierce and/or reduction
+		  if (result.hasPierce || result.reductionAmount > 0) {
+			let infoTitle = "";
+			if (result.hasPierce && result.reductionAmount > 0) {
+			  infoTitle = `Armor ignored due to Pierce tag. -${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+			} else if (result.hasPierce) {
+			  infoTitle = "Armor ignored due to Pierce tag.";
+			} else if (result.reductionAmount > 0) {
+			  infoTitle = `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+			}
+			
+			line += ` <span class="reduction-info-container" style="margin-left: 5px;">
+			  <i class="fas fa-info-circle reduction-info" 
+				 title="${infoTitle}" 
+				 style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
+			</span>`;
 		  }
 		  return line;
 		}).join('<br>');
@@ -2669,20 +2715,6 @@ async function handleDamageApply(event) {
 		</span>
 	  `;
 	  
-	  // Add reduction info icon if there was any reduction
-	  if (hasReduction) {
-		const totalReduction = damageResults.reduce((sum, result) => sum + result.reductionAmount, 0);
-		const reductionTypes = [...new Set(damageResults.filter(r => r.reductionAmount > 0).map(r => r.reductionType))];
-		const reductionTypeText = reductionTypes.join('/');
-		
-		reductionInfoIcon = `
-		  <span class="reduction-info-container" style="margin-right: 5px;">
-			<i class="fas fa-info-circle reduction-info" 
-			   title="-${totalReduction} less damage from ${reductionTypeText} reduction." 
-			   style="color: #17a2b8; cursor: help; font-size: 14px;"></i>
-		  </span>
-		`;
-	  }
 	}
 	
 	ChatMessage.create({
@@ -2695,7 +2727,7 @@ async function handleDamageApply(event) {
 					border: 1px solid #c9a66b; 
 					border-radius: 3px;">
 		  <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b; color: #dc3545;"><strong>Damage Applied</strong></h3>
-		  <p style="margin-bottom: 0;"><span class="damage-text">${damageMessage}</span>${reductionInfoIcon}${undoButton}</p>
+		  <p style="margin-bottom: 0;"><span class="damage-text">${damageMessage}</span>${undoButton}</p>
 		</div>
 	  `,
 	  type: CONST.CHAT_MESSAGE_TYPES.OTHER

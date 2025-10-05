@@ -58,6 +58,19 @@ export class StryderActor extends Actor {
 		  }
 		}, data);
 	  }
+	  // Initialize default data for familiars
+	  if (data.type === 'familiar') {
+		data = foundry.utils.mergeObject({
+		  system: {
+			health: { value: 0, max: 0 },
+			stamina: { value: 2, max: 2 },
+			appetite: { value: 0 }
+		  },
+		  prototypeToken: {
+			actorLink: true
+		  }
+		}, data);
+	  }
 	  // For character type
 	  if (data.type === 'character') {
 		data = foundry.utils.mergeObject({
@@ -88,6 +101,7 @@ export class StryderActor extends Actor {
     // things organized.
     this._prepareCharacterData(actorData);
     this._prepareNpcData(actorData);
+    this._prepareFamiliarData(actorData);
   }
 
   /**
@@ -382,6 +396,54 @@ export class StryderActor extends Actor {
   }
 
   /**
+   * Prepare Familiar type specific data
+   */
+  _prepareFamiliarData(actorData) {
+    if (actorData.type !== 'familiar') return;
+
+    const systemData = actorData.system;
+
+    // Calculate max HP for familiars
+    this._calculateFamiliarMaxHP(actorData);
+  }
+
+  /**
+   * Calculate the familiar's max HP based on familiar.base_hp
+   * @param {Object} actorData The actor data to modify
+   */
+  _calculateFamiliarMaxHP(actorData) {
+    const system = actorData.system;
+    const baseHP = system.familiar?.base_hp || 0;
+    const hpMod = system.health?.max?.mod || 0;
+    
+    // Get burning and bloodloss health reduction from flags
+    const burningReduction = actorData.flags[SYSTEM_ID]?.burningHealthReduction || 0;
+    const bloodlossReduction = actorData.flags[SYSTEM_ID]?.bloodlossHealthReduction || 0;
+    const totalReduction = burningReduction + bloodlossReduction;
+
+    // Calculate max HP from familiar base_hp
+    let maxHP = baseHP + hpMod - totalReduction;
+
+    // Ensure health exists
+    if (!system.health) {
+      system.health = { 
+        value: 0, 
+        min: 0, 
+        max: 0,
+        max: {
+          mod: 0
+        }
+      };
+    }
+
+    // Update max HP, preserving current HP value but clamping it to new max
+    const currentHP = system.health.value || 0;
+    system.health.max = Math.max(0, maxHP); // Ensure max HP doesn't go below 0
+    system.health.value = Math.min(currentHP, system.health.max);
+    system.health.min = 0;
+  }
+
+  /**
    * Override getRollData() that's supplied to rolls.
    */
   getRollData() {
@@ -391,6 +453,7 @@ export class StryderActor extends Actor {
     // Prepare character roll data.
     this._getCharacterRollData(data);
     this._getNpcRollData(data);
+    this._getFamiliarRollData(data);
 
     return data;
   }
@@ -422,5 +485,15 @@ export class StryderActor extends Actor {
     if (this.type !== 'npc') return;
 
     // Process additional NPC data here.
+  }
+
+  /**
+   * Prepare familiar roll data.
+   */
+  _getFamiliarRollData(data) {
+    if (this.type !== 'familiar') return;
+
+    // Process additional familiar data here.
+    // For now, familiars don't need special roll data processing beyond what's in the base system
   }
 }

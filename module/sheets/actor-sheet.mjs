@@ -182,6 +182,11 @@ export class StryderActorSheet extends ActorSheet {
       this._prepareCharacterData(context);
     }
 
+    if (actorData.type == 'familiar') {
+      this._prepareItems(context);
+      this._prepareCharacterData(context);
+    }
+
     // Add roll data for TinyMCE editors.
     context.rollData = context.actor.getRollData();
 
@@ -615,6 +620,9 @@ export class StryderActorSheet extends ActorSheet {
 		  // Remove exhaustion effects
 		  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
 		  await removeExhaustionEffects(this.actor);
+		  // Remove haggard effects
+		  const { removeHaggardEffects } = await import('../conditions/haggard.mjs');
+		  await removeHaggardEffects(this.actor);
 		  break;
 		  
 		case 'springOfLife':
@@ -671,6 +679,9 @@ export class StryderActorSheet extends ActorSheet {
 			  // Remove exhaustion effects
 			  const { removeExhaustionEffects } = await import('../conditions/exhaustion.mjs');
 			  await removeExhaustionEffects(this.actor);
+			  // Remove haggard effects
+			  const { removeHaggardEffects } = await import('../conditions/haggard.mjs');
+			  await removeHaggardEffects(this.actor);
 			  
 			  // Reset uses for skills and folk abilities with perRest cooldown
 			  const itemsToReset = this.actor.items.filter(item => 
@@ -778,14 +789,17 @@ export class StryderActorSheet extends ActorSheet {
 	  }
 	});
 
-	// Jump distance click handler
-	html.on('click', '.jump-item.rollable', async (ev) => {
+	// Quick action click handler (Jump distances and Grapple)
+	html.on('click', '.quick-action-item.rollable', async (ev) => {
 		ev.preventDefault();
-		const jumpItem = ev.currentTarget;
-		const jumpType = jumpItem.dataset.jumpType;
+		const actionItem = ev.currentTarget;
+		const jumpType = actionItem.dataset.jumpType;
+		const actionType = actionItem.dataset.actionType;
 		const actor = this.actor;
 		
-		// Calculate distances
+		if (jumpType) {
+			// Handle jump actions
+			// Calculate distances
 		let verticalDistance = Math.floor(actor.system.attributes.talent.strength.value / 2);
 		let horizontalDistance = actor.system.attributes.talent.nimbleness.value;
 		
@@ -895,6 +909,10 @@ export class StryderActorSheet extends ActorSheet {
 			content: message,
 			speaker: ChatMessage.getSpeaker({actor: actor})
 		});
+		} else if (actionType === 'grapple') {
+			// Handle grapple action
+			await this._handleGrappleAction(actor);
+		}
 	});
 
 	// Talent dropdown changes
@@ -1197,6 +1215,42 @@ export class StryderActorSheet extends ActorSheet {
     } else {
       console.warn(`Compendium pack stryder.${packName} not found`);
     }
+  }
+
+  /**
+   * Handle grapple action
+   * @param {Actor} actor   The actor initiating the grapple
+   * @private
+   */
+  async _handleGrappleAction(actor) {
+    // Roll the grapple check (2d6 + Strength)
+    const grappleRoll = new Roll('2d6+@attributes.talent.strength.value', actor.getRollData());
+    await grappleRoll.evaluate();
+    
+    // Create the grapple chat message with roll result and resistance button
+    const content = `
+      <div style="background: url('systems/stryder/assets/parchment.jpg'); 
+                  background-size: cover; 
+                  padding: 15px; 
+                  border: 1px solid #c9a66b; 
+                  border-radius: 3px;">
+        <h3 style="margin-top: 0; border-bottom: 1px solid #c9a66b;"><strong>Grapple Check</strong></h3>
+        <p><strong>${actor.name}</strong> has initiated a Grapple check!</p>
+        <div style="margin: 10px 0; padding: 10px; background-color: rgba(0,0,0,0.1); border-radius: 3px;">
+          <strong>Grapple Roll:</strong> ${grappleRoll.total}
+        </div>
+        <button class="grapple-resist-button" data-grapple-dc="${grappleRoll.total}" data-grappler-id="${actor.id}" 
+                style="background-color: #8b5a2b; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer;">
+          Roll to Resist
+        </button>
+      </div>
+    `;
+    
+    await ChatMessage.create({
+      content: content,
+      speaker: ChatMessage.getSpeaker({actor: actor}),
+      rolls: [grappleRoll]
+    });
   }
 
   /**

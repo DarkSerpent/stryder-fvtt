@@ -11,6 +11,7 @@ STRYDER.abilities = {
   int: 'STRYDER.Ability.arcana.long',
   wis: 'STRYDER.Ability.intuition.long',
   cha: 'STRYDER.Ability.will.long',
+  Appetite: 'Appetite',
 };
 
 STRYDER.abilityAbbreviations = {

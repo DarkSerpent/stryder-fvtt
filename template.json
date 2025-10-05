@@ -1,6 +1,6 @@
 {
   "Actor": {
-    "types": ["character", "npc", "monster", "lordling"],
+    "types": ["character", "npc", "monster", "lordling", "familiar"],
     "templates": {
       "base": {
         "health": {
@@ -428,6 +428,119 @@
     "npc": {
       "templates": ["base"],
       "level": 0
+    },
+    "familiar": {
+      "templates": ["base"],
+      "attributes": {
+        "creature_size": "1",
+        "weight_class": 4,
+        "familiar_type": "Pet",
+        "trust_level": "Stranger",
+        "trust_exp": {
+          "value": 0
+        },
+        "physical_potency": {
+          "value": 0
+        },
+        "magykal_potency": {
+          "value": 0
+        },
+        "physical_resistance": {
+          "base": 0
+        },
+        "magykal_resistance": {
+          "base": 0
+        },
+        "move": {
+          "running": {
+            "value": 7,
+            "expertise": false
+          },
+          "climbing": {
+            "value": 3,
+            "expertise": false
+          },
+          "crawling": {
+            "value": 2,
+            "expertise": false
+          },
+          "marching": {
+            "value": 4,
+            "expertise": false
+          },
+          "swimming": {
+            "value": 4,
+            "expertise": false
+          },
+          "max": 7
+        },
+        "sense": {
+          "sight": {
+            "value": 0
+          },
+          "hearing": {
+            "value": 0
+          },
+          "smell": {
+            "value": 0
+          },
+          "arcane": {
+            "value": 0
+          },
+          "touch": {
+            "value": 0
+          }
+        },
+        "talent": {
+          "endurance": {
+            "value": 0
+          },
+          "nimbleness": {
+            "value": 0
+          },
+          "finesse": {
+            "value": 0
+          },
+          "strength": {
+            "value": 0
+          },
+          "survival": {
+            "value": 0
+          },
+          "charm": {
+            "value": 0
+          },
+          "wit": {
+            "value": 0
+          },
+          "wisdom": {
+            "value": 0
+          },
+          "deceit": {
+            "value": 0
+          },
+          "diplomacy": {
+            "value": 0
+          },
+          "intimacy": {
+            "value": 0
+          },
+          "aggression": {
+            "value": 0
+          }
+        }
+      },
+      "abilities": {
+        "Appetite": {
+          "value": 0
+        }
+      },
+      "appetite": {
+        "value": 0
+      },
+      "familiar": {
+        "base_hp": 0
+      }
     }
   },
   "Item": {

@@ -16,6 +16,8 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/stryder/templates/actor/parts/monster-battle.hbs',
     'systems/stryder/templates/actor/parts/lordling-features.hbs',
     'systems/stryder/templates/actor/parts/lordling-battle.hbs',
+    'systems/stryder/templates/actor/parts/familiar-features.hbs',
+    'systems/stryder/templates/actor/parts/familiar-battle.hbs',
     // Item partials
     'systems/stryder/templates/item/parts/item-effects.hbs',
 	// Combat templates

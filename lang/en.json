@@ -157,14 +157,15 @@
       "character": "Character",
       "lordling": "Lordling",
       "npc": "NPC",
-      "monster": "Monster"
+      "monster": "Monster",
+      "familiar": "Familiar"
     },
     "Item": {
       "action": "Action",
       "armament": "Armament",
       "generic": "Generic Attack",
       "aegiscore": "Aegis Core",
-      "legacies": "Soul Stone& Legacy",
+      "legacies": "Soul Stone & Legacy",
       "head": "Head Slot",
       "back": "Back Slot",
       "arms": "Arms Slot",
@@ -290,8 +291,10 @@
   "Folk Abilities": "Folk Abilities",
   "Techniques": "Techniques",
   "Jump Distances": "Jump Distances",
+  "Quick Actions": "Quick Actions",
   "Vertical": "Vertical",
   "Horizontal": "Horizontal",
+  "Grapple": "Grapple",
   "Movement Speeds": "Movement Speeds",
   "Stat Perks": "Stat Perks",
   "Fantasms": "Fantasms",
@@ -330,5 +333,16 @@
   "Class": "Class",
   "Folk": "Folk",
   "The Vault": "The Vault",
-  "The Vault Description": "The Vault (idiomatically expressed as \"my Vault\" and \"your Vault\") manifests as a personalized pocket dimension that operates outside normal spatial-temporal constraints. Observations indicate that while storage capacity has definite limitations, items contained within these spaces experience suspension of both gravitational effects and temporal degradation processes. This characteristic proves particularly valuable for Stryders, as it eliminates the physical burden of carried equipment and specimens. While current evidence suggests Vault manifestation is limited to those within the Stryder designation, several theoretical frameworks propose that this ability may potentially exist in a broader population, possibly in dormant or undeveloped states."
+  "The Vault Description": "The Vault (idiomatically expressed as \"my Vault\" and \"your Vault\") manifests as a personalized pocket dimension that operates outside normal spatial-temporal constraints. Observations indicate that while storage capacity has definite limitations, items contained within these spaces experience suspension of both gravitational effects and temporal degradation processes. This characteristic proves particularly valuable for Stryders, as it eliminates the physical burden of carried equipment and specimens. While current evidence suggests Vault manifestation is limited to those within the Stryder designation, several theoretical frameworks propose that this ability may potentially exist in a broader population, possibly in dormant or undeveloped states.",
+  "Trust EXP": "Trust EXP",
+  "Familiar Type": "Familiar Type",
+  "Trust Level": "Trust Level",
+  "Pet": "Pet",
+  "Companion": "Companion",
+  "Stranger": "Stranger",
+  "Friend": "Friend",
+  "Comrade": "Comrade",
+  "Best Friend": "Best Friend",
+  "Appetite": "Appetite",
+  "Familiar Passives": "Familiar Passives"
 }

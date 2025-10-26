@@ -118,7 +118,14 @@
 </div>
   {{!-- Sheet Header --}}
   <header class="sheet-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+    <div class="profile-section" style="margin-top: 35px;">
+      <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+      <div class="ward-container" style="margin-top: 10px; margin-left: -5px;">
+        <div class="ward-shield">
+          <input type="number" name="system.ward.value" value="{{system.ward.value}}" data-dtype="Number" min="0" />
+        </div>
+      </div>
+    </div>
     <div class="header-fields">
 		<div class="fantasy-input" style="width: 450px; display: flex; align-items: center; gap: 20px;">
 				<input name="name" type="text" value="{{actor.name}}" placeholder="Name" style="flex: 1;"/>

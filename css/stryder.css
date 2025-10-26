@@ -942,14 +942,13 @@ progress.resource2-bar::-moz-progress-bar {
 
 .logo {
     position: absolute;
-	width: 125px !important;
-	height: 125px !important;
+	width: 125px;
+	height: 125px;
 	object-fit: contain;
 	border: 0px;
     top: -20px;
     left: -14px;
 }
-
 .centered-grid {
     display: flex;
     justify-content: center;
@@ -5367,4 +5366,67 @@ progress.resource2-bar::-moz-progress-bar {
 
 .stryder-delete-confirm .dialog-button.no:hover {
   background: #c82333 !important;
+}
+
+/* Ward Shield styles */
+.profile-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ward-container {
+  position: relative;
+  margin-top: -20px;
+  z-index: 2;
+}
+
+.ward-shield {
+  position: relative;
+  width: 60px;
+  height: 70px;
+  background: linear-gradient(45deg, #c0c0c0, #e8e8e8, #c0c0c0);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8b0000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.ward-shield input {
+  width: 40px;
+  height: 30px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1.2em;
+  font-weight: bold;
+  font-family: "MedievalSharp", cursive;
+}
+
+.ward-shield input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.ward-shield input::-webkit-inner-spin-button,
+.ward-shield input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ward-shield::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 62px;
+  background: linear-gradient(135deg, #8b0000 0%, #600000 100%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  z-index: -1;
 }

@@ -138,8 +138,10 @@ export class StryderActorSheet extends ActorSheet {
 
 	// Calculate jump distances
 	const talent = actorData.system.attributes?.talent;
-	context.verticalJumpDistance = talent?.strength?.value ? Math.floor(talent.strength.value / 2) : 0;
-	context.horizontalJumpDistance = talent?.nimbleness?.value ?? 0;
+	const horizontalMod = actorData.system.attributes?.horizontal_leap?.mod ?? 0;
+	const verticalMod = actorData.system.attributes?.vertical_leap?.mod ?? 0;
+	context.verticalJumpDistance = (talent?.strength?.value ? Math.floor(talent.strength.value / 2) : 0) + verticalMod;
+	context.horizontalJumpDistance = (talent?.nimbleness?.value ?? 0) + horizontalMod;
 
 	// Apply Practiced Form bonuses if enabled
 	if (actorData.system.booleans?.hasPracticedForm && talent) {
@@ -802,6 +804,12 @@ export class StryderActorSheet extends ActorSheet {
 			// Calculate distances
 		let verticalDistance = Math.floor(actor.system.attributes.talent.strength.value / 2);
 		let horizontalDistance = actor.system.attributes.talent.nimbleness.value;
+		
+		// Apply leap modifiers
+		const verticalMod = actor.system.attributes?.vertical_leap?.mod ?? 0;
+		const horizontalMod = actor.system.attributes?.horizontal_leap?.mod ?? 0;
+		verticalDistance += verticalMod;
+		horizontalDistance += horizontalMod;
 		
 		// Apply Practiced Form bonuses if enabled
 		if (actor.system.booleans?.hasPracticedForm) {

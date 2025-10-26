@@ -27,6 +27,10 @@
             "mod": 0
           }
         },
+        "ward": {
+          "value": 0,
+          "min": 0
+        },
         "resource1": {
           "value": 0,
           "min": 0,
@@ -107,6 +111,12 @@
         "mastery": 0,
         "creature_size": "1",
         "weight_class": 4,
+        "horizontal_leap": {
+          "mod": 0
+        },
+        "vertical_leap": {
+          "mod": 0
+        },
         "physical_potency": {
           "mod": 0
         },

@@ -2551,10 +2551,20 @@ async function handleDamageApply(event) {
 	
 	// Calculate damage breakdown for this actor
 	let armorDamage = 0;
+	let wardDamage = 0;
 	let healthDamage = 0;
 	let remainingDamage = finalDamage;
+	let infoTitle = '';
 	
-	if (targetActor.type === "monster" && !hasPierce) {
+	// Check for ward first (actors cannot have both ward and armor)
+	const currentWard = targetActor.system.ward?.value || 0;
+	if (currentWard > 0 && !hasPierce) {
+	  // Damage ward first, then health (unless Pierce tag is present)
+	  wardDamage = Math.min(remainingDamage, currentWard);
+	  remainingDamage -= wardDamage;
+	} else if (currentWard > 0 && hasPierce) {
+	  infoTitle = 'Ward was ignored due to Pierce tag.';
+	} else if (targetActor.type === "monster" && !hasPierce) {
 	  // For monsters, damage armor first, then health (unless Pierce tag is present)
 	  const currentArmor = targetActor.system.armor?.value || 0;
 	  if (currentArmor > 0) {
@@ -2570,6 +2580,9 @@ async function handleDamageApply(event) {
 	
 	// Prepare updates for this actor
 	let updates = {};
+	if (wardDamage > 0) {
+	  updates['system.ward.value'] = Math.max(0, currentWard - wardDamage);
+	}
 	if (armorDamage > 0) {
 	  const currentArmor = targetActor.system.armor?.value || 0;
 	  updates['system.armor.value'] = Math.max(0, currentArmor - armorDamage);
@@ -2583,13 +2596,15 @@ async function handleDamageApply(event) {
 	damageResults.push({
 	  actor: targetActor,
 	  armorDamage: armorDamage,
+	  wardDamage: wardDamage,
 	  healthDamage: healthDamage,
-	  totalDamage: armorDamage + healthDamage,
+	  totalDamage: armorDamage + wardDamage + healthDamage,
 	  originalDamage: damage,
 	  finalDamage: finalDamage,
 	  reductionAmount: reductionAmount,
 	  reductionType: reductionType,
-	  hasPierce: hasPierce
+	  hasPierce: hasPierce,
+	  infoTitle: infoTitle
 	});
 	
 	actorUpdates.push({
@@ -2649,20 +2664,21 @@ async function handleDamageApply(event) {
 	  if (targetActors.length === 1) {
 		const result = damageResults[0];
 		damageMessage = `${result.actor.name} took ${result.finalDamage} damage`;
-		if (result.actor.type === "monster" && result.armorDamage > 0) {
+		
+		// Add damage breakdown
+		if (result.wardDamage > 0) {
+		  damageMessage += ` (${result.wardDamage} to ward, ${result.healthDamage} to health)`;
+		} else if (result.actor.type === "monster" && result.armorDamage > 0) {
 		  damageMessage += ` (${result.armorDamage} to armor, ${result.healthDamage} to health)`;
 		}
 		damageMessage += ".";
 		
 		// Add combined info icon for Pierce and/or reduction
-		if (result.hasPierce || result.reductionAmount > 0) {
-		  let infoTitle = "";
-		  if (result.hasPierce && result.reductionAmount > 0) {
-			infoTitle = `Armor ignored due to Pierce tag. -${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
-		  } else if (result.hasPierce) {
-			infoTitle = "Armor ignored due to Pierce tag.";
-		  } else if (result.reductionAmount > 0) {
-			infoTitle = `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		if (result.infoTitle || result.reductionAmount > 0) {
+		  let infoTitle = result.infoTitle || "";
+		  if (result.reductionAmount > 0) {
+		    if (infoTitle) infoTitle += " ";
+			infoTitle += `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
 		  }
 		  
 		  damageMessage += ` <span class="reduction-info-container" style="margin-left: 5px;">
@@ -2678,19 +2694,20 @@ async function handleDamageApply(event) {
 			return `• ${result.actor.name}: no damage`;
 		  }
 		  let line = `• ${result.actor.name}: ${result.finalDamage} damage`;
-		  if (result.actor.type === "monster" && result.armorDamage > 0) {
-			line += ` (${result.armorDamage} armor, ${result.healthDamage} health)`;
+		  
+		  // Add damage breakdown
+		  if (result.wardDamage > 0) {
+		    line += ` (${result.wardDamage} to ward, ${result.healthDamage} to health)`;
+		  } else if (result.actor.type === "monster" && result.armorDamage > 0) {
+		    line += ` (${result.armorDamage} to armor, ${result.healthDamage} to health)`;
 		  }
 		  
 		  // Add combined info icon for Pierce and/or reduction
-		  if (result.hasPierce || result.reductionAmount > 0) {
-			let infoTitle = "";
-			if (result.hasPierce && result.reductionAmount > 0) {
-			  infoTitle = `Armor ignored due to Pierce tag. -${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
-			} else if (result.hasPierce) {
-			  infoTitle = "Armor ignored due to Pierce tag.";
-			} else if (result.reductionAmount > 0) {
-			  infoTitle = `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
+		  if (result.infoTitle || result.reductionAmount > 0) {
+		    let infoTitle = result.infoTitle || "";
+		    if (result.reductionAmount > 0) {
+		      if (infoTitle) infoTitle += " ";
+		      infoTitle += `-${result.reductionAmount} less damage from ${result.reductionType} reduction.`;
 			}
 			
 			line += ` <span class="reduction-info-container" style="margin-left: 5px;">
@@ -2708,6 +2725,7 @@ async function handleDamageApply(event) {
 		<span class="damage-undo-container" style="margin-left: 5px;">
 		  <i class="fas fa-undo-alt damage-undo" 
 			 data-actor-ids="${damageResults.map(r => r.actor.id).join(',')}" 
+			 data-ward-damages="${damageResults.map(r => r.wardDamage).join(',')}" 
 			 data-armor-damages="${damageResults.map(r => r.armorDamage).join(',')}" 
 			 data-health-damages="${damageResults.map(r => r.healthDamage).join(',')}"
 			 title="Undo Damage" 
@@ -2758,6 +2776,7 @@ async function handleDamageUndo(event) {
   event.preventDefault();
   const undoIcon = event.currentTarget;
   const actorIds = undoIcon.dataset.actorIds;
+  const wardDamages = undoIcon.dataset.wardDamages;
   const armorDamages = undoIcon.dataset.armorDamages;
   const healthDamages = undoIcon.dataset.healthDamages;
   
@@ -2768,6 +2787,7 @@ async function handleDamageUndo(event) {
   
   // Parse the comma-separated values
   const actorIdList = actorIds.split(',');
+  const wardDamageList = wardDamages ? wardDamages.split(',').map(d => parseInt(d) || 0) : [];
   const armorDamageList = armorDamages.split(',').map(d => parseInt(d) || 0);
   const healthDamageList = healthDamages.split(',').map(d => parseInt(d) || 0);
   
@@ -2783,15 +2803,26 @@ async function handleDamageUndo(event) {
   
   for (let i = 0; i < targetActors.length; i++) {
 	const targetActor = targetActors[i];
+	const wardDamage = wardDamageList[i] || 0;
 	const armorDamage = armorDamageList[i] || 0;
 	const healthDamage = healthDamageList[i] || 0;
 	
 	let updates = {};
+	
+	// Restore ward if damaged
+	if (wardDamage > 0) {
+	  const currentWard = targetActor.system.ward?.value || 0;
+	  updates['system.ward.value'] = currentWard + wardDamage;
+	}
+	
+	// Restore armor if damaged
 	if (armorDamage > 0) {
 	  const currentArmor = targetActor.system.armor?.value || 0;
 	  const maxArmor = targetActor.system.armor?.max || currentArmor + armorDamage;
 	  updates['system.armor.value'] = Math.min(maxArmor, currentArmor + armorDamage);
 	}
+	
+	// Restore health if damaged
 	if (healthDamage > 0) {
 	  const currentHealth = targetActor.system.health?.value || 0;
 	  const maxHealth = targetActor.system.health?.max || currentHealth + healthDamage;
@@ -2801,6 +2832,7 @@ async function handleDamageUndo(event) {
 	actorUpdates.push({
 	  actor: targetActor,
 	  updates: updates,
+	  wardDamage: wardDamage,
 	  armorDamage: armorDamage,
 	  healthDamage: healthDamage
 	});
@@ -2812,10 +2844,22 @@ async function handleDamageUndo(event) {
 	  await actor.update(updates);
 	}
 	
+	// Create restoration message
+	const restoredTypes = new Set();
+	for (const update of actorUpdates) {
+	  if (update.wardDamage) restoredTypes.add("Ward");
+	  if (update.armorDamage) restoredTypes.add("Armor");
+	  if (update.healthDamage) restoredTypes.add("Health");
+	}
+	const uniqueRestorations = Array.from(restoredTypes);
+	const tooltipText = uniqueRestorations.length > 0 
+	  ? `Restored: ${uniqueRestorations.join(", ")}`
+	  : "Damage Restored";
+	
 	// Disable the undo button and add visual feedback
 	undoIcon.style.color = "#28a745";
 	undoIcon.style.cursor = "not-allowed";
-	undoIcon.title = "Damage Restored";
+	undoIcon.title = tooltipText;
 	
 	// Find the parent paragraph and add strikethrough to the damage text
 	const parentParagraph = undoIcon.closest('p');
@@ -2862,31 +2906,38 @@ async function handleDamageUndo(event) {
 	}
 	
 	// Create restoration chat message
-	const totalRestored = actorUpdates.reduce((sum, { armorDamage, healthDamage }) => sum + armorDamage + healthDamage, 0);
+	const totalRestored = actorUpdates.reduce((sum, { armorDamage, wardDamage, healthDamage }) => 
+	  sum + (armorDamage || 0) + (wardDamage || 0) + (healthDamage || 0), 0);
 	let restorationMessage;
 	
 	if (targetActors.length === 1) {
-	  const { armorDamage, healthDamage } = actorUpdates[0];
+	  const { wardDamage, armorDamage, healthDamage } = actorUpdates[0];
 	  restorationMessage = `Restored ${totalRestored} damage to ${targetActors[0].name}`;
-	  if (armorDamage > 0 && healthDamage > 0) {
-		restorationMessage += ` (${armorDamage} armor, ${healthDamage} health)`;
-	  } else if (armorDamage > 0) {
-		restorationMessage += ` (${armorDamage} armor)`;
-	  } else if (healthDamage > 0) {
-		restorationMessage += ` (${healthDamage} health)`;
+	  
+	  // Build detailed damage breakdown
+	  const parts = [];
+	  if (wardDamage > 0) parts.push(`${wardDamage} ward`);
+	  if (armorDamage > 0) parts.push(`${armorDamage} armor`);
+	  if (healthDamage > 0) parts.push(`${healthDamage} health`);
+	  
+	  if (parts.length > 0) {
+	    restorationMessage += ` (${parts.join(", ")})`;
 	  }
 	  restorationMessage += ".";
 	} else {
 	  restorationMessage = `Restored damage to ${targetActors.length} targets:<br>`;
-	  restorationMessage += actorUpdates.map(({ actor, armorDamage, healthDamage }) => {
-		const total = armorDamage + healthDamage;
+	  restorationMessage += actorUpdates.map(({ actor, wardDamage, armorDamage, healthDamage }) => {
+		const total = (wardDamage || 0) + (armorDamage || 0) + (healthDamage || 0);
 		let line = `• ${actor.name}: ${total} damage restored`;
-		if (armorDamage > 0 && healthDamage > 0) {
-		  line += ` (${armorDamage} armor, ${healthDamage} health)`;
-		} else if (armorDamage > 0) {
-		  line += ` (${armorDamage} armor)`;
-		} else if (healthDamage > 0) {
-		  line += ` (${healthDamage} health)`;
+		
+		// Build detailed damage breakdown
+		const parts = [];
+		if (wardDamage > 0) parts.push(`${wardDamage} ward`);
+		if (armorDamage > 0) parts.push(`${armorDamage} armor`);
+		if (healthDamage > 0) parts.push(`${healthDamage} health`);
+		
+		if (parts.length > 0) {
+		  line += ` (${parts.join(", ")})`;
 		}
 		return line;
 	  }).join('<br>');
